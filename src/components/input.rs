@@ -4,8 +4,8 @@ use crate::animations::{easings, shake_offset};
 use crate::components::icon::Icon;
 pub use crate::components::input_state::{
     Backspace, Copy, Cut, Delete, End, Enter, Escape, Home, InputEvent, InputMask, InputState,
-    InputType, Left, Paste, Right, SelectAll, SelectLeft, SelectRight, ShiftTab, Tab,
-    ValidationError, ValidationRules,
+    InputType, Left, Paste, Right, SelectAll, SelectLeft, SelectRight, SelectWordLeft,
+    SelectWordRight, ShiftTab, Tab, ValidationError, ValidationRules, WordLeft, WordRight,
 };
 use crate::layout::{HStack, VStack};
 use crate::theme::use_theme;
@@ -44,6 +44,23 @@ pub fn init(cx: &mut App) {
         #[cfg(not(target_os = "macos"))]
         KeyBinding::new("ctrl-v", Paste, Some("Input")),
         KeyBinding::new("escape", Escape, Some("Input")),
+        // Word navigation
+        #[cfg(target_os = "macos")]
+        KeyBinding::new("alt-left", WordLeft, Some("Input")),
+        #[cfg(target_os = "macos")]
+        KeyBinding::new("alt-right", WordRight, Some("Input")),
+        #[cfg(not(target_os = "macos"))]
+        KeyBinding::new("ctrl-left", WordLeft, Some("Input")),
+        #[cfg(not(target_os = "macos"))]
+        KeyBinding::new("ctrl-right", WordRight, Some("Input")),
+        #[cfg(target_os = "macos")]
+        KeyBinding::new("alt-shift-left", SelectWordLeft, Some("Input")),
+        #[cfg(target_os = "macos")]
+        KeyBinding::new("alt-shift-right", SelectWordRight, Some("Input")),
+        #[cfg(not(target_os = "macos"))]
+        KeyBinding::new("ctrl-shift-left", SelectWordLeft, Some("Input")),
+        #[cfg(not(target_os = "macos"))]
+        KeyBinding::new("ctrl-shift-right", SelectWordRight, Some("Input")),
     ]);
 }
 
@@ -702,6 +719,10 @@ impl RenderOnce for Input {
                             .on_action(window.listener_for(&self.state, InputState::tab))
                             .on_action(window.listener_for(&self.state, InputState::shift_tab))
                             .on_action(window.listener_for(&self.state, InputState::escape))
+                            .on_action(window.listener_for(&self.state, InputState::word_left))
+                            .on_action(window.listener_for(&self.state, InputState::word_right))
+                            .on_action(window.listener_for(&self.state, InputState::select_word_left))
+                            .on_action(window.listener_for(&self.state, InputState::select_word_right))
                     })
                     .child(
                         HStack::new()

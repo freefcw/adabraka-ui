@@ -40,6 +40,10 @@ actions!(
         Tab,
         ShiftTab,
         Escape,
+        WordLeft,
+        WordRight,
+        SelectWordLeft,
+        SelectWordRight,
     ]
 );
 
@@ -159,6 +163,10 @@ pub struct InputState {
     last_click_time: Option<std::time::Instant>,
     last_click_position: Option<Point<Pixels>>,
 
+    // Cursor blink state
+    cursor_visible: bool,
+    _blink_task: Option<Task<()>>,
+
     // Enhanced features
     pub input_type: InputType,
     pub validation_rules: ValidationRules,
@@ -197,6 +205,8 @@ impl InputState {
             is_selecting: false,
             last_click_time: None,
             last_click_position: None,
+            cursor_visible: true,
+            _blink_task: None,
 
             input_type: InputType::Text,
             validation_rules: ValidationRules::default(),
@@ -673,6 +683,32 @@ impl InputState {
         }
     }
 
+    pub fn word_left(&mut self, _: &WordLeft, _: &mut Window, cx: &mut Context<Self>) {
+        let offset = self.previous_word_boundary(self.cursor_offset());
+        if self.selected_range.is_empty() {
+            self.move_to(offset, cx);
+        } else {
+            self.move_to(self.selected_range.start.min(offset), cx);
+        }
+    }
+
+    pub fn word_right(&mut self, _: &WordRight, _: &mut Window, cx: &mut Context<Self>) {
+        let offset = self.next_word_boundary(self.cursor_offset());
+        if self.selected_range.is_empty() {
+            self.move_to(offset, cx);
+        } else {
+            self.move_to(self.selected_range.end.max(offset), cx);
+        }
+    }
+
+    pub fn select_word_left(&mut self, _: &SelectWordLeft, _: &mut Window, cx: &mut Context<Self>) {
+        self.select_to(self.previous_word_boundary(self.cursor_offset()), cx);
+    }
+
+    pub fn select_word_right(&mut self, _: &SelectWordRight, _: &mut Window, cx: &mut Context<Self>) {
+        self.select_to(self.next_word_boundary(self.cursor_offset()), cx);
+    }
+
     pub fn select_left(&mut self, _: &SelectLeft, _: &mut Window, cx: &mut Context<Self>) {
         self.select_to(self.previous_boundary(self.cursor_offset()), cx);
     }
@@ -682,8 +718,10 @@ impl InputState {
     }
 
     pub fn select_all(&mut self, _: &SelectAll, _: &mut Window, cx: &mut Context<Self>) {
-        self.move_to(0, cx);
-        self.select_to(self.content.len(), cx)
+        self.selected_range = 0..self.content.len();
+        self.selection_reversed = false;
+        self.reset_blink(cx);
+        cx.notify()
     }
 
     pub fn home(&mut self, _: &Home, _: &mut Window, cx: &mut Context<Self>) {
@@ -745,6 +783,7 @@ impl InputState {
         if is_double_click && !self.content.is_empty() {
             self.selected_range = 0..self.content.len();
             self.selection_reversed = false;
+            self.reset_blink(cx);
             cx.notify();
             return;
         }
@@ -805,6 +844,7 @@ impl InputState {
 
     /// Called when the input gains focus
     pub fn on_focus(&mut self, _window: &mut Window, cx: &mut Context<Self>) {
+        self.start_blink(cx);
         if self.select_on_focus && !self.content.is_empty() {
             self.selected_range = 0..self.content.len();
         } else if !self.content.is_empty() && self.cursor_position_override.is_none() {
@@ -818,6 +858,7 @@ impl InputState {
 
     /// Called when the input loses focus
     pub fn on_blur(&mut self, window: &mut Window, cx: &mut Context<Self>) {
+        self.stop_blink();
         if self.trim_on_blur {
             let trimmed = self.content.trim().to_string();
             if trimmed != self.content.as_ref() {
@@ -834,7 +875,10 @@ impl InputState {
     }
 
     fn move_to(&mut self, offset: usize, cx: &mut Context<Self>) {
+        let offset = self.clamp_offset(offset);
         self.selected_range = offset..offset;
+        self.selection_reversed = false;
+        self.reset_blink(cx);
         cx.notify()
     }
 
@@ -872,6 +916,7 @@ impl InputState {
     }
 
     fn select_to(&mut self, offset: usize, cx: &mut Context<Self>) {
+        let offset = self.clamp_offset(offset);
         if self.selection_reversed {
             self.selected_range.start = offset
         } else {
@@ -881,6 +926,7 @@ impl InputState {
             self.selection_reversed = !self.selection_reversed;
             self.selected_range = self.selected_range.end..self.selected_range.start;
         }
+        self.reset_blink(cx);
         cx.notify()
     }
 
@@ -984,6 +1030,21 @@ impl InputState {
         }
     }
 
+    fn clamp_offset(&self, offset: usize) -> usize {
+        offset.min(self.content.len())
+    }
+
+    fn grapheme_is_whitespace(&self, start: usize, end: usize) -> bool {
+        start < end && self.content[start..end].chars().all(|ch| ch.is_whitespace())
+    }
+
+    fn grapheme_is_word(&self, start: usize, end: usize) -> bool {
+        start < end
+            && self.content[start..end]
+                .chars()
+                .all(|ch| ch.is_alphanumeric() || ch == '_')
+    }
+
     fn previous_boundary(&self, offset: usize) -> usize {
         self.content
             .grapheme_indices(true)
@@ -997,6 +1058,112 @@ impl InputState {
             .grapheme_indices(true)
             .find_map(|(idx, _)| (idx > offset).then_some(idx))
             .unwrap_or(self.content.len())
+    }
+
+    fn previous_word_boundary(&self, offset: usize) -> usize {
+        let mut current = self.clamp_offset(offset);
+
+        while current > 0 {
+            let previous = self.previous_boundary(current);
+            if !self.grapheme_is_whitespace(previous, current) {
+                break;
+            }
+            current = previous;
+        }
+
+        if current == 0 {
+            return 0;
+        }
+
+        let previous = self.previous_boundary(current);
+        let is_word = self.grapheme_is_word(previous, current);
+
+        while current > 0 {
+            let previous = self.previous_boundary(current);
+            if self.grapheme_is_whitespace(previous, current)
+                || self.grapheme_is_word(previous, current) != is_word
+            {
+                break;
+            }
+            current = previous;
+        }
+
+        current
+    }
+
+    fn next_word_boundary(&self, offset: usize) -> usize {
+        let mut current = self.clamp_offset(offset);
+        let len = self.content.len();
+
+        if current >= len {
+            return len;
+        }
+
+        let next = self.next_boundary(current);
+
+        if self.grapheme_is_word(current, next) {
+            while current < len {
+                let next = self.next_boundary(current);
+                if next == current || !self.grapheme_is_word(current, next) {
+                    break;
+                }
+                current = next;
+            }
+        } else if !self.grapheme_is_whitespace(current, next) {
+            while current < len {
+                let next = self.next_boundary(current);
+                if next == current
+                    || self.grapheme_is_whitespace(current, next)
+                    || self.grapheme_is_word(current, next)
+                {
+                    break;
+                }
+                current = next;
+            }
+        }
+
+        while current < len {
+            let next = self.next_boundary(current);
+            if next == current || !self.grapheme_is_whitespace(current, next) {
+                break;
+            }
+            current = next;
+        }
+
+        if current == offset {
+            self.next_boundary(current)
+        } else {
+            current
+        }
+    }
+
+    fn start_blink(&mut self, cx: &mut Context<Self>) {
+        self._blink_task = None;
+        self.cursor_visible = true;
+        self._blink_task = Some(cx.spawn(async |this, cx| {
+            loop {
+                cx.background_executor()
+                    .timer(std::time::Duration::from_millis(500))
+                    .await;
+                let ok = this.update(cx, |this: &mut Self, cx: &mut Context<Self>| {
+                    this.cursor_visible = !this.cursor_visible;
+                    cx.notify();
+                });
+                if ok.is_err() {
+                    break;
+                }
+            }
+        }));
+    }
+
+    fn stop_blink(&mut self) {
+        self._blink_task = None;
+        self.cursor_visible = true;
+    }
+
+    fn reset_blink(&mut self, cx: &mut Context<Self>) {
+        self.stop_blink();
+        self.start_blink(cx);
     }
 
     pub fn focus_handle(&self, _: &App) -> FocusHandle {
@@ -1048,7 +1215,7 @@ impl EntityInputHandler for InputState {
         &mut self,
         range_utf16: Option<Range<usize>>,
         new_text: &str,
-        _: &mut Window,
+        window: &mut Window,
         cx: &mut Context<Self>,
     ) {
         let range = range_utf16
@@ -1094,6 +1261,10 @@ impl EntityInputHandler for InputState {
         }
 
         self.marked_range.take();
+        self.selection_reversed = false;
+        if self.focus_handle.is_focused(window) {
+            self.reset_blink(cx);
+        }
         self.invalidate_layout_cache();
 
         if self.validate_on_change {
@@ -1109,7 +1280,7 @@ impl EntityInputHandler for InputState {
         range_utf16: Option<Range<usize>>,
         new_text: &str,
         new_selected_range_utf16: Option<Range<usize>>,
-        _window: &mut Window,
+        window: &mut Window,
         cx: &mut Context<Self>,
     ) {
         let range = range_utf16
@@ -1135,6 +1306,10 @@ impl EntityInputHandler for InputState {
                 range.start + filtered_text.len()..range.start + filtered_text.len()
             });
 
+        self.selection_reversed = false;
+        if self.focus_handle.is_focused(window) {
+            self.reset_blink(cx);
+        }
         self.invalidate_layout_cache();
         cx.notify();
     }
@@ -1399,8 +1574,11 @@ impl gpui::Element for InputTextElement {
         }
 
         if focus_handle.is_focused(window) {
-            if let Some(cursor) = prepaint.cursor.take() {
-                window.paint_quad(cursor);
+            let cursor_visible = self.input.read(cx).cursor_visible;
+            if cursor_visible {
+                if let Some(cursor) = prepaint.cursor.take() {
+                    window.paint_quad(cursor);
+                }
             }
         }
 
@@ -1427,6 +1605,14 @@ impl Render for InputState {
                 }
             })
             .on_mouse_up(MouseButton::Left, {
+                let input = input.clone();
+                move |event: &MouseUpEvent, window: &mut Window, cx: &mut App| {
+                    input.update(cx, |input, cx| {
+                        input.on_mouse_up(event, window, cx);
+                    });
+                }
+            })
+            .on_mouse_up_out(MouseButton::Left, {
                 let input = input.clone();
                 move |event: &MouseUpEvent, window: &mut Window, cx: &mut App| {
                     input.update(cx, |input, cx| {
