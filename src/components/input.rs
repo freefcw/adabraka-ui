@@ -443,7 +443,12 @@ impl RenderOnce for Input {
 
         self.state.update(cx, |state, cx| {
             state.disabled = self.disabled;
-            state.placeholder = self.placeholder.clone();
+            if state.placeholder != self.placeholder {
+                state.placeholder = self.placeholder.clone();
+                if state.content().is_empty() {
+                    state.invalidate_layout_cache();
+                }
+            }
 
             // If password flag is enabled, ensure password input type is set.
             // Do not force `masked` here so user interactions can toggle it.
@@ -766,8 +771,7 @@ impl RenderOnce for Input {
                                             let state = state_for_password.clone();
                                             move |_, window, cx| {
                                                 state.update(cx, |state, cx| {
-                                                    state.masked = !state.masked;
-                                                    cx.notify();
+                                                    state.set_masked(!state.masked, cx);
                                                 });
                                                 window.refresh();
                                             }

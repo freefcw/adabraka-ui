@@ -126,6 +126,7 @@ impl MentionInputState {
         self.content = value.into();
         self.mentions.clear();
         self.selected_range = self.content.len()..self.content.len();
+        self.invalidate_layout_cache();
         cx.emit(MentionInputEvent::Change);
         cx.notify();
     }
@@ -134,6 +135,7 @@ impl MentionInputState {
         self.content.clear();
         self.mentions.clear();
         self.selected_range = 0..0;
+        self.invalidate_layout_cache();
         self.close_dropdown(cx);
         cx.emit(MentionInputEvent::Change);
         cx.notify();
@@ -175,6 +177,7 @@ impl MentionInputState {
 
         self.selected_range =
             trigger_start + mention_text.len()..trigger_start + mention_text.len();
+        self.invalidate_layout_cache();
         self.close_dropdown(cx);
 
         cx.emit(MentionInputEvent::MentionSelected(item));
@@ -257,7 +260,16 @@ impl MentionInputState {
         self.offset_from_utf16(range_utf16.start)..self.offset_from_utf16(range_utf16.end)
     }
 
-    fn index_for_mouse_position(&self, position: Point<Pixels>) -> usize {
+    fn invalidate_layout_cache(&mut self) {
+        self.last_layout = None;
+        self.last_bounds = None;
+    }
+
+    fn layout_matches_content(&self, layout: &gpui::ShapedLine) -> bool {
+        layout.text.as_ref() == self.content.as_str()
+    }
+
+    fn index_for_mouse_position(&mut self, position: Point<Pixels>) -> usize {
         if self.content.is_empty() {
             return 0;
         }
@@ -265,6 +277,10 @@ impl MentionInputState {
         else {
             return 0;
         };
+        if !self.layout_matches_content(line) {
+            self.invalidate_layout_cache();
+            return self.cursor_offset();
+        }
         if position.y < bounds.top() {
             return 0;
         }
@@ -491,7 +507,8 @@ impl MentionInputState {
 
     fn on_mouse_move(&mut self, event: &MouseMoveEvent, _: &mut Window, cx: &mut Context<Self>) {
         if self.is_selecting {
-            self.select_to(self.index_for_mouse_position(event.position), cx);
+            let position = self.index_for_mouse_position(event.position);
+            self.select_to(position, cx);
         }
     }
 
@@ -533,7 +550,9 @@ impl EntityInputHandler for MentionInputState {
         None
     }
 
-    fn unmark_text(&mut self, _window: &mut Window, _cx: &mut Context<Self>) {}
+    fn unmark_text(&mut self, _window: &mut Window, _cx: &mut Context<Self>) {
+        self.invalidate_layout_cache();
+    }
 
     fn replace_text_in_range(
         &mut self,
@@ -558,6 +577,7 @@ impl EntityInputHandler for MentionInputState {
         );
         self.selected_range = range.start + new_text.len()..range.start + new_text.len();
 
+        self.invalidate_layout_cache();
         self.check_for_trigger(cx);
         cx.emit(MentionInputEvent::Change);
         cx.notify();
@@ -576,6 +596,9 @@ impl EntityInputHandler for MentionInputState {
             .map(|range_utf16| self.range_from_utf16(range_utf16))
             .unwrap_or(self.selected_range.clone());
 
+        let old_len = range.end - range.start;
+        self.adjust_mentions_after_edit(range.start, old_len, new_text.len());
+
         self.content = format!(
             "{}{}{}",
             &self.content[0..range.start],
@@ -589,6 +612,7 @@ impl EntityInputHandler for MentionInputState {
             .map(|new_range| new_range.start + range.start..new_range.end + range.end)
             .unwrap_or_else(|| range.start + new_text.len()..range.start + new_text.len());
 
+        self.invalidate_layout_cache();
         self.check_for_trigger(cx);
         cx.notify();
     }
@@ -600,6 +624,18 @@ impl EntityInputHandler for MentionInputState {
         _window: &mut Window,
         _cx: &mut Context<Self>,
     ) -> Option<Bounds<Pixels>> {
+        if self.content.is_empty() {
+            return None;
+        }
+        let layout_matches = {
+            let last_layout = self.last_layout.as_ref()?;
+            self.layout_matches_content(last_layout)
+        };
+        if !layout_matches {
+            self.invalidate_layout_cache();
+            return None;
+        }
+
         let last_layout = self.last_layout.as_ref()?;
         let range = self.range_from_utf16(&range_utf16);
         Some(Bounds::from_corners(
@@ -620,7 +656,19 @@ impl EntityInputHandler for MentionInputState {
         _window: &mut Window,
         _cx: &mut Context<Self>,
     ) -> Option<usize> {
+        if self.content.is_empty() {
+            return None;
+        }
         let line_point = self.last_bounds?.localize(&point)?;
+        let layout_matches = {
+            let last_layout = self.last_layout.as_ref()?;
+            self.layout_matches_content(last_layout)
+        };
+        if !layout_matches {
+            self.invalidate_layout_cache();
+            return None;
+        }
+
         let last_layout = self.last_layout.as_ref()?;
         let utf8_index = last_layout.index_for_x(point.x - line_point.x)?;
         Some(self.offset_to_utf16(utf8_index))
@@ -750,7 +798,12 @@ impl RenderOnce for MentionInput {
 
         self.state.update(cx, |s, _| {
             s.trigger_char = self.trigger_char;
-            s.placeholder = self.placeholder.clone();
+            if s.placeholder != self.placeholder {
+                s.placeholder = self.placeholder.clone();
+                if s.content.is_empty() {
+                    s.invalidate_layout_cache();
+                }
+            }
             s.disabled = self.disabled;
         });
 

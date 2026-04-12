@@ -294,6 +294,7 @@ impl InputState {
         cx: &mut Context<Self>,
     ) {
         self.placeholder = placeholder.into();
+        self.invalidate_layout_cache();
         cx.notify();
     }
 
@@ -763,7 +764,8 @@ impl InputState {
 
     fn on_mouse_move(&mut self, event: &MouseMoveEvent, _: &mut Window, cx: &mut Context<Self>) {
         if self.is_selecting {
-            self.select_to(self.index_for_mouse_position(event.position), cx);
+            let position = self.index_for_mouse_position(event.position);
+            self.select_to(position, cx);
         }
     }
 
@@ -844,7 +846,7 @@ impl InputState {
         }
     }
 
-    fn index_for_mouse_position(&self, position: Point<Pixels>) -> usize {
+    fn index_for_mouse_position(&mut self, position: Point<Pixels>) -> usize {
         if self.content.is_empty() {
             return 0;
         }
@@ -853,6 +855,10 @@ impl InputState {
         else {
             return 0;
         };
+        if !self.layout_matches_current_display(line) {
+            self.invalidate_layout_cache();
+            return self.cursor_offset();
+        }
         if position.y < bounds.top() {
             return 0;
         }
@@ -861,17 +867,8 @@ impl InputState {
         }
 
         let display_index = line.closest_index_for_x(position.x - bounds.left());
-
-        if self.masked {
-            let char_index = display_index / "•".len();
-            self.content
-                .char_indices()
-                .nth(char_index)
-                .map(|(byte_idx, _)| byte_idx)
-                .unwrap_or(self.content.len())
-        } else {
-            display_index
-        }
+        self.display_to_source_index(display_index)
+            .unwrap_or(self.content.len())
     }
 
     fn select_to(&mut self, offset: usize, cx: &mut Context<Self>) {
@@ -923,6 +920,68 @@ impl InputState {
 
     fn range_from_utf16(&self, range_utf16: &Range<usize>) -> Range<usize> {
         self.offset_from_utf16(range_utf16.start)..self.offset_from_utf16(range_utf16.end)
+    }
+
+    pub(crate) fn invalidate_layout_cache(&mut self) {
+        self.last_layout = None;
+        self.last_bounds = None;
+    }
+
+    pub fn set_masked(&mut self, masked: bool, cx: &mut Context<Self>) {
+        if self.masked == masked {
+            return;
+        }
+
+        self.masked = masked;
+        self.invalidate_layout_cache();
+        cx.notify();
+    }
+
+    fn current_display_text(&self) -> SharedString {
+        if self.content.is_empty() {
+            self.placeholder.clone()
+        } else if self.masked {
+            "•".repeat(self.content.chars().count()).into()
+        } else {
+            self.content.clone()
+        }
+    }
+
+    fn layout_matches_current_display(&self, layout: &gpui::ShapedLine) -> bool {
+        layout.text == self.current_display_text()
+    }
+
+    fn source_to_display_index(&self, source_index: usize) -> Option<usize> {
+        if self.content.is_empty() {
+            return None;
+        }
+
+        if self.masked {
+            let char_count = self.content.get(..source_index)?.chars().count();
+            Some(char_count * "•".len())
+        } else {
+            Some(source_index.min(self.content.len()))
+        }
+    }
+
+    fn display_to_source_index(&self, display_index: usize) -> Option<usize> {
+        if self.content.is_empty() {
+            return None;
+        }
+
+        if self.masked {
+            let bullet_len = "•".len();
+            let char_index = display_index / bullet_len;
+            Some(
+                self.content
+                    .char_indices()
+                    .nth(char_index)
+                    .map(|(byte_idx, _)| byte_idx)
+                    .unwrap_or(self.content.len()),
+            )
+        } else {
+            Some(display_index.min(self.content.len()))
+        }
     }
 
     fn previous_boundary(&self, offset: usize) -> usize {
@@ -982,6 +1041,7 @@ impl EntityInputHandler for InputState {
 
     fn unmark_text(&mut self, _window: &mut Window, _cx: &mut Context<Self>) {
         self.marked_range = None;
+        self.invalidate_layout_cache();
     }
 
     fn replace_text_in_range(
@@ -1034,6 +1094,7 @@ impl EntityInputHandler for InputState {
         }
 
         self.marked_range.take();
+        self.invalidate_layout_cache();
 
         if self.validate_on_change {
             self.validate(cx).ok();
@@ -1074,6 +1135,7 @@ impl EntityInputHandler for InputState {
                 range.start + filtered_text.len()..range.start + filtered_text.len()
             });
 
+        self.invalidate_layout_cache();
         cx.notify();
     }
 
@@ -1084,15 +1146,26 @@ impl EntityInputHandler for InputState {
         _window: &mut Window,
         _cx: &mut Context<Self>,
     ) -> Option<Bounds<Pixels>> {
+        let layout_matches = {
+            let last_layout = self.last_layout.as_ref()?;
+            self.layout_matches_current_display(last_layout)
+        };
+        if !layout_matches {
+            self.invalidate_layout_cache();
+            return None;
+        }
+
         let last_layout = self.last_layout.as_ref()?;
         let range = self.range_from_utf16(&range_utf16);
+        let display_start = self.source_to_display_index(range.start)?;
+        let display_end = self.source_to_display_index(range.end)?;
         Some(Bounds::from_corners(
             point(
-                bounds.left() + last_layout.x_for_index(range.start),
+                bounds.left() + last_layout.x_for_index(display_start),
                 bounds.top(),
             ),
             point(
-                bounds.left() + last_layout.x_for_index(range.end),
+                bounds.left() + last_layout.x_for_index(display_end),
                 bounds.bottom(),
             ),
         ))
@@ -1105,10 +1178,18 @@ impl EntityInputHandler for InputState {
         _cx: &mut Context<Self>,
     ) -> Option<usize> {
         let line_point = self.last_bounds?.localize(&point)?;
-        let last_layout = self.last_layout.as_ref()?;
+        let layout_matches = {
+            let last_layout = self.last_layout.as_ref()?;
+            self.layout_matches_current_display(last_layout)
+        };
+        if !layout_matches {
+            self.invalidate_layout_cache();
+            return None;
+        }
 
-        assert_eq!(last_layout.text, self.content);
-        let utf8_index = last_layout.index_for_x(point.x - line_point.x)?;
+        let last_layout = self.last_layout.as_ref()?;
+        let display_index = last_layout.index_for_x(point.x - line_point.x)?;
+        let utf8_index = self.display_to_source_index(display_index)?;
         Some(self.offset_to_utf16(utf8_index))
     }
 }

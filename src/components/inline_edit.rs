@@ -78,6 +78,7 @@ impl InlineEditState {
     pub fn set_value(&mut self, value: impl Into<String>, cx: &mut Context<Self>) {
         self.value = value.into();
         self.edit_value = self.value.clone();
+        self.invalidate_layout_cache();
         cx.notify();
     }
 
@@ -94,6 +95,7 @@ impl InlineEditState {
         let len = self.edit_value.len();
         self.selected_range = 0..len;
         self.selection_reversed = false;
+        self.invalidate_layout_cache();
         cx.notify();
     }
 
@@ -104,6 +106,7 @@ impl InlineEditState {
         self.value = self.edit_value.clone();
         self.editing = false;
         self.selected_range = 0..0;
+        self.invalidate_layout_cache();
         cx.notify();
     }
 
@@ -114,6 +117,7 @@ impl InlineEditState {
         self.edit_value = self.value.clone();
         self.editing = false;
         self.selected_range = 0..0;
+        self.invalidate_layout_cache();
         cx.notify();
     }
 
@@ -198,7 +202,16 @@ impl InlineEditState {
         self.offset_from_utf16(range_utf16.start)..self.offset_from_utf16(range_utf16.end)
     }
 
-    fn index_for_mouse_position(&self, position: Point<Pixels>) -> usize {
+    fn invalidate_layout_cache(&mut self) {
+        self.last_layout = None;
+        self.last_bounds = None;
+    }
+
+    fn layout_matches_content(&self, layout: &ShapedLine) -> bool {
+        layout.text.as_ref() == self.edit_value.as_str()
+    }
+
+    fn index_for_mouse_position(&mut self, position: Point<Pixels>) -> usize {
         if self.edit_value.is_empty() {
             return 0;
         }
@@ -206,6 +219,10 @@ impl InlineEditState {
         else {
             return 0;
         };
+        if !self.layout_matches_content(line) {
+            self.invalidate_layout_cache();
+            return self.cursor_offset();
+        }
         if position.y < bounds.top() {
             return 0;
         }
@@ -231,7 +248,8 @@ impl InlineEditState {
 
     fn on_mouse_move(&mut self, event: &MouseMoveEvent, cx: &mut Context<Self>) {
         if self.is_selecting {
-            self.select_to(self.index_for_mouse_position(event.position), cx);
+            let position = self.index_for_mouse_position(event.position);
+            self.select_to(position, cx);
         }
     }
 
@@ -354,6 +372,7 @@ impl EntityInputHandler for InlineEditState {
 
     fn unmark_text(&mut self, _window: &mut Window, _cx: &mut Context<Self>) {
         self.marked_range = None;
+        self.invalidate_layout_cache();
     }
 
     fn replace_text_in_range(
@@ -373,6 +392,7 @@ impl EntityInputHandler for InlineEditState {
             self.edit_value[0..range.start].to_owned() + new_text + &self.edit_value[range.end..];
         self.selected_range = range.start + new_text.len()..range.start + new_text.len();
         self.marked_range.take();
+        self.invalidate_layout_cache();
         cx.notify();
     }
 
@@ -403,6 +423,7 @@ impl EntityInputHandler for InlineEditState {
             .map(|new_range| new_range.start + range.start..new_range.end + range.end)
             .unwrap_or_else(|| range.start + new_text.len()..range.start + new_text.len());
 
+        self.invalidate_layout_cache();
         cx.notify();
     }
 
@@ -413,6 +434,18 @@ impl EntityInputHandler for InlineEditState {
         _window: &mut Window,
         _cx: &mut Context<Self>,
     ) -> Option<Bounds<Pixels>> {
+        if self.edit_value.is_empty() {
+            return None;
+        }
+        let layout_matches = {
+            let last_layout = self.last_layout.as_ref()?;
+            self.layout_matches_content(last_layout)
+        };
+        if !layout_matches {
+            self.invalidate_layout_cache();
+            return None;
+        }
+
         let last_layout = self.last_layout.as_ref()?;
         let range = self.range_from_utf16(&range_utf16);
         Some(Bounds::from_corners(
@@ -433,7 +466,19 @@ impl EntityInputHandler for InlineEditState {
         _window: &mut Window,
         _cx: &mut Context<Self>,
     ) -> Option<usize> {
+        if self.edit_value.is_empty() {
+            return None;
+        }
         let line_point = self.last_bounds?.localize(&point)?;
+        let layout_matches = {
+            let last_layout = self.last_layout.as_ref()?;
+            self.layout_matches_content(last_layout)
+        };
+        if !layout_matches {
+            self.invalidate_layout_cache();
+            return None;
+        }
+
         let last_layout = self.last_layout.as_ref()?;
         let utf8_index = last_layout.index_for_x(point.x - line_point.x)?;
         Some(self.offset_to_utf16(utf8_index))
