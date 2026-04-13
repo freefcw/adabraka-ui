@@ -50,10 +50,6 @@ adabraka-ui = "0.3"
 gpui = { package = "adabraka-gpui", version = "0.3" }
 ```
 
-Build your project with nightly:
-```bash
-cargo +nightly build
-```
 
 ## What's New in v0.3.4
 
@@ -521,11 +517,13 @@ Select::new(cx)
 #### Textarea
 
 ```rust
-Textarea::new(textarea_state, cx)
+let textarea_state = cx.new(|cx| TextareaState::new(cx));
+
+Textarea::new(&textarea_state)
     .placeholder("Enter your message...")
     .rows(4)
-    .resize(TextareaResize::Vertical)
-    .max_length(Some(500))
+    .auto_grow(true)
+    .max_rows(12)
 ```
 
 #### SearchInput

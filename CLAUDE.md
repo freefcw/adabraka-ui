@@ -5,24 +5,24 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Build & Development Commands
 
 ```bash
-# Build (requires nightly Rust)
-cargo +nightly build
+# Build (now supports stable Rust)
+cargo build
 
 # Run tests
-cargo +nightly test
+cargo test
 
 # Lint
-cargo +nightly clippy
+cargo clippy
 
 # Format
 cargo fmt
 
 # Run a specific example
-cargo +nightly run --example <example_name>
+cargo run --example <example_name>
 
 # Common examples
-cargo +nightly run --example demo          # Comprehensive demo
-cargo +nightly run --example slider_styled_demo  # Slider component demo
+cargo run --example demo          # Comprehensive demo
+cargo run --example slider_styled_demo  # Slider component demo
 ```
 
 ## Architecture

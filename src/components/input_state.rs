@@ -705,7 +705,12 @@ impl InputState {
         self.select_to(self.previous_word_boundary(self.cursor_offset()), cx);
     }
 
-    pub fn select_word_right(&mut self, _: &SelectWordRight, _: &mut Window, cx: &mut Context<Self>) {
+    pub fn select_word_right(
+        &mut self,
+        _: &SelectWordRight,
+        _: &mut Window,
+        cx: &mut Context<Self>,
+    ) {
         self.select_to(self.next_word_boundary(self.cursor_offset()), cx);
     }
 
@@ -1035,7 +1040,10 @@ impl InputState {
     }
 
     fn grapheme_is_whitespace(&self, start: usize, end: usize) -> bool {
-        start < end && self.content[start..end].chars().all(|ch| ch.is_whitespace())
+        start < end
+            && self.content[start..end]
+                .chars()
+                .all(|ch| ch.is_whitespace())
     }
 
     fn grapheme_is_word(&self, start: usize, end: usize) -> bool {
@@ -1140,18 +1148,16 @@ impl InputState {
     fn start_blink(&mut self, cx: &mut Context<Self>) {
         self._blink_task = None;
         self.cursor_visible = true;
-        self._blink_task = Some(cx.spawn(async |this, cx| {
-            loop {
-                cx.background_executor()
-                    .timer(std::time::Duration::from_millis(500))
-                    .await;
-                let ok = this.update(cx, |this: &mut Self, cx: &mut Context<Self>| {
-                    this.cursor_visible = !this.cursor_visible;
-                    cx.notify();
-                });
-                if ok.is_err() {
-                    break;
-                }
+        self._blink_task = Some(cx.spawn(async |this, cx| loop {
+            cx.background_executor()
+                .timer(std::time::Duration::from_millis(500))
+                .await;
+            let ok = this.update(cx, |this: &mut Self, cx: &mut Context<Self>| {
+                this.cursor_visible = !this.cursor_visible;
+                cx.notify();
+            });
+            if ok.is_err() {
+                break;
             }
         }));
     }

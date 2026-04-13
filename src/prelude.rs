@@ -115,6 +115,7 @@ pub use crate::components::text::{
 };
 pub use crate::components::text_field::{TextField, TextFieldSize};
 pub use crate::components::textarea::Textarea;
+pub use crate::components::textarea_state::{TextareaEvent, TextareaState};
 pub use crate::components::time_picker::{
     TimeFormat, TimePeriod, TimePicker, TimePickerState, TimeValue,
 };

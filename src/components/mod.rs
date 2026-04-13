@@ -32,6 +32,7 @@ pub mod skeleton;
 pub mod slider;
 pub mod text_field;
 pub mod textarea;
+pub mod textarea_state;
 pub mod toggle;
 pub mod toggle_group;
 pub mod tooltip;

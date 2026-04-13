@@ -721,8 +721,12 @@ impl RenderOnce for Input {
                             .on_action(window.listener_for(&self.state, InputState::escape))
                             .on_action(window.listener_for(&self.state, InputState::word_left))
                             .on_action(window.listener_for(&self.state, InputState::word_right))
-                            .on_action(window.listener_for(&self.state, InputState::select_word_left))
-                            .on_action(window.listener_for(&self.state, InputState::select_word_right))
+                            .on_action(
+                                window.listener_for(&self.state, InputState::select_word_left),
+                            )
+                            .on_action(
+                                window.listener_for(&self.state, InputState::select_word_right),
+                            )
                     })
                     .child(
                         HStack::new()

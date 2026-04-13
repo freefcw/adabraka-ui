@@ -54,17 +54,22 @@ fn main() {
                     })),
                     ..Default::default()
                 },
-                |_, cx| cx.new(|_cx| TextareaStyledDemo::new()),
+                |_, cx| cx.new(|cx| TextareaStyledDemo::new(cx)),
             )
             .unwrap();
         });
 }
 
-struct TextareaStyledDemo {}
+struct TextareaStyledDemo {
+    states: Vec<Entity<TextareaState>>,
+}
 
 impl TextareaStyledDemo {
-    fn new() -> Self {
-        Self {}
+    fn new(cx: &mut Context<Self>) -> Self {
+        let states: Vec<Entity<TextareaState>> = (0..18)
+            .map(|_| cx.new(|cx| TextareaState::new(cx)))
+            .collect();
+        Self { states }
     }
 }
 
@@ -114,24 +119,24 @@ impl Render for TextareaStyledDemo {
                         VStack::new()
                             .gap(px(12.0))
                             .child(
-                                Textarea::new("textarea-1")
+                                Textarea::new(&self.states[0])
                                     .placeholder("Default width textarea")
                                     .variant(InputVariant::Default)
                                     .rows(3)
                             )
                             .child(
-                                Textarea::new("textarea-2")
+                                Textarea::new(&self.states[1])
                                     .placeholder("Full width textarea")
                                     .variant(InputVariant::Default)
                                     .rows(3)
-                                    .w_full()  // Styled trait method
+                                    .w_full()
                             )
                             .child(
-                                Textarea::new("textarea-3")
+                                Textarea::new(&self.states[2])
                                     .placeholder("Custom width (600px)")
                                     .variant(InputVariant::Default)
                                     .rows(3)
-                                    .w(px(600.0))  // Styled trait method
+                                    .w(px(600.0))
                             )
                     )
             )
@@ -149,24 +154,24 @@ impl Render for TextareaStyledDemo {
                         VStack::new()
                             .gap(px(12.0))
                             .child(
-                                Textarea::new("textarea-4")
+                                Textarea::new(&self.states[3])
                                     .placeholder("Default padding")
                                     .variant(InputVariant::Outline)
                                     .rows(3)
                             )
                             .child(
-                                Textarea::new("textarea-5")
+                                Textarea::new(&self.states[4])
                                     .placeholder("Extra padding - p_4()")
                                     .variant(InputVariant::Outline)
                                     .rows(3)
-                                    .p_4()  // Styled trait method
+                                    .p_4()
                             )
                             .child(
-                                Textarea::new("textarea-6")
+                                Textarea::new(&self.states[5])
                                     .placeholder("More padding - p_8()")
                                     .variant(InputVariant::Outline)
                                     .rows(3)
-                                    .p_8()  // Styled trait method
+                                    .p_8()
                             )
                     )
             )
@@ -184,19 +189,19 @@ impl Render for TextareaStyledDemo {
                         VStack::new()
                             .gap(px(12.0))
                             .child(
-                                Textarea::new("textarea-7")
+                                Textarea::new(&self.states[6])
                                     .placeholder("Blue background textarea")
                                     .variant(InputVariant::Ghost)
                                     .rows(4)
-                                    .bg(rgb(0x1e3a8a))  // Styled trait
+                                    .bg(rgb(0x1e3a8a))
                                     .text_color(gpui::white())
                             )
                             .child(
-                                Textarea::new("textarea-8")
+                                Textarea::new(&self.states[7])
                                     .placeholder("Purple background textarea")
                                     .variant(InputVariant::Ghost)
                                     .rows(4)
-                                    .bg(rgb(0x581c87))  // Styled trait
+                                    .bg(rgb(0x581c87))
                                     .text_color(gpui::white())
                             )
                     )
@@ -215,18 +220,18 @@ impl Render for TextareaStyledDemo {
                         VStack::new()
                             .gap(px(12.0))
                             .child(
-                                Textarea::new("textarea-9")
+                                Textarea::new(&self.states[8])
                                     .placeholder("No radius (sharp corners)")
                                     .variant(InputVariant::Default)
                                     .rows(3)
-                                    .rounded(px(0.0))  // Styled trait
+                                    .rounded(px(0.0))
                             )
                             .child(
-                                Textarea::new("textarea-10")
+                                Textarea::new(&self.states[9])
                                     .placeholder("Large radius (20px)")
                                     .variant(InputVariant::Default)
                                     .rows(3)
-                                    .rounded(px(20.0))  // Styled trait
+                                    .rounded(px(20.0))
                             )
                     )
             )
@@ -244,23 +249,23 @@ impl Render for TextareaStyledDemo {
                         VStack::new()
                             .gap(px(12.0))
                             .child(
-                                Textarea::new("textarea-11")
+                                Textarea::new(&self.states[10])
                                     .placeholder("Small textarea (2 rows)")
                                     .variant(InputVariant::Default)
                                     .rows(2)
                             )
                             .child(
-                                Textarea::new("textarea-12")
+                                Textarea::new(&self.states[11])
                                     .placeholder("Large textarea (6 rows)")
                                     .variant(InputVariant::Default)
                                     .rows(6)
                             )
                             .child(
-                                Textarea::new("textarea-13")
+                                Textarea::new(&self.states[12])
                                     .placeholder("Custom min height via Styled trait")
                                     .variant(InputVariant::Default)
                                     .rows(3)
-                                    .min_h(px(150.0))  // Styled trait method
+                                    .min_h(px(150.0))
                             )
                     )
             )
@@ -278,28 +283,28 @@ impl Render for TextareaStyledDemo {
                         VStack::new()
                             .gap(px(12.0))
                             .child(
-                                Textarea::new("textarea-14")
+                                Textarea::new(&self.states[13])
                                     .placeholder("Fully customized textarea with shadow and gradient")
                                     .variant(InputVariant::Ghost)
                                     .rows(4)
-                                    .w_full()  // Styled trait
-                                    .p(px(20.0))  // Styled trait
-                                    .bg(rgb(0x047857))  // Styled trait
+                                    .w_full()
+                                    .p(px(20.0))
+                                    .bg(rgb(0x047857))
                                     .text_color(gpui::white())
-                                    .rounded(px(12.0))  // Styled trait
-                                    .shadow_lg()  // Styled trait
+                                    .rounded(px(12.0))
+                                    .shadow_lg()
                             )
                             .child(
-                                Textarea::new("textarea-15")
+                                Textarea::new(&self.states[14])
                                     .placeholder("Ultra custom with border and special styling")
                                     .variant(InputVariant::Outline)
                                     .rows(5)
-                                    .w_full()  // Styled trait
-                                    .px(px(24.0))  // Styled trait
-                                    .py(px(16.0))  // Styled trait
-                                    .bg(hsla(43.0 / 360.0, 0.96, 0.56, 0.2))  // Styled trait
-                                    .rounded(px(16.0))  // Styled trait
-                                    .border_2()  // Styled trait
+                                    .w_full()
+                                    .px(px(24.0))
+                                    .py(px(16.0))
+                                    .bg(hsla(43.0 / 360.0, 0.96, 0.56, 0.2))
+                                    .rounded(px(16.0))
+                                    .border_2()
                                     .border_color(rgb(0xfbbf24))
                             )
                     )
@@ -318,21 +323,21 @@ impl Render for TextareaStyledDemo {
                         VStack::new()
                             .gap(px(12.0))
                             .child(
-                                Textarea::new("textarea-16")
+                                Textarea::new(&self.states[15])
                                     .placeholder("Default variant with custom width")
                                     .variant(InputVariant::Default)
                                     .rows(3)
                                     .w(px(500.0))
                             )
                             .child(
-                                Textarea::new("textarea-17")
+                                Textarea::new(&self.states[16])
                                     .placeholder("Outline variant with custom background")
                                     .variant(InputVariant::Outline)
                                     .rows(3)
                                     .bg(hsla(0.0, 0.0, 0.95, 1.0))
                             )
                             .child(
-                                Textarea::new("textarea-18")
+                                Textarea::new(&self.states[17])
                                     .placeholder("Ghost variant with custom border")
                                     .variant(InputVariant::Ghost)
                                     .rows(3)

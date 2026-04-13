@@ -5,8 +5,7 @@ version = 3
 [[package]]
 name = "adabraka-gpui"
 version = "0.5.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "80bab0a12778dce8957c5e6e753917bbc498f7fb731a667ba0200f79fcbbd63c"
+source = "git+https://github.com/freefcw/adabraka-gpui#4f0bcca68c0e1fadff109448d0fe2dcfcc52eb60"
 dependencies = [
  "adabraka-gpui-macros",
  "adabraka_collections",
@@ -101,8 +100,7 @@ dependencies = [
 [[package]]
 name = "adabraka-gpui-macros"
 version = "0.5.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "401fe1874935413937e280d7fff36af5ce9e84b821e82bea2ab084c6b2fe5e0b"
+source = "git+https://github.com/freefcw/adabraka-gpui#4f0bcca68c0e1fadff109448d0fe2dcfcc52eb60"
 dependencies = [
  "heck 0.5.0",
  "proc-macro2",
@@ -157,8 +155,7 @@ dependencies = [
 [[package]]
 name = "adabraka_collections"
 version = "0.5.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8718cd9ad2bae35b9ca194c0ae1815d46ecf222aece423a05773092fdaf5fb0a"
+source = "git+https://github.com/freefcw/adabraka-gpui#4f0bcca68c0e1fadff109448d0fe2dcfcc52eb60"
 dependencies = [
  "indexmap",
  "rustc-hash 2.1.1",
@@ -167,8 +164,7 @@ dependencies = [
 [[package]]
 name = "adabraka_derive_refineable"
 version = "0.5.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d3ac3bf8b15f1022cddbab51c211d86d25ac11ebe82fdf1c8c3233b6c7ff3603"
+source = "git+https://github.com/freefcw/adabraka-gpui#4f0bcca68c0e1fadff109448d0fe2dcfcc52eb60"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -178,8 +174,7 @@ dependencies = [
 [[package]]
 name = "adabraka_http_client"
 version = "0.5.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "37c33fd869733720bc0fcce1320df35c861a9acc4a70720d1a71fb7c604ead04"
+source = "git+https://github.com/freefcw/adabraka-gpui#4f0bcca68c0e1fadff109448d0fe2dcfcc52eb60"
 dependencies = [
  "adabraka_util",
  "anyhow",
@@ -204,8 +199,7 @@ dependencies = [
 [[package]]
 name = "adabraka_media"
 version = "0.5.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bdd2cffef5f2f121cd6613c06aca1ea049c1dd2f62fa450ff5090aae79bc307b"
+source = "git+https://github.com/freefcw/adabraka-gpui#4f0bcca68c0e1fadff109448d0fe2dcfcc52eb60"
 dependencies = [
  "anyhow",
  "bindgen 0.71.1",
@@ -220,8 +214,7 @@ dependencies = [
 [[package]]
 name = "adabraka_refineable"
 version = "0.5.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8ef01ef7f0491acaab24412d325567bd18ddc911d17293a3e1463cf3379ced03"
+source = "git+https://github.com/freefcw/adabraka-gpui#4f0bcca68c0e1fadff109448d0fe2dcfcc52eb60"
 dependencies = [
  "adabraka_derive_refineable",
 ]
@@ -229,8 +222,7 @@ dependencies = [
 [[package]]
 name = "adabraka_semantic_version"
 version = "0.5.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "081ad0efb6ecf18d85760d190a36d6a7995fb63f877c1238647104fb26d8fe55"
+source = "git+https://github.com/freefcw/adabraka-gpui#4f0bcca68c0e1fadff109448d0fe2dcfcc52eb60"
 dependencies = [
  "anyhow",
  "serde",
@@ -239,8 +231,7 @@ dependencies = [
 [[package]]
 name = "adabraka_sum_tree"
 version = "0.5.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4d7d6b3a7b2d006d347565b457e67329bdef700ca45cbae132903dd3cb36da14"
+source = "git+https://github.com/freefcw/adabraka-gpui#4f0bcca68c0e1fadff109448d0fe2dcfcc52eb60"
 dependencies = [
  "arrayvec",
  "log",
@@ -250,8 +241,7 @@ dependencies = [
 [[package]]
 name = "adabraka_util"
 version = "0.5.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ffbfa3de35b2b2d300986e728d6f3d3e436d166453ebd6b8fe721712e563d7b0"
+source = "git+https://github.com/freefcw/adabraka-gpui#4f0bcca68c0e1fadff109448d0fe2dcfcc52eb60"
 dependencies = [
  "adabraka_collections",
  "anyhow",
@@ -286,8 +276,7 @@ dependencies = [
 [[package]]
 name = "adabraka_util_macros"
 version = "0.5.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b6e236eab1388e8e0e3f02f7603671a6d0faada2e792b0b765d0d9e08947c651"
+source = "git+https://github.com/freefcw/adabraka-gpui#4f0bcca68c0e1fadff109448d0fe2dcfcc52eb60"
 dependencies = [
  "quote",
  "syn 2.0.107",
@@ -5807,7 +5796,7 @@ dependencies = [
  "memchr",
  "ntapi",
  "rayon",
- "windows 0.57.0",
+ "windows 0.54.0",
 ]
 
 [[package]]
@@ -7127,16 +7116,6 @@ dependencies = [
 
 [[package]]
 name = "windows"
-version = "0.57.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "12342cb4d8e3b046f3d80effd474a7a02447231330ef77d71daa6fbc40681143"
-dependencies = [
- "windows-core 0.57.0",
- "windows-targets 0.52.6",
-]
-
-[[package]]
-name = "windows"
 version = "0.61.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9babd3a767a4c1aef6900409f85f5d53ce2544ccdfaa86dad48c91782c6d6893"
@@ -7182,24 +7161,12 @@ dependencies = [
 
 [[package]]
 name = "windows-core"
-version = "0.57.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d2ed2439a290666cd67ecce2b0ffaad89c2a56b976b736e6ece670297897832d"
-dependencies = [
- "windows-implement 0.57.0",
- "windows-interface 0.57.0",
- "windows-result 0.1.2",
- "windows-targets 0.52.6",
-]
-
-[[package]]
-name = "windows-core"
 version = "0.61.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c0fdd3ddb90610c7638aa2b3a3ab2904fb9e5cdbecc643ddb3647212781c4ae3"
 dependencies = [
- "windows-implement 0.60.2",
- "windows-interface 0.59.3",
+ "windows-implement",
+ "windows-interface",
  "windows-link 0.1.3",
  "windows-result 0.3.4",
  "windows-strings 0.4.2",
@@ -7218,31 +7185,9 @@ dependencies = [
 
 [[package]]
 name = "windows-implement"
-version = "0.57.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9107ddc059d5b6fbfbffdfa7a7fe3e22a226def0b2608f72e9d552763d3e1ad7"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn 2.0.107",
-]
-
-[[package]]
-name = "windows-implement"
 version = "0.60.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "053e2e040ab57b9dc951b72c264860db7eb3b0200ba345b4e4c3b14f67855ddf"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn 2.0.107",
-]
-
-[[package]]
-name = "windows-interface"
-version = "0.57.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "29bee4b38ea3cde66011baa44dba677c432a78593e202392d1e9070cf2a7fca7"
 dependencies = [
  "proc-macro2",
  "quote",

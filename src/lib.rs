@@ -103,6 +103,7 @@ pub fn init(cx: &mut gpui::App) {
     http::init_http(cx);
 
     components::input::init(cx);
+    components::textarea::init(cx);
     components::otp_input::init(cx);
     components::select::init_select(cx);
     components::combobox::init_combobox(cx);
