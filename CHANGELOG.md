@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## 0.5.0 - 2026-04-20
+
+### Changed
+- Updated the repository package version to `0.5.0`
+- Aligned the current branch with `adabraka-gpui v0.6.0`
+- Kept the documented installation flow on `git` dependencies so it matches the repository state before the next crates.io release
+- Refreshed README and docs site version references to remove stale `0.3.x` instructions
+
 ## [0.3.4] - 2026-02-18
 
 ### Fixed

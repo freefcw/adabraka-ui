@@ -46,18 +46,24 @@ Add adabraka-ui to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-adabraka-ui = "0.3"
-gpui = { package = "adabraka-gpui", version = "0.3" }
+adabraka-ui = { git = "https://github.com/Augani/adabraka-ui" }
+gpui = { package = "adabraka-gpui", git = "https://github.com/freefcw/adabraka-gpui" }
 ```
 
+For local co-development, point `gpui` at your checked-out fork instead:
 
-## What's New in v0.3.4
+```toml
+gpui = { package = "adabraka-gpui", path = "../adabraka-gpui/crates/gpui" }
+```
 
-**Latest Release (February 2026)**
+## What's New in v0.5.0
 
-### v0.3.4 - docs.rs Fix
-- Fixed docs.rs build failure by gating `Arc` import behind `#[cfg(feature = "audio")]`
-- Added `[package.metadata.docs.rs]` with `all-features = true` for reliable documentation builds
+**Current Repository Version (April 2026)**
+
+### v0.5.0 - GPUI 0.6 Alignment
+- Updated the repository baseline to `adabraka-gpui v0.6.0`
+- Kept the installation flow on `git` dependencies so the current branch matches the upstream fork before a crates.io release
+- Refreshed README, changelog, and docs site snippets to match the current install path
 
 ### v0.3.3 - Editor UTF-8 Bug Fix
 - Fixed rope byte/char offset mismatch that caused cursor drift and incorrect text placement in files with multi-byte UTF-8 characters
