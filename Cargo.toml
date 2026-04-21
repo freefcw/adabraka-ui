@@ -11,7 +11,7 @@ documentation = "https://docs.rs/adabraka-ui"
 readme = "README.md"
 keywords = ["gpui", "ui", "gui", "components", "desktop"]
 categories = ["gui", "rendering"]
-rust-version = "1.70"
+rust-version = "1.85"
 exclude = ["assets/icons/**/*", "assets/audio/**/*", "assets/images/**/*"]
 
 [package.metadata.docs.rs]
@@ -22,7 +22,6 @@ rustdoc-args = ["--cfg", "docsrs"]
 # Core Framework
 gpui = { package = "adabraka-gpui", git = "https://github.com/freefcw/adabraka-gpui" }
 smallvec = "1.13.2"
-once_cell = "1.19"
 
 # Text Processing
 unicode-segmentation = "1.12"
@@ -32,8 +31,8 @@ regex = "1.10"
 smol = "2.0.2"
 futures = "0.3"
 
-# HTTP Client for remote images (optional)
-isahc = { version = "1.7", optional = true }
+# HTTP client for remote images (optional)
+reqwest = { package = "zed-reqwest", version = "0.12.15-zed", default-features = false, features = ["blocking", "charset", "http2", "macos-system-configuration", "rustls-tls-native-roots"], optional = true }
 bytes = "1.0"
 
 # QR Code generation
@@ -70,18 +69,18 @@ tree-sitter-ocaml = { version = "0.24", optional = true }
 tree-sitter-sequel = { version = "0.3", optional = true }
 
 # Markdown parsing (optional)
-pulldown-cmark = { version = "0.12", default-features = false, optional = true }
+pulldown-cmark = { version = "0.13", default-features = false, optional = true }
 
 # HTML parsing (optional)
-html5ever = { version = "0.36", optional = true }
-markup5ever_rcdom = { version = "0.36", optional = true }
+html5ever = { version = "0.38", optional = true }
+markup5ever_rcdom = { version = "0.38", optional = true }
 
 # Audio playback (optional)
 rodio = { version = "0.19", optional = true }
 
 [features]
 default = ["http"]
-http = ["isahc"]
+http = ["reqwest"]
 markdown = ["pulldown-cmark"]
 html-render = ["html5ever", "markup5ever_rcdom"]
 audio = ["rodio"]

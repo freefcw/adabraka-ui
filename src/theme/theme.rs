@@ -1,5 +1,5 @@
 use gpui::*;
-use once_cell::sync::Lazy;
+use std::sync::LazyLock;
 
 use super::tokens::ThemeTokens;
 
@@ -210,8 +210,8 @@ impl Theme {
     }
 }
 
-static THEME_STATE: Lazy<std::sync::Mutex<Theme>> =
-    Lazy::new(|| std::sync::Mutex::new(Theme::dark()));
+static THEME_STATE: LazyLock<std::sync::Mutex<Theme>> =
+    LazyLock::new(|| std::sync::Mutex::new(Theme::dark()));
 
 /// Install a theme globally for the app. Call early during app startup.
 pub fn install_theme(_cx: &mut App, theme: Theme) {

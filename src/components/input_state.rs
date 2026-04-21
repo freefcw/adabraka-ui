@@ -11,12 +11,11 @@ use crate::theme::use_theme;
 /// - Auto-formatting for phone, date, credit card
 /// - ARIA support for screen readers
 use gpui::{prelude::*, *};
-use once_cell::sync::Lazy;
 use std::ops::Range;
-use std::sync::Arc;
+use std::sync::{Arc, LazyLock};
 use unicode_segmentation::*;
 
-static EMAIL_REGEX: Lazy<regex::Regex> = Lazy::new(|| {
+static EMAIL_REGEX: LazyLock<regex::Regex> = LazyLock::new(|| {
     regex::Regex::new(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$")
         .expect("Invalid email regex pattern")
 });

@@ -1,19 +1,19 @@
 use futures::future::BoxFuture;
-use futures::FutureExt;
+use futures::{AsyncReadExt, FutureExt};
 use gpui::http_client::{AsyncBody, HttpClient, Request, Response};
 use std::sync::Arc;
 
 #[cfg(feature = "http")]
 pub struct SimpleHttpClient {
-    client: isahc::HttpClient,
+    client: reqwest::blocking::Client,
     user_agent: gpui::http_client::http::HeaderValue,
 }
 
 #[cfg(feature = "http")]
 impl SimpleHttpClient {
-    pub fn new(user_agent: &str) -> Result<Arc<Self>, isahc::Error> {
-        let client = isahc::HttpClient::builder()
-            .default_header("User-Agent", user_agent)
+    pub fn new(user_agent: &str) -> Result<Arc<Self>, reqwest::Error> {
+        let client = reqwest::blocking::Client::builder()
+            .user_agent(user_agent)
             .build()?;
 
         let user_agent_header = gpui::http_client::http::HeaderValue::from_str(user_agent)
@@ -25,9 +25,18 @@ impl SimpleHttpClient {
         }))
     }
 
-    pub fn with_default_user_agent() -> Result<Arc<Self>, isahc::Error> {
+    pub fn with_default_user_agent() -> Result<Arc<Self>, reqwest::Error> {
         Self::new("adabraka-ui/0.2.3")
     }
+}
+
+#[cfg(feature = "http")]
+async fn read_request_body(mut body: AsyncBody) -> gpui::http_client::Result<Vec<u8>> {
+    let mut bytes = Vec::new();
+    body.read_to_end(&mut bytes)
+        .await
+        .map_err(|e| gpui::http_client::anyhow!("Failed to read request body: {}", e))?;
+    Ok(bytes)
 }
 
 #[cfg(feature = "http")]
@@ -49,53 +58,57 @@ impl HttpClient for SimpleHttpClient {
         req: Request<AsyncBody>,
     ) -> BoxFuture<'static, gpui::http_client::Result<Response<AsyncBody>>> {
         let client = self.client.clone();
-        let (parts, _body) = req.into_parts();
+        let (parts, body) = req.into_parts();
 
         async move {
-            let method_str = parts.method.as_str();
+            let body_bytes = read_request_body(body).await?;
+            let method = reqwest::Method::from_bytes(parts.method.as_str().as_bytes())
+                .map_err(|e| gpui::http_client::anyhow!("Unsupported HTTP method: {}", e))?;
             let uri_str = parts.uri.to_string();
+            let headers: Vec<_> = parts
+                .headers
+                .iter()
+                .map(|(key, value)| (key.clone(), value.clone()))
+                .collect();
 
-            let mut request_builder = isahc::Request::builder().method(method_str).uri(&uri_str);
+            smol::unblock(move || {
+                let mut request_builder = client.request(method, &uri_str);
 
-            for (key, value) in parts.headers.iter() {
-                if let Ok(value_str) = value.to_str() {
-                    request_builder = request_builder.header(key.as_str(), value_str);
+                for (key, value) in headers {
+                    request_builder = request_builder.header(key, value);
                 }
-            }
 
-            let isahc_request = request_builder
-                .body(())
-                .map_err(|e| gpui::http_client::anyhow!("Failed to build request: {}", e))?;
+                if !body_bytes.is_empty() {
+                    request_builder = request_builder.body(body_bytes);
+                }
 
-            let mut response = client
-                .send_async(isahc_request)
-                .await
-                .map_err(|e| gpui::http_client::anyhow!("HTTP request failed: {}", e))?;
+                let response = request_builder
+                    .send()
+                    .map_err(|e| gpui::http_client::anyhow!("HTTP request failed: {}", e))?;
 
-            let status = response.status();
-            let headers = response.headers().clone();
+                let status = response.status();
+                let headers = response.headers().clone();
+                let bytes = response
+                    .bytes()
+                    .map_err(|e| gpui::http_client::anyhow!("Failed to read response body: {}", e))?;
 
-            use isahc::AsyncReadResponseExt;
-            let bytes = response
-                .bytes()
-                .await
-                .map_err(|e| gpui::http_client::anyhow!("Failed to read response body: {}", e))?;
+                let mut builder = gpui::http_client::http::Response::builder().status(
+                    gpui::http_client::http::StatusCode::from_u16(status.as_u16())
+                        .map_err(|e| gpui::http_client::anyhow!("Invalid status code: {}", e))?,
+                );
 
-            let mut builder = gpui::http_client::http::Response::builder().status(
-                gpui::http_client::http::StatusCode::from_u16(status.as_u16())
-                    .map_err(|e| gpui::http_client::anyhow!("Invalid status code: {}", e))?,
-            );
+                for (key, value) in headers.iter() {
+                    builder = builder.header(key.as_str(), value.as_bytes());
+                }
 
-            for (key, value) in headers.iter() {
-                builder = builder.header(key.as_str(), value.as_bytes());
-            }
+                let async_body = AsyncBody::from_bytes(bytes::Bytes::from(bytes));
+                let response = builder
+                    .body(async_body)
+                    .map_err(|e| gpui::http_client::anyhow!("Failed to build response: {}", e))?;
 
-            let async_body = AsyncBody::from_bytes(bytes::Bytes::from(bytes));
-            let response = builder
-                .body(async_body)
-                .map_err(|e| gpui::http_client::anyhow!("Failed to build response: {}", e))?;
-
-            Ok(response)
+                Ok(response)
+            })
+            .await
         }
         .boxed()
     }

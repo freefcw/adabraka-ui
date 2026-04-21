@@ -3,10 +3,9 @@
 //! This module provides global configuration for icon asset paths, allowing
 //! users to provide their own icon assets instead of bundling them with the library.
 
-use once_cell::sync::OnceCell;
-use std::sync::RwLock;
+use std::sync::{OnceLock, RwLock};
 
-static ICON_BASE_PATH: OnceCell<RwLock<String>> = OnceCell::new();
+static ICON_BASE_PATH: OnceLock<RwLock<String>> = OnceLock::new();
 
 /// Sets the base path for icon assets.
 ///
