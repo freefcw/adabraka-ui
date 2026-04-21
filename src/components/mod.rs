@@ -14,6 +14,7 @@ pub use icon_source::IconSource;
 pub mod checkbox;
 pub mod confirm_dialog;
 pub mod drag_drop;
+#[cfg(feature = "editor")]
 pub mod editor;
 pub mod input;
 pub mod input_state;
@@ -108,6 +109,7 @@ pub mod dock;
 pub mod magnetic_button;
 pub mod meteors;
 pub mod noise;
+#[cfg(feature = "qrcode")]
 pub mod qr_code;
 pub mod skeleton_loader;
 pub mod svg_renderer;

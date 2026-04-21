@@ -107,6 +107,7 @@ pub fn init(cx: &mut gpui::App) {
     components::otp_input::init(cx);
     components::select::init_select(cx);
     components::combobox::init_combobox(cx);
+    #[cfg(feature = "editor")]
     components::editor::init(cx);
     navigation::sidebar::init_sidebar(cx);
     overlays::popover::init(cx);

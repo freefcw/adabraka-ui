@@ -48,6 +48,7 @@ pub use crate::components::countdown::{
 pub use crate::components::date_picker::{DateFormat, DatePicker, DatePickerState};
 pub use crate::components::drag_drop::{DragData, Draggable, DropZone, DropZoneStyle};
 pub use crate::components::dropdown::{Dropdown, DropdownAlign, DropdownItem, DropdownState};
+#[cfg(feature = "editor")]
 pub use crate::components::editor::{Editor, EditorState, Language as EditorLanguage};
 pub use crate::components::empty_state::{EmptyState, EmptyStateSize};
 pub use crate::components::file_upload::{
@@ -229,6 +230,7 @@ pub use crate::components::noise::Noise;
 pub use crate::components::particle_emitter::{
     ParticleEmitter, ParticleEmitterConfig, ParticleEmitterState,
 };
+#[cfg(feature = "qrcode")]
 pub use crate::components::qr_code::QRCodeComponent;
 pub use crate::components::shared_element_transition::{
     SharedElementState, SharedElementTransition,

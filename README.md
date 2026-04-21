@@ -50,6 +50,17 @@ adabraka-ui = { git = "https://github.com/Augani/adabraka-ui" }
 gpui = { package = "adabraka-gpui", git = "https://github.com/freefcw/adabraka-gpui" }
 ```
 
+Optional heavier components are feature-gated. Enable them only when needed:
+
+```toml
+[dependencies]
+adabraka-ui = { git = "https://github.com/Augani/adabraka-ui", features = ["editor", "editor-languages", "qrcode"] }
+```
+
+- `editor`: enables the editor component and pulls in `ropey` plus core `tree-sitter`
+- `editor-languages`: adds the bundled tree-sitter grammars for syntax highlighting
+- `qrcode`: enables `QRCodeComponent`
+
 For local co-development, point `gpui` at your checked-out fork instead:
 
 ```toml
@@ -728,6 +739,8 @@ Combobox::new(custom_state.clone())
 #### Editor
 
 A high-performance multi-line code editor with syntax highlighting, perfect for SQL queries and code editing:
+
+> Requires the `editor` feature. For syntax highlighting grammars, also enable `editor-languages`.
 
 ```rust
 // Create editor state

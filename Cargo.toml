@@ -36,13 +36,13 @@ reqwest = { package = "zed-reqwest", version = "0.12.15-zed", default-features =
 bytes = "1.0"
 
 # QR Code generation
-qrcode = "0.14"
+qrcode = { version = "0.14", optional = true }
 
 # Rope data structure for editor
-ropey = "1.6"
+ropey = { version = "1.6", optional = true }
 
 # Syntax Highlighting (tree-sitter based)
-tree-sitter = "0.25.10"
+tree-sitter = { version = "0.25.10", optional = true }
 
 # Language grammars (optional, behind feature flags)
 tree-sitter-rust = { version = "0.23", optional = true }
@@ -84,7 +84,10 @@ http = ["reqwest"]
 markdown = ["pulldown-cmark"]
 html-render = ["html5ever", "markup5ever_rcdom"]
 audio = ["rodio"]
+qrcode = ["dep:qrcode"]
+editor = ["dep:ropey", "dep:tree-sitter"]
 editor-languages = [
+    "editor",
     "tree-sitter-rust", "tree-sitter-javascript", "tree-sitter-typescript",
     "tree-sitter-python", "tree-sitter-json", "tree-sitter-toml-ng",
     "tree-sitter-md", "tree-sitter-go", "tree-sitter-c", "tree-sitter-cpp",
@@ -325,3 +328,18 @@ required-features = ["html-render"]
 [[example]]
 name = "textarea_demo"
 path = "examples/textarea_demo.rs"
+
+[[example]]
+name = "components_showcase"
+path = "examples/components_showcase.rs"
+required-features = ["qrcode"]
+
+[[example]]
+name = "editor_demo"
+path = "examples/editor_demo.rs"
+required-features = ["editor", "editor-languages"]
+
+[[example]]
+name = "editor_scroll_test"
+path = "examples/editor_scroll_test.rs"
+required-features = ["editor"]
