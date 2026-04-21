@@ -20,7 +20,7 @@ rustdoc-args = ["--cfg", "docsrs"]
 
 [dependencies]
 # Core Framework
-gpui = { package = "adabraka-gpui", git = "https://github.com/freefcw/adabraka-gpui" }
+gpui = { package = "adabraka-gpui", git = "https://github.com/freefcw/adabraka-gpui", default-features = false, features = ["font-kit", "wayland", "x11", "windows-manifest"] }
 smallvec = "1.13.2"
 
 # Text Processing
@@ -86,6 +86,39 @@ html-render = ["html5ever", "markup5ever_rcdom"]
 audio = ["rodio"]
 qrcode = ["dep:qrcode"]
 editor = ["dep:ropey", "dep:tree-sitter"]
+image-default-formats = [
+    "image-format-avif",
+    "image-format-bmp",
+    "image-format-dds",
+    "image-format-exr",
+    "image-format-farbfeld",
+    "image-format-gif",
+    "image-format-hdr",
+    "image-format-ico",
+    "image-format-jpeg",
+    "image-format-png",
+    "image-format-pnm",
+    "image-format-qoi",
+    "image-format-tga",
+    "image-format-tiff",
+    "image-format-webp",
+]
+image-format-avif = ["gpui/image-format-avif"]
+image-format-bmp = ["gpui/image-format-bmp"]
+image-format-dds = ["gpui/image-format-dds"]
+image-format-exr = ["gpui/image-format-exr"]
+image-format-farbfeld = ["gpui/image-format-farbfeld"]
+image-format-gif = ["gpui/image-format-gif"]
+image-format-hdr = ["gpui/image-format-hdr"]
+image-format-ico = ["gpui/image-format-ico"]
+image-format-jpeg = ["gpui/image-format-jpeg"]
+image-format-png = ["gpui/image-format-png"]
+image-format-pnm = ["gpui/image-format-pnm"]
+image-format-qoi = ["gpui/image-format-qoi"]
+image-format-tga = ["gpui/image-format-tga"]
+image-format-tiff = ["gpui/image-format-tiff"]
+image-format-webp = ["gpui/image-format-webp"]
+image-rayon = ["gpui/image-rayon"]
 editor-languages = [
     "editor",
     "tree-sitter-rust", "tree-sitter-javascript", "tree-sitter-typescript",
