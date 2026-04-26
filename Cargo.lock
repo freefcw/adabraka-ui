@@ -5,7 +5,7 @@ version = 4
 [[package]]
 name = "adabraka-gpui"
 version = "0.6.0"
-source = "git+https://github.com/freefcw/adabraka-gpui#71c4df7c5b114932497f52b7f56b3dcd44acefe3"
+source = "git+https://github.com/freefcw/adabraka-gpui#40cccf450eb4d423b6fe058a9d31516292cb0a3b"
 dependencies = [
  "adabraka-gpui-macros",
  "adabraka_collections",
@@ -102,7 +102,7 @@ dependencies = [
 [[package]]
 name = "adabraka-gpui-macros"
 version = "0.5.1"
-source = "git+https://github.com/freefcw/adabraka-gpui#71c4df7c5b114932497f52b7f56b3dcd44acefe3"
+source = "git+https://github.com/freefcw/adabraka-gpui#40cccf450eb4d423b6fe058a9d31516292cb0a3b"
 dependencies = [
  "heck 0.5.0",
  "proc-macro2",
@@ -156,7 +156,7 @@ dependencies = [
 [[package]]
 name = "adabraka_collections"
 version = "0.5.1"
-source = "git+https://github.com/freefcw/adabraka-gpui#71c4df7c5b114932497f52b7f56b3dcd44acefe3"
+source = "git+https://github.com/freefcw/adabraka-gpui#40cccf450eb4d423b6fe058a9d31516292cb0a3b"
 dependencies = [
  "indexmap",
  "rustc-hash 2.1.2",
@@ -165,7 +165,7 @@ dependencies = [
 [[package]]
 name = "adabraka_derive_refineable"
 version = "0.5.1"
-source = "git+https://github.com/freefcw/adabraka-gpui#71c4df7c5b114932497f52b7f56b3dcd44acefe3"
+source = "git+https://github.com/freefcw/adabraka-gpui#40cccf450eb4d423b6fe058a9d31516292cb0a3b"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -175,7 +175,7 @@ dependencies = [
 [[package]]
 name = "adabraka_http_client"
 version = "0.5.1"
-source = "git+https://github.com/freefcw/adabraka-gpui#71c4df7c5b114932497f52b7f56b3dcd44acefe3"
+source = "git+https://github.com/freefcw/adabraka-gpui#40cccf450eb4d423b6fe058a9d31516292cb0a3b"
 dependencies = [
  "adabraka_util",
  "anyhow",
@@ -200,7 +200,7 @@ dependencies = [
 [[package]]
 name = "adabraka_media"
 version = "0.5.1"
-source = "git+https://github.com/freefcw/adabraka-gpui#71c4df7c5b114932497f52b7f56b3dcd44acefe3"
+source = "git+https://github.com/freefcw/adabraka-gpui#40cccf450eb4d423b6fe058a9d31516292cb0a3b"
 dependencies = [
  "anyhow",
  "bindgen 0.71.1",
@@ -215,7 +215,7 @@ dependencies = [
 [[package]]
 name = "adabraka_refineable"
 version = "0.5.1"
-source = "git+https://github.com/freefcw/adabraka-gpui#71c4df7c5b114932497f52b7f56b3dcd44acefe3"
+source = "git+https://github.com/freefcw/adabraka-gpui#40cccf450eb4d423b6fe058a9d31516292cb0a3b"
 dependencies = [
  "adabraka_derive_refineable",
 ]
@@ -223,7 +223,7 @@ dependencies = [
 [[package]]
 name = "adabraka_semantic_version"
 version = "0.5.1"
-source = "git+https://github.com/freefcw/adabraka-gpui#71c4df7c5b114932497f52b7f56b3dcd44acefe3"
+source = "git+https://github.com/freefcw/adabraka-gpui#40cccf450eb4d423b6fe058a9d31516292cb0a3b"
 dependencies = [
  "anyhow",
  "serde",
@@ -232,7 +232,7 @@ dependencies = [
 [[package]]
 name = "adabraka_sum_tree"
 version = "0.5.1"
-source = "git+https://github.com/freefcw/adabraka-gpui#71c4df7c5b114932497f52b7f56b3dcd44acefe3"
+source = "git+https://github.com/freefcw/adabraka-gpui#40cccf450eb4d423b6fe058a9d31516292cb0a3b"
 dependencies = [
  "arrayvec",
  "log",
@@ -242,7 +242,7 @@ dependencies = [
 [[package]]
 name = "adabraka_util"
 version = "0.5.1"
-source = "git+https://github.com/freefcw/adabraka-gpui#71c4df7c5b114932497f52b7f56b3dcd44acefe3"
+source = "git+https://github.com/freefcw/adabraka-gpui#40cccf450eb4d423b6fe058a9d31516292cb0a3b"
 dependencies = [
  "adabraka_collections",
  "anyhow",
@@ -277,7 +277,7 @@ dependencies = [
 [[package]]
 name = "adabraka_util_macros"
 version = "0.5.1"
-source = "git+https://github.com/freefcw/adabraka-gpui#71c4df7c5b114932497f52b7f56b3dcd44acefe3"
+source = "git+https://github.com/freefcw/adabraka-gpui#40cccf450eb4d423b6fe058a9d31516292cb0a3b"
 dependencies = [
  "quote",
  "syn 2.0.117",
