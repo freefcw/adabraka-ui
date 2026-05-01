@@ -1,6 +1,8 @@
-use futures::future::BoxFuture;
-use futures::{AsyncReadExt, FutureExt};
+#[cfg(feature = "http")]
+use futures::{future::BoxFuture, AsyncReadExt, FutureExt};
+#[cfg(feature = "http")]
 use gpui::http_client::{AsyncBody, HttpClient, Request, Response};
+#[cfg(feature = "http")]
 use std::sync::Arc;
 
 #[cfg(feature = "http")]
@@ -88,9 +90,9 @@ impl HttpClient for SimpleHttpClient {
 
                 let status = response.status();
                 let headers = response.headers().clone();
-                let bytes = response
-                    .bytes()
-                    .map_err(|e| gpui::http_client::anyhow!("Failed to read response body: {}", e))?;
+                let bytes = response.bytes().map_err(|e| {
+                    gpui::http_client::anyhow!("Failed to read response body: {}", e)
+                })?;
 
                 let mut builder = gpui::http_client::http::Response::builder().status(
                     gpui::http_client::http::StatusCode::from_u16(status.as_u16())

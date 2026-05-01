@@ -100,6 +100,7 @@ pub fn help_menu() -> AppMenu {
 }
 
 pub struct StandardMacMenuBar {
+    #[cfg(target_os = "macos")]
     app_name: SharedString,
     file_menu: Option<AppMenu>,
     edit_menu: Option<AppMenu>,
@@ -110,8 +111,15 @@ pub struct StandardMacMenuBar {
 
 impl StandardMacMenuBar {
     pub fn new(app_name: impl Into<SharedString>) -> Self {
+        #[cfg(target_os = "macos")]
+        let app_name = app_name.into();
+
+        #[cfg(not(target_os = "macos"))]
+        let _ = app_name;
+
         Self {
-            app_name: app_name.into(),
+            #[cfg(target_os = "macos")]
+            app_name,
             file_menu: None,
             edit_menu: None,
             view_menu: None,
