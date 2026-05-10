@@ -44,25 +44,36 @@ use gpui::*;
 pub const UI_FONT_FAMILY: &str = "Inter";
 pub const UI_MONO_FONT_FAMILY: &str = "JetBrains Mono";
 
-// Embed font files at compile time
-// Note: You'll need to place font files in assets/fonts/ directory
-// Example fonts (you can replace these with your preferred fonts):
+// Embed font files at compile time (gated behind feature flags)
 // - Inter: https://rsms.me/inter/
 // - JetBrains Mono: https://www.jetbrains.com/lp/mono/
 
-// Regular weights
+// Inter weights
+#[cfg(feature = "font-inter-regular")]
 const INTER_REGULAR: &[u8] = include_bytes!("../assets/fonts/Inter-Regular.ttf");
+#[cfg(feature = "font-inter-medium")]
 const INTER_MEDIUM: &[u8] = include_bytes!("../assets/fonts/Inter-Medium.ttf");
+#[cfg(feature = "font-inter-semibold")]
 const INTER_SEMIBOLD: &[u8] = include_bytes!("../assets/fonts/Inter-SemiBold.ttf");
+#[cfg(feature = "font-inter-bold")]
 const INTER_BOLD: &[u8] = include_bytes!("../assets/fonts/Inter-Bold.ttf");
 
 // Monospace
+#[cfg(feature = "font-mono-regular")]
 const JETBRAINS_MONO_REGULAR: &[u8] = include_bytes!("../assets/fonts/JetBrainsMono-Regular.ttf");
+#[cfg(feature = "font-mono-bold")]
 const JETBRAINS_MONO_BOLD: &[u8] = include_bytes!("../assets/fonts/JetBrainsMono-Bold.ttf");
 
-/// Register all embedded fonts with GPUI
+/// Register embedded fonts with GPUI
 ///
-/// This should be called during application initialization before any UI is rendered.
+/// Should be called during application initialization before any UI is rendered.
+///
+/// The set of fonts actually registered is controlled by Cargo feature flags
+/// (e.g. `bundled-fonts`, `bundled-fonts-inter-minimal`, `font-inter-regular`, ...).
+/// When all font features are disabled this function is a no-op; in that case the
+/// caller is responsible for registering fonts via `cx.text_system().add_fonts(...)`
+/// and pointing the theme tokens (`font_family`, `font_mono`) at the registered
+/// font families.
 ///
 /// # Example
 /// ```ignore
@@ -75,22 +86,36 @@ const JETBRAINS_MONO_BOLD: &[u8] = include_bytes!("../assets/fonts/JetBrainsMono
 /// ```
 pub fn register_fonts(cx: &mut App) {
     // Register Inter family (UI font)
-    cx.text_system()
-        .add_fonts(vec![
-            INTER_REGULAR.into(),
-            INTER_MEDIUM.into(),
-            INTER_SEMIBOLD.into(),
-            INTER_BOLD.into(),
-        ])
-        .expect("Failed to load Inter fonts");
+    #[allow(unused_mut)]
+    let mut inter_fonts: Vec<std::borrow::Cow<'static, [u8]>> = Vec::new();
+    #[cfg(feature = "font-inter-regular")]
+    inter_fonts.push(INTER_REGULAR.into());
+    #[cfg(feature = "font-inter-medium")]
+    inter_fonts.push(INTER_MEDIUM.into());
+    #[cfg(feature = "font-inter-semibold")]
+    inter_fonts.push(INTER_SEMIBOLD.into());
+    #[cfg(feature = "font-inter-bold")]
+    inter_fonts.push(INTER_BOLD.into());
+
+    if !inter_fonts.is_empty() {
+        cx.text_system()
+            .add_fonts(inter_fonts)
+            .expect("Failed to load Inter fonts");
+    }
 
     // Register JetBrains Mono family (monospace font)
-    cx.text_system()
-        .add_fonts(vec![
-            JETBRAINS_MONO_REGULAR.into(),
-            JETBRAINS_MONO_BOLD.into(),
-        ])
-        .expect("Failed to load JetBrains Mono fonts");
+    #[allow(unused_mut)]
+    let mut mono_fonts: Vec<std::borrow::Cow<'static, [u8]>> = Vec::new();
+    #[cfg(feature = "font-mono-regular")]
+    mono_fonts.push(JETBRAINS_MONO_REGULAR.into());
+    #[cfg(feature = "font-mono-bold")]
+    mono_fonts.push(JETBRAINS_MONO_BOLD.into());
+
+    if !mono_fonts.is_empty() {
+        cx.text_system()
+            .add_fonts(mono_fonts)
+            .expect("Failed to load JetBrains Mono fonts");
+    }
 }
 
 /// Get the default UI font family

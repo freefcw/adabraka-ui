@@ -79,7 +79,7 @@ markup5ever_rcdom = { version = "0.38", optional = true }
 rodio = { version = "0.19", optional = true }
 
 [features]
-default = ["http"]
+default = ["http", "bundled-fonts"]
 http = ["reqwest"]
 markdown = ["pulldown-cmark"]
 html-render = ["html5ever", "markup5ever_rcdom"]
@@ -130,6 +130,20 @@ editor-languages = [
     "tree-sitter-php", "tree-sitter-ocaml",
     "tree-sitter-sequel",
 ]
+
+# Bundled font features
+bundled-fonts = ["bundled-fonts-inter", "bundled-fonts-mono-full"]
+bundled-fonts-inter = ["font-inter-regular", "font-inter-medium", "font-inter-semibold", "font-inter-bold"]
+bundled-fonts-inter-minimal = ["font-inter-regular", "font-inter-semibold"]
+bundled-fonts-mono = ["font-mono-regular"]
+bundled-fonts-mono-full = ["font-mono-regular", "font-mono-bold"]
+# Individual font weight features
+font-inter-regular = []
+font-inter-medium = []
+font-inter-semibold = []
+font-inter-bold = []
+font-mono-regular = []
+font-mono-bold = []
 
 [[example]]
 name = "scroll_test"

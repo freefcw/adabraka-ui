@@ -2,73 +2,95 @@
 
 This directory contains the font files used by the adabraka-ui component library.
 
-## Adding Fonts
+## Bundled Fonts
 
-The library is configured to use **Inter** for UI text and **JetBrains Mono** for monospace text. To enable custom fonts:
+| File | Size | Weight | Usage |
+|------|------|--------|-------|
+| Inter-Regular.ttf | 402K | Regular (400) | Body text, labels |
+| Inter-Medium.ttf | 408K | Medium (500) | Buttons, badges, avatars |
+| Inter-SemiBold.ttf | 410K | SemiBold (600) | Headings, dialog titles, selected state |
+| Inter-Bold.ttf | 411K | Bold (700) | H1, editor line numbers, emphasis |
+| JetBrainsMono-Regular.ttf | 267K | Regular | Code editor, OTP, kbd, code blocks |
+| JetBrainsMono-Bold.ttf | 271K | Bold | Editor current line number highlight |
 
-### 1. Download the fonts
+**Total: ~2.1 MB**
 
-**Inter** (UI Font):
-- Download from: https://rsms.me/inter/
-- Get the TrueType (TTF) files for:
-  - Inter-Regular.ttf
-  - Inter-Medium.ttf
-  - Inter-SemiBold.ttf
-  - Inter-Bold.ttf
+## Feature Flags
 
-**JetBrains Mono** (Monospace Font):
-- Download from: https://www.jetbrains.com/lp/mono/
-- Get the TrueType (TTF) files for:
-  - JetBrainsMono-Regular.ttf
-  - JetBrainsMono-Bold.ttf
+Font embedding is controlled via Cargo feature flags, allowing downstream crates to include only the fonts they need.
 
-### 2. Place font files in this directory
+### Convenience Features
 
-Copy the downloaded `.ttf` files into this `assets/fonts/` directory.
+| Feature | Includes | Size |
+|---------|----------|------|
+| `bundled-fonts` (default) | All 6 fonts | ~2.1 MB |
+| `bundled-fonts-inter` | Inter Regular + Medium + SemiBold + Bold | ~1.6 MB |
+| `bundled-fonts-inter-minimal` | Inter Regular + SemiBold | ~812 KB |
+| `bundled-fonts-mono` | JetBrains Mono Regular | ~267 KB |
+| `bundled-fonts-mono-full` | JetBrains Mono Regular + Bold | ~538 KB |
 
-### 3. Enable font loading
+### Individual Font Features
 
-In `src/lib.rs`, uncomment these lines:
+- `font-inter-regular`
+- `font-inter-medium`
+- `font-inter-semibold`
+- `font-inter-bold`
+- `font-mono-regular`
+- `font-mono-bold`
 
-```rust
-// Uncomment this:
-pub mod fonts;
+### Usage Examples
 
-// And in the init() function, uncomment:
-fonts::register_fonts(cx);
+```toml
+# Full fonts (default, ~2.1 MB embedded)
+[dependencies]
+adabraka-ui = "0.5"
+
+# Lightweight: only Regular + SemiBold + Mono Regular (~1.07 MB, saves ~1 MB)
+[dependencies]
+adabraka-ui = { version = "0.5", default-features = false, features = ["http", "bundled-fonts-inter-minimal", "bundled-fonts-mono"] }
+
+# No bundled fonts (downstream registers its own fonts)
+[dependencies]
+adabraka-ui = { version = "0.5", default-features = false, features = ["http"] }
 ```
 
-### 4. Using fonts in your application
+### Registering Custom Fonts (No Bundled Fonts)
 
-The fonts will be automatically registered when you call `adabraka_ui::init(cx)`:
+When bundled fonts are disabled, register fonts manually before rendering UI. The theme
+must also point at the registered font family names. If you keep the default theme tokens,
+your custom fonts need internal family names of `Inter` and `JetBrains Mono`.
 
 ```rust
-use adabraka_ui;
+use adabraka_ui::theme::{install_theme, Theme};
+use gpui::*;
 
 Application::new().run(|cx| {
-    // Initialize UI (registers fonts automatically)
+    // Register your own fonts
+    cx.text_system()
+        .add_fonts(vec![
+            include_bytes!("path/to/YourFont-Regular.ttf").as_slice().into(),
+        ])
+        .expect("Failed to load fonts");
+
+    let mut theme = Theme::dark();
+    theme.tokens.font_family = "Your Font".into();
+    theme.tokens.font_mono = "Your Mono Font".into();
+    install_theme(cx, theme);
+
+    // Then initialize UI
     adabraka_ui::init(cx);
-
-    // Install theme
-    adabraka_ui::theme::install_theme(cx, adabraka_ui::theme::Theme::dark());
-
-    // Your app code...
 });
 ```
 
-## Using Different Fonts
+## Font Sources
 
-To use different fonts:
+**Inter** (UI Font):
+- Download from: https://rsms.me/inter/
+- License: SIL Open Font License 1.1
 
-1. Update the font constants in `src/fonts.rs`:
-   ```rust
-   pub const UI_FONT_FAMILY: &str = "YourFontName";
-   pub const UI_MONO_FONT_FAMILY: &str = "YourMonoFontName";
-   ```
-
-2. Update the `include_bytes!` paths to match your font files
-
-3. Update the registration calls in `register_fonts()` function
+**JetBrains Mono** (Monospace Font):
+- Download from: https://www.jetbrains.com/lp/mono/
+- License: SIL Open Font License 1.1
 
 ## Applying Fonts to Components
 
@@ -77,15 +99,16 @@ Once fonts are registered, you can use them with GPUI's font APIs:
 ```rust
 use gpui::*;
 
-// Use the UI font
-div()
-    .font_family(adabraka_ui::fonts::ui_font_family())
-    .child("Text with custom font")
+// Use the UI font (via theme - recommended)
+let theme = adabraka_ui::theme::use_theme();
+div().font_family(theme.tokens.font_family.clone())
 
 // Use the mono font
-div()
-    .font_family(adabraka_ui::fonts::mono_font_family())
-    .child("Code with monospace font")
+div().font_family(theme.tokens.font_mono.clone())
+
+// Direct access to font family names
+adabraka_ui::fonts::ui_font_family()   // -> "Inter"
+adabraka_ui::fonts::mono_font_family() // -> "JetBrains Mono"
 ```
 
 The theme system will automatically use these fonts throughout the component library once registered.
