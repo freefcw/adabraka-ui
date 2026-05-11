@@ -1,13 +1,9 @@
 use adabraka_ui::{
-    components::{
-        input::{Input, InputSize, InputType, InputVariant},
-        input_state::InputState,
-        scrollable::scrollable_vertical,
-    },
+    components::{input::Input, input_state::InputState, scrollable::scrollable_vertical},
     layout::VStack,
     theme::{install_theme, Theme},
 };
-use gpui::{prelude::FluentBuilder, *};
+use gpui::*;
 
 struct CustomInputApp {
     // Simple usage - just a basic input
@@ -48,7 +44,7 @@ impl CustomInputApp {
 }
 
 impl Render for CustomInputApp {
-    fn render(&mut self, _window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
+    fn render(&mut self, _window: &mut Window, _cx: &mut Context<Self>) -> impl IntoElement {
         let theme = adabraka_ui::theme::use_theme();
 
         VStack::new()

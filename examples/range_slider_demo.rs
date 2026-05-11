@@ -4,7 +4,7 @@ use adabraka_ui::{
     layout::VStack,
     theme::{install_theme, use_theme, Theme},
 };
-use gpui::{prelude::FluentBuilder as _, *};
+use gpui::*;
 
 struct RangeSliderDemo {
     price_slider: Entity<RangeSliderState>,

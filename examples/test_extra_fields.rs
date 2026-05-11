@@ -1,9 +1,9 @@
 // Test if extra fields break scrolling
 
 use gpui::{
-    div, prelude::*, px, rgb, size, AnyElement, App, Application, Bounds, Context, ElementId,
-    Interactivity, ParentElement, ScrollHandle, Stateful, StatefulInteractiveElement,
-    StyleRefinement, Styled, Window, WindowBounds, WindowOptions,
+    div, prelude::*, px, rgb, size, AnyElement, App, Application, Bounds, Context, Interactivity,
+    ParentElement, ScrollHandle, Stateful, StatefulInteractiveElement, StyleRefinement, Styled,
+    Window, WindowBounds, WindowOptions,
 };
 
 // Test 1: Single field (SHOULD WORK)
@@ -56,7 +56,7 @@ enum TestDirection {
 // Test 2: Add Option<ScrollHandle> field AND direction with match
 struct Test2 {
     base: Stateful<gpui::Div>,
-    scroll_handle: Option<ScrollHandle>,
+    _scroll_handle: Option<ScrollHandle>,
     direction: TestDirection,
 }
 
@@ -64,7 +64,7 @@ impl Test2 {
     fn new() -> Self {
         Self {
             base: div().id("test2"),
-            scroll_handle: None,
+            _scroll_handle: None,
             direction: TestDirection::Vertical,
         }
     }
@@ -95,9 +95,7 @@ impl IntoElement for Test2 {
 
     fn into_element(self) -> Self::Element {
         let Test2 {
-            mut base,
-            scroll_handle: _,
-            direction,
+            mut base, direction, ..
         } = self;
 
         // Use match like ScrollContainer

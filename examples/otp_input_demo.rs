@@ -1,5 +1,4 @@
 use adabraka_ui::prelude::*;
-use gpui::*;
 
 struct OTPInputDemoApp {
     otp_state1: Entity<OTPState>,

@@ -1,5 +1,5 @@
 use adabraka_ui::{layout::VStack, navigation::app_menu::*, theme::use_theme};
-use gpui::{prelude::FluentBuilder as _, *};
+use gpui::*;
 
 // Define all the actions our app will use
 actions!(

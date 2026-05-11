@@ -6,7 +6,7 @@ use adabraka_ui::{
     },
     theme::{install_theme, use_theme, Theme},
 };
-use gpui::{prelude::FluentBuilder as _, *};
+use gpui::*;
 
 struct AlertDemo;
 

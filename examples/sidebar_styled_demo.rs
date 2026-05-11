@@ -1,6 +1,6 @@
 use adabraka_ui::{
     components::{icon_source::IconSource, scrollable::scrollable_vertical},
-    navigation::sidebar::{Sidebar, SidebarItem, SidebarPosition, SidebarVariant},
+    navigation::sidebar::{Sidebar, SidebarItem, SidebarVariant},
     prelude::*,
 };
 use gpui::*;

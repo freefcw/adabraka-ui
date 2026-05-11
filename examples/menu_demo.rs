@@ -2,9 +2,11 @@ use adabraka_ui::{
     components::icon_source::IconSource,
     layout::VStack,
     navigation::menu::{MenuBar, MenuBarItem, MenuItem},
+    overlays::context_menu::{ContextMenu, ContextMenuItem},
     theme::use_theme,
 };
-use gpui::{prelude::FluentBuilder as _, *};
+use gpui::prelude::FluentBuilder as _;
+use gpui::*;
 use std::path::PathBuf;
 
 struct Assets {
@@ -80,6 +82,17 @@ impl Render for MenuDemo {
             .size_full()
             .bg(theme.tokens.background)
             .text_color(theme.tokens.foreground)
+            // 注意：右键监听挂在根 div 上，整个窗口任意位置右键都会弹出 ContextMenu。
+            // 真实应用中通常应将该监听器放在需要右键交互的具体子区域（如列表项、画布、
+            // 编辑器内容区等）上，避免劫持全局右键。这里为示例方便，全局接收右键。
+            .on_mouse_down(
+                MouseButton::Right,
+                cx.listener(|this, event: &MouseDownEvent, _, cx| {
+                    this.show_context_menu = true;
+                    this.context_menu_position = event.position;
+                    cx.notify();
+                }),
+            )
             .child(
                 VStack::new()
                     .p(px(32.0))
@@ -316,6 +329,62 @@ impl Render for MenuDemo {
                             ),
                     ),
             )
+            .when(self.show_context_menu, {
+                let entity = cx.entity().clone();
+                move |this: Div| {
+                    this.child(
+                        ContextMenu::new(self.context_menu_position)
+                            .items(vec![
+                                ContextMenuItem::new("refresh", "Refresh")
+                                    .icon("refresh-cw")
+                                    .on_click({
+                                        let entity = entity.clone();
+                                        move |_, cx| {
+                                            cx.update_entity(&entity, |this, cx| {
+                                                this.show_context_menu = false;
+                                                this.handle_menu_action("Context: Refresh", cx);
+                                            });
+                                        }
+                                    }),
+                                ContextMenuItem::new("copy", "Copy Selection")
+                                    .icon("copy")
+                                    .on_click({
+                                        let entity = entity.clone();
+                                        move |_, cx| {
+                                            cx.update_entity(&entity, |this, cx| {
+                                                this.show_context_menu = false;
+                                                this.handle_menu_action(
+                                                    "Context: Copy Selection",
+                                                    cx,
+                                                );
+                                            });
+                                        }
+                                    }),
+                                ContextMenuItem::separator(),
+                                ContextMenuItem::new("inspect", "Inspect")
+                                    .icon("search")
+                                    .on_click({
+                                        let entity = entity.clone();
+                                        move |_, cx| {
+                                            cx.update_entity(&entity, |this, cx| {
+                                                this.show_context_menu = false;
+                                                this.handle_menu_action("Context: Inspect", cx);
+                                            });
+                                        }
+                                    }),
+                            ])
+                            .on_close({
+                                let entity = entity.clone();
+                                move |_, cx| {
+                                    cx.update_entity(&entity, |this, cx| {
+                                        this.show_context_menu = false;
+                                        cx.notify();
+                                    });
+                                }
+                            }),
+                    )
+                }
+            })
     }
 }
 

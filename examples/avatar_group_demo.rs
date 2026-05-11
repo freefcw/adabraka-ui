@@ -1,5 +1,4 @@
 use adabraka_ui::prelude::*;
-use gpui::*;
 
 struct AvatarGroupDemoApp;
 

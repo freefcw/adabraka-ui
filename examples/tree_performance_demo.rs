@@ -1,5 +1,4 @@
 use adabraka_ui::{
-    components::icon_source::IconSource,
     layout::VStack,
     navigation::tree::{TreeList, TreeNode},
     prelude::*,

@@ -2,8 +2,8 @@
 
 use adabraka_ui::prelude::*;
 use gpui::{
-    div, prelude::*, px, rgb, size, App, Application, Bounds, Context, FontWeight, Window,
-    WindowBounds, WindowOptions,
+    div, px, rgb, size, App, Application, Bounds, Context, FontWeight, Window, WindowBounds,
+    WindowOptions,
 };
 
 struct TestScrollContainer {}

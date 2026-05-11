@@ -3,7 +3,7 @@ use adabraka_ui::{
     overlays::context_menu::{ContextMenu, ContextMenuItem},
     prelude::*,
 };
-use gpui::{prelude::FluentBuilder as _, *};
+use gpui::*;
 use std::path::PathBuf;
 use std::rc::Rc;
 

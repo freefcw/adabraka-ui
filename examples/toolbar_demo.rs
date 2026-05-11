@@ -2,11 +2,11 @@ use adabraka_ui::{
     components::icon_source::IconSource,
     layout::VStack,
     navigation::toolbar::{
-        Toolbar, ToolbarButton, ToolbarButtonVariant, ToolbarGroup, ToolbarItem, ToolbarSize,
+        Toolbar, ToolbarButton, ToolbarButtonVariant, ToolbarGroup, ToolbarSize,
     },
     theme::use_theme,
 };
-use gpui::{prelude::FluentBuilder as _, *};
+use gpui::*;
 use std::path::PathBuf;
 
 struct Assets {

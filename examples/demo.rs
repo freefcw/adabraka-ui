@@ -1,5 +1,4 @@
 use adabraka_ui::prelude::*;
-use gpui::*;
 
 fn main() {
     Application::new().run(|cx| {
@@ -18,7 +17,6 @@ fn main() {
 }
 
 struct DemoApp {
-    theme: Theme,
     // Move ALL state to root view for interactive components to work
     click_count: usize,
     checkbox1_checked: bool,
@@ -31,11 +29,9 @@ struct DemoApp {
 
 impl DemoApp {
     fn new(_window: &mut Window, cx: &mut App) -> Self {
-        let theme = Theme::dark();
-        install_theme(cx, theme.clone());
+        install_theme(cx, Theme::dark());
 
         Self {
-            theme,
             click_count: 0,
             checkbox1_checked: false,
             checkbox2_checked: true,

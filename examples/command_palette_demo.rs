@@ -7,7 +7,7 @@ use adabraka_ui::{
     },
     theme::use_theme,
 };
-use gpui::{prelude::FluentBuilder as _, *};
+use gpui::*;
 use std::path::PathBuf;
 
 struct Assets {

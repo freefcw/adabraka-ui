@@ -1,5 +1,4 @@
 use adabraka_ui::prelude::*;
-use gpui::*;
 
 fn main() {
     Application::new().run(|cx| {

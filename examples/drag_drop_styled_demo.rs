@@ -5,7 +5,7 @@ use adabraka_ui::{
     },
     prelude::*,
 };
-use gpui::{prelude::FluentBuilder as _, *};
+use gpui::*;
 use std::path::PathBuf;
 
 struct Assets {
@@ -316,12 +316,13 @@ impl DragDropStyledDemo {
                                         ),
                                 )
                             })
-                            .children(tasks.iter().enumerate().map(|(ix, task)| {
+                            .children(tasks.iter().map(|task| {
                                 let task_clone = task.clone();
+                                let task_id = task.id;
                                 let drag_data = DragData::new(task_clone.clone())
                                     .with_label(task.title.clone());
 
-                                Draggable::new((zone_id, ix), drag_data)
+                                Draggable::new((zone_id, task_id), drag_data)
                                     // Custom styling for draggable items
                                     .rounded(px(8.0))
                                     .shadow(smallvec::smallvec![BoxShadow {

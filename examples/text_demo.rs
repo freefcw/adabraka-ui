@@ -2,7 +2,7 @@ use adabraka_ui::{
     components::{scrollable::scrollable_vertical, text::*},
     theme::{install_theme, use_theme, Theme},
 };
-use gpui::{prelude::FluentBuilder as _, *};
+use gpui::*;
 
 struct TextDemo;
 

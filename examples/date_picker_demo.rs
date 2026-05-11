@@ -2,7 +2,7 @@ use adabraka_ui::{
     components::{date_picker::DateSelectionMode, scrollable::scrollable_vertical},
     prelude::*,
 };
-use gpui::{prelude::FluentBuilder as _, *};
+use gpui::*;
 use std::path::PathBuf;
 
 struct Assets {

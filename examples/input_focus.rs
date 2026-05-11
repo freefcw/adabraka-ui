@@ -16,9 +16,6 @@ struct FocusTestApp {
     email: Entity<InputState>,
     phone: Entity<InputState>,
     password: Entity<InputState>,
-
-    // Track which input has focus
-    current_focus_index: usize,
 }
 
 impl FocusTestApp {
@@ -29,7 +26,6 @@ impl FocusTestApp {
             email: cx.new(|cx| InputState::new(cx).input_type(InputType::Email)),
             phone: cx.new(|cx| InputState::new(cx).input_type(InputType::Tel)),
             password: cx.new(|cx| InputState::new(cx).input_type(InputType::Password)),
-            current_focus_index: 0,
         };
 
         // Set up tab navigation handlers

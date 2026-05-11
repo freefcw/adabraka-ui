@@ -6,7 +6,6 @@ use adabraka_ui::{
     components::scrollable::scrollable_vertical,
     prelude::*,
 };
-use gpui::prelude::FluentBuilder as _;
 use gpui::*;
 use std::path::PathBuf;
 

@@ -209,36 +209,40 @@ impl ComplexLayoutDemo {
     }
 
     fn render_message_card(&self, message: &Message) -> impl IntoElement {
-        Panel::new()
-            .card()
-            .bg(rgb(0xffffff))
-            .hover(|style| style.bg(rgb(0xf9fafb)))
+        div()
+            .id(ElementId::Name(format!("message-{}", message.id).into()))
             .child(
-                VStack::new()
-                    .spacing(8.0)
+                Panel::new()
+                    .card()
+                    .bg(rgb(0xffffff))
+                    .hover(|style| style.bg(rgb(0xf9fafb)))
                     .child(
-                        // Message header
-                        HStack::new()
-                            .space_between()
-                            .items_center()
+                        VStack::new()
+                            .spacing(8.0)
                             .child(
-                                div()
-                                    .font_weight(FontWeight::SEMIBOLD)
-                                    .text_color(rgb(0x111827))
-                                    .child(message.author.clone()),
+                                // Message header
+                                HStack::new()
+                                    .space_between()
+                                    .items_center()
+                                    .child(
+                                        div()
+                                            .font_weight(FontWeight::SEMIBOLD)
+                                            .text_color(rgb(0x111827))
+                                            .child(message.author.clone()),
+                                    )
+                                    .child(
+                                        div()
+                                            .text_sm()
+                                            .text_color(rgb(0x6b7280))
+                                            .child(message.timestamp.clone()),
+                                    ),
                             )
                             .child(
+                                // Message content
                                 div()
-                                    .text_sm()
-                                    .text_color(rgb(0x6b7280))
-                                    .child(message.timestamp.clone()),
+                                    .text_color(rgb(0x374151))
+                                    .child(message.content.clone()),
                             ),
-                    )
-                    .child(
-                        // Message content
-                        div()
-                            .text_color(rgb(0x374151))
-                            .child(message.content.clone()),
                     ),
             )
     }

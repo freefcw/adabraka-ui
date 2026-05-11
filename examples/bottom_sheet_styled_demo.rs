@@ -3,7 +3,7 @@ use adabraka_ui::{
     overlays::bottom_sheet::{BottomSheet, BottomSheetSize},
     prelude::*,
 };
-use gpui::{prelude::FluentBuilder as _, *};
+use gpui::*;
 use std::path::PathBuf;
 
 struct Assets {

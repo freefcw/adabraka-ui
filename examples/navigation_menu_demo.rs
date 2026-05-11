@@ -6,7 +6,6 @@ use adabraka_ui::{
     layout::{HStack, VStack},
     prelude::*,
 };
-use gpui::prelude::FluentBuilder;
 use gpui::*;
 use std::path::PathBuf;
 

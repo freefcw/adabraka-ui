@@ -2,7 +2,7 @@ use adabraka_ui::{
     overlays::popover_menu::{PopoverMenu, PopoverMenuItem},
     prelude::*,
 };
-use gpui::{prelude::FluentBuilder as _, *};
+use gpui::*;
 use std::path::PathBuf;
 
 struct Assets {
@@ -64,7 +64,6 @@ struct PopoverMenuStyledDemoView {
     show_default: bool,
     show_custom_bg: bool,
     show_custom_border: bool,
-    show_custom_size: bool,
     show_gradient: bool,
     show_compact: bool,
     show_wide: bool,
@@ -77,7 +76,6 @@ impl PopoverMenuStyledDemoView {
             show_default: false,
             show_custom_bg: false,
             show_custom_border: false,
-            show_custom_size: false,
             show_gradient: false,
             show_compact: false,
             show_wide: false,
@@ -87,8 +85,8 @@ impl PopoverMenuStyledDemoView {
 }
 
 impl Render for PopoverMenuStyledDemoView {
-    fn render(&mut self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
-        let theme = use_theme();
+    fn render(&mut self, _window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
+        let _theme = use_theme();
 
         div()
             .size_full()

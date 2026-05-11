@@ -48,8 +48,6 @@ struct TreeListDemo {
 
     // List state
     selected_list_item: Option<String>,
-    list_filter: String,
-    list_search_input: Entity<InputState>,
 }
 
 impl TreeListDemo {
@@ -61,8 +59,6 @@ impl TreeListDemo {
             tree_search_input: cx.new(|cx| InputState::new(cx)),
             auto_expand_matches: true,
             selected_list_item: Some("dashboard".to_string()),
-            list_filter: String::new(),
-            list_search_input: cx.new(|cx| InputState::new(cx)),
         }
     }
 }

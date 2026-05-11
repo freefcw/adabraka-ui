@@ -1,8 +1,8 @@
 use adabraka_ui::{
-    overlays::hover_card::{HoverCard, HoverCardAlignment, HoverCardPosition},
+    overlays::hover_card::{HoverCard, HoverCardPosition},
     prelude::*,
 };
-use gpui::{prelude::*, *};
+use gpui::*;
 use std::path::PathBuf;
 
 struct Assets {

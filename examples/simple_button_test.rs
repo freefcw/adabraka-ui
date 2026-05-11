@@ -1,5 +1,4 @@
 use adabraka_ui::prelude::*;
-use gpui::*;
 use std::sync::{Arc, Mutex};
 
 fn main() {

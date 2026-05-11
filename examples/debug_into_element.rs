@@ -2,7 +2,7 @@
 
 use adabraka_ui::layout::{ScrollContainer, ScrollDirection};
 use gpui::{
-    div, prelude::*, px, rgb, size, AnyElement, App, Application, Bounds, Context, ElementId,
+    div, prelude::*, px, rgb, size, AnyElement, App, Application, Bounds, Context,
     InteractiveElement, Interactivity, ParentElement, Stateful, StatefulInteractiveElement,
     StyleRefinement, Styled, Window, WindowBounds, WindowOptions,
 };

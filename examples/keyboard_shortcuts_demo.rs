@@ -1,9 +1,9 @@
 use adabraka_ui::{
-    components::keyboard_shortcuts::{KeyboardShortcuts, ShortcutCategory, ShortcutItem},
+    components::keyboard_shortcuts::{KeyboardShortcuts, ShortcutItem},
     layout::VStack,
     theme::use_theme,
 };
-use gpui::{prelude::FluentBuilder as _, *};
+use gpui::*;
 
 actions!(keyboard_shortcuts_demo, [Quit]);
 

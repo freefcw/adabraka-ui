@@ -61,13 +61,11 @@ fn main() {
         });
 }
 
-struct TabsStyledDemo {
-    selected_tab: usize,
-}
+struct TabsStyledDemo;
 
 impl TabsStyledDemo {
     fn new() -> Self {
-        Self { selected_tab: 0 }
+        Self
     }
 
     fn render_demo_section(
