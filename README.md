@@ -67,9 +67,19 @@ For local co-development, point `gpui` at your checked-out fork instead:
 gpui = { package = "adabraka-gpui", path = "../adabraka-gpui/crates/gpui" }
 ```
 
-## What's New in v0.5.0
+## What's New in v0.6.0
 
-**Current Repository Version (April 2026)**
+**Current Repository Version (May 2026)**
+
+### v0.6.0 - Smaller Footprint & Modernized Deps
+- New **font feature flags** (`bundled-fonts`, `bundled-fonts-inter`, `bundled-fonts-inter-minimal`, `bundled-fonts-mono`, `bundled-fonts-mono-full`, plus per-weight flags) — embed only the font weights you need, or skip the bundled ~2.1 MB entirely
+- Editor and QR rendering moved behind opt-in `editor` / `editor-languages` / `qrcode` Cargo features
+- GPUI default image formats disabled by default; pass-through `image-format-*` features let you opt into specific decoders
+- HTTP backend switched from `isahc` to `zed-reqwest` (`reqwest::blocking` over `smol::unblock`)
+- Replaced direct `once_cell` usage with `std::sync::{OnceLock, LazyLock}`
+- Bumped `adabraka-gpui` and refreshed `Cargo.lock`
+
+See [CHANGELOG.md](CHANGELOG.md#060---2026-05-10) for migration notes.
 
 ### v0.5.0 - GPUI 0.6 Alignment
 - Updated the repository baseline to `adabraka-gpui v0.6.0`

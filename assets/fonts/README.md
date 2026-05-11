@@ -43,15 +43,15 @@ Font embedding is controlled via Cargo feature flags, allowing downstream crates
 ```toml
 # Full fonts (default, ~2.1 MB embedded)
 [dependencies]
-adabraka-ui = "0.5"
+adabraka-ui = "0.6"
 
 # Lightweight: only Regular + SemiBold + Mono Regular (~1.07 MB, saves ~1 MB)
 [dependencies]
-adabraka-ui = { version = "0.5", default-features = false, features = ["http", "bundled-fonts-inter-minimal", "bundled-fonts-mono"] }
+adabraka-ui = { version = "0.6", default-features = false, features = ["http", "bundled-fonts-inter-minimal", "bundled-fonts-mono"] }
 
 # No bundled fonts (downstream registers its own fonts)
 [dependencies]
-adabraka-ui = { version = "0.5", default-features = false, features = ["http"] }
+adabraka-ui = { version = "0.6", default-features = false, features = ["http"] }
 ```
 
 ### Registering Custom Fonts (No Bundled Fonts)

@@ -7,6 +7,53 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## 0.6.0 - 2026-05-10
+
+This release focuses on **shrinking the default binary footprint** and **modernizing
+the dependency stack**, while keeping the out-of-the-box runtime behavior unchanged.
+
+### Added
+- **Font feature flags** ([`bundled-fonts`], [`bundled-fonts-inter`],
+  [`bundled-fonts-inter-minimal`], [`bundled-fonts-mono`], [`bundled-fonts-mono-full`],
+  plus per-weight flags `font-inter-regular` / `font-inter-medium` /
+  `font-inter-semibold` / `font-inter-bold` / `font-mono-regular` / `font-mono-bold`).
+  Downstream crates can now embed only the font weights they actually use, or fully
+  disable bundled fonts (~2.1 MB) and register their own.
+- **`editor` and `qrcode` Cargo features** that gate the editor stack
+  (`ropey`, `tree-sitter*`) and QR rendering (`qrcode`) as opt-in dependencies.
+  `editor-languages` now depends on `editor`.
+- **Pass-through image-decoder features** (`image-format-*`,
+  `image-default-formats`, `image-rayon`) so downstream apps can pick only the
+  image decoders they need.
+
+### Changed
+- **Default features**: `default = ["http", "bundled-fonts"]` (was `["http"]`).
+  Apps using the default feature set get the same fonts as before, but apps that
+  build with `default-features = false` will no longer embed fonts unless they opt
+  in via a `bundled-fonts*` flag.
+- **HTTP backend** switched from `isahc` to `zed-reqwest`. `SimpleHttpClient` is
+  now built on `reqwest::blocking` driven through `smol::unblock`.
+- **GPUI default features disabled**: `adabraka-ui` no longer pulls in
+  `adabraka-gpui`'s default image formats. Only platform-required features stay on.
+- Replaced direct `once_cell` usage with `std::sync::{OnceLock, LazyLock}`.
+- Bumped `adabraka-gpui` and refreshed `Cargo.lock` accordingly.
+
+### Fixed
+- Silenced spurious `feature` and platform `cfg` warnings.
+- Updated docs to align with `adabraka-gpui 0.6` version references.
+
+### Migration Notes
+- If you build with `default-features = false` **and** rely on bundled Inter /
+  JetBrains Mono fonts, add a feature flag explicitly, e.g.
+  `features = ["http", "bundled-fonts"]` (or a smaller subset such as
+  `bundled-fonts-inter-minimal`). Otherwise either register your own fonts via
+  `cx.text_system().add_fonts(...)` and override the theme's `font_family` /
+  `font_mono` tokens, or accept system-font fallback.
+- If you used the editor or QR components, enable the new `editor` /
+  `editor-languages` / `qrcode` features in your `Cargo.toml`.
+- If you decoded specific image formats through this crate, enable the matching
+  `image-format-*` (or `image-default-formats`) feature.
+
 ## 0.5.0 - 2026-04-20
 
 ### Changed
