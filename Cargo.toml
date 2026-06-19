@@ -20,7 +20,7 @@ rustdoc-args = ["--cfg", "docsrs"]
 
 [dependencies]
 # Core Framework
-gpui = { package = "adabraka-gpui", git = "https://github.com/freefcw/adabraka-gpui", default-features = false, features = ["font-kit", "wayland", "x11", "windows-manifest"] }
+gpui = { package = "adabraka-gpui", git = "https://github.com/freefcw/adabraka-gpui", rev = "cb783cd", default-features = false, features = ["font-kit", "wayland", "x11", "windows-manifest"] }
 smallvec = "1.13.2"
 
 # Text Processing
