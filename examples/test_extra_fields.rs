@@ -95,7 +95,9 @@ impl IntoElement for Test2 {
 
     fn into_element(self) -> Self::Element {
         let Test2 {
-            mut base, direction, ..
+            mut base,
+            direction,
+            ..
         } = self;
 
         // Use match like ScrollContainer
