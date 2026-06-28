@@ -1,0 +1,70 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    name: ${{ matrix.name }}
+    runs-on: macos-15
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: build
+            target: build-ci
+          - name: fmt
+            target: fmt-check
+          - name: clippy
+            target: clippy-ci
+          - name: test
+            target: test-ci
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Install just
+        uses: extractions/setup-just@v3
+        with:
+          just-version: 1.54.0
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+
+      - name: Cache Rust artifacts
+        uses: Swatinem/rust-cache@v2
+        with:
+          shared-key: ${{ runner.os }}-cargo-${{ matrix.name }}
+
+      - name: Run ${{ matrix.name }}
+        run: just ${{ matrix.target }}
+
+  agents-md:
+    name: agents-md
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Install just
+        uses: extractions/setup-just@v3
+        with:
+          just-version: 1.54.0
+
+      - name: Verify documented commands in AGENTS.md and CLAUDE.md
+        run: just validate-agent-docs
+
+      - name: Enforce staged clippy policy
+        run: just check-clippy-policy
