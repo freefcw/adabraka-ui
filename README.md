@@ -1806,71 +1806,71 @@ The library includes 50+ example applications demonstrating all components and f
 
 ```bash
 # Comprehensive demo with all components
-cargo run --example demo
+just run-example demo
 
 # Full IDE-style application
-cargo run --example ide_demo
+just run-example ide_demo
 
 # File explorer with tree navigation
-cargo run --example file_explorer
+just run-example file_explorer
 ```
 
 ### Component Demos
 
 ```bash
 # Input & Forms
-cargo run --example input_demo
-cargo run --example input_validation
-cargo run --example password_test
-cargo run --example search_input_demo
-cargo run --example color_picker_demo
-cargo run --example date_picker_demo
-cargo run --example combobox_demo
+just run-example input_demo
+just run-example input_validation
+just run-example password_test
+just run-example search_input_demo
+just run-example color_picker_demo
+just run-example date_picker_demo
+just run-example combobox_demo
 
 # Navigation
-cargo run --example sidebar_demo
-cargo run --example tabs_demo
-cargo run --example menu_demo
-cargo run --example toolbar_demo
-cargo run --example app_menu_demo
-cargo run --example status_bar_demo
-cargo run --example navigation_menu_demo
+just run-example sidebar_demo
+just run-example tabs_demo
+just run-example menu_demo
+just run-example toolbar_demo
+just run-example app_menu_demo
+just run-example status_bar_demo
+just run-example navigation_menu_demo
 
 # Display
-cargo run --example data_table_demo
-cargo run --example card_demo
-cargo run --example accordion_demo
-cargo run --example progress_demo
-cargo run --example text_demo
+just run-example data_table_demo
+just run-example card_demo
+just run-example accordion_demo
+just run-example progress_demo
+just run-example text_demo
 
 # Overlays
-cargo run --example overlays_demo
-cargo run --example command_palette_demo
+just run-example overlays_demo
+just run-example command_palette_demo
 
 # Advanced
-cargo run --example editor_demo
-cargo run --example drag_drop_demo
-cargo run --example animations_demo
-cargo run --example transitions_demo
-cargo run --example virtual_list_demo
+just run-example editor_demo
+just run-example drag_drop_demo
+just run-example animations_demo
+just run-example transitions_demo
+just run-example virtual_list_demo
 
 # Layout
-cargo run --example layout_demo
-cargo run --example complex_layout_demo
-cargo run --example scroll_test
+just run-example layout_demo
+just run-example complex_layout_demo
+just run-example scroll_test
 
 # Icons & Assets
-cargo run --example icon_showcase
-cargo run --example keyboard_shortcuts_demo
+just run-example icon_showcase
+just run-example keyboard_shortcuts_demo
 
 # Trees & Lists
-cargo run --example tree_list_demo
-cargo run --example tree_performance_demo
+just run-example tree_list_demo
+just run-example tree_performance_demo
 ```
 
 To see all available examples:
 ```bash
-cargo run --example
+just list-examples
 ```
 
 ## Architecture
@@ -1904,7 +1904,7 @@ We welcome contributions from the community! Whether you're fixing bugs, adding 
 ### Development Guidelines
 
 - Follow Rust best practices and idioms
-- Use `cargo fmt` for formatting and `cargo clippy` for linting
+- Use `just fmt` for formatting and `just clippy` for linting
 - Write tests for new functionality
 - Update documentation and examples
 - Ensure all examples compile and run

@@ -5,25 +5,41 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Build & Development Commands
 
 ```bash
-# Build (now supports stable Rust)
-cargo build
+# Local build (now supports stable Rust)
+just build
 
-# Run tests
-cargo test
+# Local tests
+just test
 
-# Lint
-cargo clippy
+# Local lint
+just clippy
 
 # Format
-cargo fmt
+just fmt
+
+# GitHub Actions build/test/lint path
+just build-ci
+just test-ci
+just clippy-ci
+just fmt-check
+
+# Future strict clippy gate
+just clippy-strict
 
 # Run a specific example
-cargo run --example <example_name>
+just run-example <example_name>
+
+# List available examples
+just list-examples
 
 # Common examples
-cargo run --example demo          # Comprehensive demo
-cargo run --example slider_styled_demo  # Slider component demo
+just run-example demo          # Comprehensive demo
+just run-example slider_styled_demo  # Slider component demo
 ```
+
+GitHub Actions uses `gpui/runtime_shaders` on hosted macOS runners because the default GPUI Metal shader compilation path can fail when the Metal Toolchain is unavailable. `just clippy-strict` exists as the future hard gate, but CI currently uses `just clippy-ci` while the existing clippy debt is being paid down.
+
+The `Justfile` is the canonical command source for local development and CI targets.
 
 ## Architecture
 

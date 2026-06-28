@@ -63,6 +63,7 @@ We love pull requests! Here's how to contribute:
 
 - Rust 1.70 or higher
 - GPUI 0.2.0 or higher
+- just
 - Git
 
 ### Setup Instructions
@@ -75,17 +76,17 @@ We love pull requests! Here's how to contribute:
 
 2. **Build the project:**
    ```bash
-   cargo build
+   just build
    ```
 
 3. **Run tests:**
    ```bash
-   cargo test
+   just test
    ```
 
 4. **Run examples:**
    ```bash
-   cargo run --example demo
+   just run-example demo
    ```
 
 ### Project Structure
@@ -113,9 +114,9 @@ adabraka-ui/
 2. **Make your changes** following our guidelines
 
 3. **Test thoroughly:**
-   - Run `cargo test`
-   - Run `cargo clippy` for linting
-   - Run `cargo fmt` for formatting
+   - Run `just test`
+   - Run `just clippy` for linting
+   - Run `just fmt` for formatting
    - Test relevant examples
 
 4. **Commit with clear messages:**
@@ -137,7 +138,7 @@ adabraka-ui/
 ### PR Requirements
 
 - ✅ All tests pass
-- ✅ Code is formatted with `cargo fmt`
+- ✅ Code is formatted with `just fmt`
 - ✅ No clippy warnings
 - ✅ Documentation is updated
 - ✅ Examples are provided for new components
@@ -155,7 +156,7 @@ adabraka-ui/
 
 ### Rust Style
 
-- Use `cargo fmt` with default settings
+- Use `just fmt` with default settings
 - Follow the [Rust API Guidelines](https://rust-lang.github.io/api-guidelines/)
 - Maximum line length: 100 characters
 - Use `rustfmt.toml` configuration if present
@@ -413,7 +414,7 @@ Examples should:
 - Be well-commented
 - Use realistic scenarios
 - Follow the same coding style
-- Be runnable with `cargo run --example name`
+- Be runnable with `just run-example name`
 
 ### Example Categories
 
