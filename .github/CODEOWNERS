@@ -1,0 +1,8 @@
+* @freefcw
+
+/src/ @freefcw
+/examples/ @freefcw
+/.github/ @freefcw
+/Cargo.toml @freefcw
+/Cargo.lock @freefcw
+/AGENTS.md @freefcw
