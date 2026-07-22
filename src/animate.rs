@@ -124,7 +124,12 @@ impl KeyframeAnimation {
         }
     }
 
+    /// Add a finite keyframe, ignoring non-finite positions or values.
     pub fn at(mut self, pct: f32, value: f32) -> Self {
+        if !pct.is_finite() || !value.is_finite() {
+            return self;
+        }
+
         let pct = pct.clamp(0.0, 1.0);
         if let Some(pos) = self
             .keyframes
@@ -248,6 +253,20 @@ impl StaggerConfig {
 impl Default for StaggerConfig {
     fn default() -> Self {
         Self::new()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::KeyframeAnimation;
+
+    #[test]
+    fn non_finite_keyframes_are_ignored() {
+        let animation = KeyframeAnimation::new("finite-keyframes")
+            .at(f32::NAN, 0.5)
+            .at(0.5, f32::INFINITY);
+
+        assert_eq!(animation.keyframes, vec![(0.0, 0.0), (1.0, 1.0)]);
     }
 }
 
