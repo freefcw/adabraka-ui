@@ -483,6 +483,25 @@ pub fn highlight_color_for_capture(capture_name: &str) -> Hsla {
     }
 }
 
+#[derive(Default)]
+struct ParseCoordinator {
+    revision: u64,
+}
+
+impl ParseCoordinator {
+    fn revision(&self) -> u64 {
+        self.revision
+    }
+
+    fn advance(&mut self) {
+        self.revision = self.revision.wrapping_add(1);
+    }
+
+    fn accepts(&self, revision: u64) -> bool {
+        self.revision == revision
+    }
+}
+
 pub struct EditorState {
     focus_handle: FocusHandle,
     rope: Rope,
@@ -500,6 +519,7 @@ pub struct EditorState {
     syntax_tree: Option<Tree>,
     highlight_query: Option<Query>,
     language: Language,
+    parse_coordinator: ParseCoordinator,
 
     scroll_handle: ScrollHandle,
     scroll_offset_x: Pixels,
@@ -606,6 +626,7 @@ impl EditorState {
             syntax_tree: None,
             highlight_query: None,
             language: Language::Plain,
+            parse_coordinator: ParseCoordinator::default(),
             scroll_handle: ScrollHandle::new(),
             scroll_offset_x: px(0.0),
             max_line_width: px(0.0),
@@ -1355,6 +1376,7 @@ impl EditorState {
     }
 
     pub fn set_content(&mut self, content: &str, cx: &mut Context<Self>) {
+        self.advance_parse_revision();
         self.rope = if content.is_empty() {
             Rope::from_str("\n")
         } else if content.ends_with('\n') {
@@ -1379,6 +1401,9 @@ impl EditorState {
     }
 
     pub fn set_language(&mut self, lang: Language) {
+        if self.language != lang {
+            self.advance_parse_revision();
+        }
         self.language = lang;
         if let Some(ts_lang) = lang.tree_sitter_language() {
             let _ = self.parser.set_language(&ts_lang);
@@ -1422,6 +1447,7 @@ impl EditorState {
                 let reader = std::io::BufReader::new(file);
                 match Rope::from_reader(reader) {
                     Ok(rope) => {
+                        self.advance_parse_revision();
                         self.file_path = Some(path);
                         self.rope = rope;
                         self.cursor = Position::zero();
@@ -1480,8 +1506,13 @@ impl EditorState {
     }
 
     fn update_syntax_tree(&mut self) {
+        if self.language.tree_sitter_language().is_none() {
+            self.replace_syntax_tree(None);
+            return;
+        }
+
         let rope = &self.rope;
-        self.syntax_tree = self.parser.parse_with_options(
+        let tree = self.parser.parse_with_options(
             &mut |byte_idx, _pos| -> &[u8] {
                 if byte_idx >= rope.len_bytes() {
                     return &[];
@@ -1492,6 +1523,7 @@ impl EditorState {
             None,
             None,
         );
+        self.replace_syntax_tree(tree);
     }
 
     fn byte_to_ts_point(&self, byte_offset: usize) -> TSPoint {
@@ -1523,10 +1555,16 @@ impl EditorState {
         self.schedule_reparse(cx);
     }
 
-    fn parse_async(&mut self, cx: &mut Context<Self>) {
+    fn parse_async(&mut self, cx: &mut Context<Self>) -> bool {
+        if self.language.tree_sitter_language().is_none() {
+            self.replace_syntax_tree(None);
+            return false;
+        }
+
+        let revision = self.parse_coordinator.revision();
         let content = self.rope.to_string();
         let lang = self.language;
-        self.syntax_tree = None;
+        self.replace_syntax_tree(None);
         let (tx, rx) = smol::channel::bounded(1);
         std::thread::spawn(move || {
             let mut parser = Parser::new();
@@ -1540,15 +1578,17 @@ impl EditorState {
             if let Ok(tree) = rx.recv().await {
                 let _ = cx.update(|cx| {
                     let _ = this.update(cx, |state, cx| {
-                        state.syntax_tree = tree;
-                        state.compute_fold_ranges();
-                        state.invalidate_all_caches();
-                        cx.notify();
+                        if state.commit_parse_result(revision, tree) {
+                            state.compute_fold_ranges();
+                            state.invalidate_all_caches();
+                            cx.notify();
+                        }
                     });
                 });
             }
         })
         .detach();
+        true
     }
 
     fn schedule_reparse(&mut self, cx: &mut Context<Self>) {
@@ -1557,6 +1597,10 @@ impl EditorState {
             Timer::after(Duration::from_millis(50)).await;
             let _ = cx.update(|cx| {
                 entity.update(cx, |state, cx| {
+                    if state.syntax_tree.is_none() {
+                        state.parse_async(cx);
+                        return;
+                    }
                     state.update_syntax_tree_incremental_now();
                     state.compute_fold_ranges();
                     // Only invalidate highlights — line layouts are still valid
@@ -1573,7 +1617,7 @@ impl EditorState {
             return;
         }
         let rope = &self.rope;
-        self.syntax_tree = self.parser.parse_with_options(
+        let tree = self.parser.parse_with_options(
             &mut |byte_idx, _pos| -> &[u8] {
                 if byte_idx >= rope.len_bytes() {
                     return &[];
@@ -1584,6 +1628,7 @@ impl EditorState {
             self.syntax_tree.as_ref(),
             None,
         );
+        self.replace_syntax_tree(tree);
     }
 
     fn pos_to_byte_offset(&self, pos: Position) -> usize {
@@ -1610,9 +1655,36 @@ impl EditorState {
         self.cursor.col = min(self.cursor.col, line_len);
     }
 
+    fn is_parse_result_current(&self, revision: u64) -> bool {
+        self.parse_coordinator.accepts(revision)
+    }
+
+    fn commit_parse_result(&mut self, revision: u64, tree: Option<Tree>) -> bool {
+        if !self.is_parse_result_current(revision) {
+            return false;
+        }
+
+        self.replace_syntax_tree(tree);
+        true
+    }
+
+    fn replace_syntax_tree(&mut self, tree: Option<Tree>) {
+        self.syntax_tree = tree;
+        if self.syntax_tree.is_none() {
+            self.fold_ranges.clear();
+            self.folded.clear();
+            self.cached_display_lines = None;
+        }
+    }
+
+    fn advance_parse_revision(&mut self) {
+        self.parse_coordinator.advance();
+    }
+
     fn mark_modified(&mut self) {
         self.is_modified = true;
         self.content_version = self.content_version.wrapping_add(1);
+        self.advance_parse_revision();
         self.cursor_visible = true;
         self.last_cursor_move = std::time::Instant::now();
     }
@@ -4482,5 +4554,143 @@ impl RenderOnce for VerticalScrollbar {
                     .hover(|s| s.bg(theme.tokens.muted_foreground.opacity(0.8))),
             )
             .into_any_element()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[cfg(feature = "tree-sitter-rust")]
+    fn parse_rust(source: &str) -> Tree {
+        let mut parser = Parser::new();
+        parser
+            .set_language(&tree_sitter_rust::LANGUAGE.into())
+            .expect("set Rust language");
+        parser.parse(source, None).expect("parse Rust source")
+    }
+
+    #[gpui::test]
+    fn stale_parse_revisions_are_rejected_after_input_changes() {
+        let mut app = TestApp::new();
+        let editor = app.update(|cx| cx.new(EditorState::new));
+
+        app.update(|cx| {
+            editor.update(cx, |state, cx| {
+                let initial_revision = state.parse_coordinator.revision();
+                assert!(state.is_parse_result_current(initial_revision));
+
+                state.set_content("short content", cx);
+                assert!(!state.is_parse_result_current(initial_revision));
+                let content_revision = state.parse_coordinator.revision();
+
+                state.set_language(Language::Rust);
+                assert!(!state.is_parse_result_current(content_revision));
+                let language_revision = state.parse_coordinator.revision();
+
+                state.insert_text_at_cursor("edited ", cx);
+                assert!(!state.is_parse_result_current(language_revision));
+            });
+        });
+    }
+
+    #[gpui::test]
+    fn plain_text_does_not_start_async_parse() {
+        let mut app = TestApp::new();
+        let editor = app.update(|cx| cx.new(EditorState::new));
+
+        app.update(|cx| {
+            editor.update(cx, |state, cx| {
+                assert_eq!(state.language, Language::Plain);
+                assert!(!state.parse_async(cx));
+            });
+        });
+    }
+
+    #[gpui::test]
+    fn loading_a_file_invalidates_an_older_parse_revision() {
+        let path = std::env::temp_dir().join(format!(
+            "adabraka-editor-parse-revision-{}.txt",
+            std::process::id()
+        ));
+        std::fs::write(&path, "fresh file content").expect("write editor test file");
+
+        let mut app = TestApp::new();
+        let editor = app.update(|cx| cx.new(EditorState::new));
+        app.update(|cx| {
+            editor.update(cx, |state, cx| {
+                let old_revision = state.parse_coordinator.revision();
+                state.load_file(&path, cx);
+                assert!(!state.is_parse_result_current(old_revision));
+            });
+        });
+
+        std::fs::remove_file(path).expect("remove editor test file");
+    }
+
+    #[cfg(feature = "tree-sitter-rust")]
+    #[gpui::test]
+    fn stale_async_parse_result_cannot_replace_current_tree() {
+        let mut app = TestApp::new();
+        let editor = app.update(|cx| cx.new(EditorState::new));
+
+        app.update(|cx| {
+            editor.update(cx, |state, cx| {
+                state.set_language(Language::Rust);
+                state.set_content("fn stale() { let value = 1; }", cx);
+                let stale_revision = state.parse_coordinator.revision();
+                let stale_tree = parse_rust("fn stale() { let value = 1; }");
+
+                state.set_content("struct Current;", cx);
+                let current_tree = state
+                    .syntax_tree
+                    .as_ref()
+                    .expect("current content should be parsed")
+                    .root_node()
+                    .to_sexp();
+
+                assert!(!state.commit_parse_result(stale_revision, Some(stale_tree)));
+                assert_eq!(
+                    state
+                        .syntax_tree
+                        .as_ref()
+                        .expect("stale result must not clear the current tree")
+                        .root_node()
+                        .to_sexp(),
+                    current_tree
+                );
+            });
+        });
+    }
+
+    #[cfg(feature = "tree-sitter-rust")]
+    #[gpui::test]
+    fn switching_to_plain_text_clears_the_syntax_tree() {
+        let mut app = TestApp::new();
+        let editor = app.update(|cx| cx.new(EditorState::new));
+
+        app.update(|cx| {
+            editor.update(cx, |state, cx| {
+                state.set_language(Language::Rust);
+                state.set_content("fn main() {}", cx);
+                assert!(state.syntax_tree.is_some());
+                state.fold_ranges.push(FoldRange {
+                    start_line: 0,
+                    end_line: 2,
+                });
+                state.folded.push(FoldRange {
+                    start_line: 0,
+                    end_line: 2,
+                });
+                state.cached_display_lines = Some(Rc::new(vec![0]));
+
+                state.set_language(Language::Plain);
+
+                assert!(state.syntax_tree.is_none());
+                assert!(state.fold_ranges.is_empty());
+                assert!(state.folded.is_empty());
+                assert!(state.cached_display_lines.is_none());
+            });
+        });
     }
 }
