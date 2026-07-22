@@ -7,6 +7,8 @@ use markup5ever_rcdom::{Handle, NodeData, RcDom};
 
 use gpui::*;
 
+use std::rc::Rc;
+
 use crate::display::rich_text::LinkClickHandler;
 #[cfg(feature = "html-render")]
 use crate::display::rich_text::{render_blocks, ListItem, RichBlock, RichInline, TableAlignment};
@@ -76,7 +78,7 @@ impl Html {
         mut self,
         handler: impl Fn(&str, &mut Window, &mut App) + 'static,
     ) -> Self {
-        self.on_link_click = Some(Box::new(handler));
+        self.on_link_click = Some(Rc::new(handler));
         self
     }
 }
@@ -690,5 +692,53 @@ impl RenderOnce for Html {
 impl Styled for Html {
     fn style(&mut self) -> &mut StyleRefinement {
         self.base.style()
+    }
+}
+
+#[cfg(all(test, feature = "html-render"))]
+mod tests {
+    use super::Html;
+    use gpui::{
+        point, px, Context, IntoElement, Modifiers, MouseButton, Render, TestAppContext, Window,
+    };
+    use std::{cell::Cell, rc::Rc};
+
+    struct HtmlLinkTestView {
+        calls: Rc<Cell<usize>>,
+    }
+
+    impl Render for HtmlLinkTestView {
+        fn render(&mut self, _window: &mut Window, _cx: &mut Context<Self>) -> impl IntoElement {
+            let calls = self.calls.clone();
+            Html::new("<p><a href=\"https://example.com\">link</a></p>").on_link_click(
+                move |url, _, _| {
+                    assert_eq!(url, "https://example.com");
+                    calls.set(calls.get() + 1);
+                },
+            )
+        }
+    }
+
+    #[gpui::test]
+    fn clicking_an_html_link_invokes_the_custom_handler(cx: &mut TestAppContext) {
+        let calls = Rc::new(Cell::new(0));
+        let (_, cx) = cx.add_window_view(|_, _| HtmlLinkTestView {
+            calls: calls.clone(),
+        });
+
+        cx.update(|window, cx| window.draw(cx).clear());
+        let link_bounds = cx
+            .debug_bounds("rich-text-link")
+            .expect("HTML link should have rendered bounds");
+        let link_position = point(
+            link_bounds.origin.x + px(2.0),
+            link_bounds.origin.y + px(8.0),
+        );
+        cx.simulate_mouse_move(link_position, None, Modifiers::none());
+        cx.simulate_mouse_down(link_position, MouseButton::Left, Modifiers::none());
+        cx.update(|window, cx| window.draw(cx).clear());
+        cx.simulate_mouse_up(link_position, MouseButton::Left, Modifiers::none());
+
+        assert_eq!(calls.get(), 1);
     }
 }

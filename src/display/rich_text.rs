@@ -1,3 +1,5 @@
+use std::rc::Rc;
+
 use gpui::prelude::FluentBuilder as _;
 use gpui::*;
 
@@ -300,7 +302,19 @@ impl InlineFlattener {
     }
 }
 
-pub type LinkClickHandler = Box<dyn Fn(&str, &mut Window, &mut App) + 'static>;
+pub type LinkClickHandler = Rc<dyn Fn(&str, &mut Window, &mut App) + 'static>;
+
+fn dispatch_link_click(
+    handler: &Option<LinkClickHandler>,
+    url: &str,
+    window: &mut Window,
+    cx: &mut App,
+) {
+    match handler.as_ref() {
+        Some(handler) => handler(url, window, cx),
+        None => cx.open_url(url),
+    }
+}
 
 pub fn render_inlines(
     inlines: &[RichInline],
@@ -330,23 +344,21 @@ pub fn render_inlines(
         let click_ranges: Vec<std::ops::Range<usize>> =
             flattened.links.iter().map(|l| l.range.clone()).collect();
         let link_urls: Vec<String> = flattened.links.iter().map(|l| l.url.clone()).collect();
-        let handler = link_handler.is_some();
+        let handler = link_handler.cloned();
 
-        if handler {
-            let urls = link_urls;
-            return div()
-                .text_size(base_size)
-                .line_height(relative(1.5))
-                .child(InteractiveText::new(id, styled).on_click(
-                    click_ranges,
-                    move |idx, _window, cx| {
-                        if let Some(url) = urls.get(idx) {
-                            cx.open_url(url);
-                        }
-                    },
-                ))
-                .into_any_element();
-        }
+        return div()
+            .text_size(base_size)
+            .line_height(relative(1.5))
+            .debug_selector(|| "rich-text-link".into())
+            .child(InteractiveText::new(id, styled).on_click(
+                click_ranges,
+                move |idx, window, cx| {
+                    if let Some(url) = link_urls.get(idx) {
+                        dispatch_link_click(&handler, url, window, cx);
+                    }
+                },
+            ))
+            .into_any_element();
     }
 
     div()
@@ -384,36 +396,21 @@ pub fn render_inlines_with_handler(
         let id = element_id.unwrap_or_else(|| ElementId::Name("rich-text-inline".into()));
         let click_ranges: Vec<std::ops::Range<usize>> =
             flattened.links.iter().map(|l| l.range.clone()).collect();
+        let urls: Vec<String> = flattened.links.iter().map(|l| l.url.clone()).collect();
+        let handler = on_link_click.clone();
 
-        if let Some(_handler) = on_link_click {
-            let urls: Vec<String> = flattened.links.iter().map(|l| l.url.clone()).collect();
-            return div()
-                .text_size(base_size)
-                .line_height(relative(1.5))
-                .child(InteractiveText::new(id, styled).on_click(
-                    click_ranges,
-                    move |idx, _window, cx| {
-                        if let Some(url) = urls.get(idx) {
-                            cx.open_url(url);
-                        }
-                    },
-                ))
-                .into_any_element();
-        } else {
-            let urls: Vec<String> = flattened.links.iter().map(|l| l.url.clone()).collect();
-            return div()
-                .text_size(base_size)
-                .line_height(relative(1.5))
-                .child(InteractiveText::new(id, styled).on_click(
-                    click_ranges,
-                    move |idx, _window, cx| {
-                        if let Some(url) = urls.get(idx) {
-                            cx.open_url(url);
-                        }
-                    },
-                ))
-                .into_any_element();
-        }
+        return div()
+            .text_size(base_size)
+            .line_height(relative(1.5))
+            .child(InteractiveText::new(id, styled).on_click(
+                click_ranges,
+                move |idx, window, cx| {
+                    if let Some(url) = urls.get(idx) {
+                        dispatch_link_click(&handler, url, window, cx);
+                    }
+                },
+            ))
+            .into_any_element();
     }
 
     div()
@@ -603,34 +600,21 @@ fn render_inline_element(
         let click_ranges: Vec<std::ops::Range<usize>> =
             flattened.links.iter().map(|l| l.range.clone()).collect();
         let urls: Vec<String> = flattened.links.iter().map(|l| l.url.clone()).collect();
+        let handler = on_link_click.clone();
 
-        if let Some(_handler) = on_link_click {
-            return div()
-                .text_size(base_size)
-                .line_height(relative(1.5))
-                .child(InteractiveText::new(id, styled).on_click(
-                    click_ranges,
-                    move |idx, _window, cx| {
-                        if let Some(url) = urls.get(idx) {
-                            cx.open_url(url);
-                        }
-                    },
-                ))
-                .into_any_element();
-        } else {
-            return div()
-                .text_size(base_size)
-                .line_height(relative(1.5))
-                .child(InteractiveText::new(id, styled).on_click(
-                    click_ranges,
-                    move |idx, _window, cx| {
-                        if let Some(url) = urls.get(idx) {
-                            cx.open_url(url);
-                        }
-                    },
-                ))
-                .into_any_element();
-        }
+        return div()
+            .text_size(base_size)
+            .line_height(relative(1.5))
+            .debug_selector(|| "rich-text-link".into())
+            .child(InteractiveText::new(id, styled).on_click(
+                click_ranges,
+                move |idx, window, cx| {
+                    if let Some(url) = urls.get(idx) {
+                        dispatch_link_click(&handler, url, window, cx);
+                    }
+                },
+            ))
+            .into_any_element();
     }
 
     div()
@@ -802,4 +786,29 @@ fn render_table(
     }
 
     table.into_any_element()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{dispatch_link_click, LinkClickHandler};
+    use gpui::{Empty, TestApp};
+    use std::{cell::Cell, rc::Rc};
+
+    #[gpui::test]
+    fn custom_link_handler_is_invoked() {
+        let calls = Rc::new(Cell::new(0));
+        let calls_for_handler = calls.clone();
+        let handler: Option<LinkClickHandler> = Some(Rc::new(move |url, _, _| {
+            assert_eq!(url, "https://example.com");
+            calls_for_handler.set(calls_for_handler.get() + 1);
+        }));
+        let mut app = TestApp::new();
+        let mut window = app.open_window(|_, _| Empty);
+
+        window.update(|_, window, cx| {
+            dispatch_link_click(&handler, "https://example.com", window, cx);
+        });
+
+        assert_eq!(calls.get(), 1);
+    }
 }
