@@ -103,10 +103,17 @@ impl OTPState {
         self.event_subscription = subscription;
     }
 
+    /// Set the digit count within the focus capacity created at construction.
+    ///
+    /// Prefer passing the final count to [`OTPState::new`]. Counts larger than
+    /// the construction capacity are clamped to that capacity so the builder
+    /// cannot create a state the renderer cannot focus safely.
+    #[deprecated(note = "pass digit_count to OTPState::new(cx, count) instead")]
     pub fn digit_count(mut self, count: usize) -> Self {
-        let count = count.clamp(4, 8);
+        let count = count.clamp(4, 8).min(self.focus_handles.len());
         self.digit_count = count;
         self.digits.resize(count, None);
+        self.focused_index = self.focused_index.min(count.saturating_sub(1));
         self
     }
 
@@ -445,7 +452,13 @@ impl RenderOnce for OTPInput {
         let input_gap = self.input_gap();
 
         let otp_state = self.state.read(cx);
-        let digit_count = otp_state.digit_count;
+        // Iterate based on the smaller of `digit_count` / `focus_handles.len()` /
+        // `digits.len()` to guarantee we never index out of bounds even if the
+        // fields ever desync.
+        let digit_count = otp_state
+            .digit_count
+            .min(otp_state.focus_handles.len())
+            .min(otp_state.digits.len());
         let digits = otp_state.digits.clone();
         let _focused_index = otp_state.focused_index;
         let state = otp_state.state;
@@ -648,5 +661,39 @@ mod tests {
                 .update(cx, |_, cx| cx.emit(OTPInputEvent::Change("2".to_string())));
         });
         assert_eq!(current_calls.get(), 1);
+    }
+
+    #[gpui::test]
+    #[allow(deprecated)]
+    fn digit_count_builder_cannot_exceed_focus_capacity() {
+        let mut app = TestApp::new();
+        let state = app.update(|cx| cx.new(|cx| OTPState::new(cx, 4).digit_count(8)));
+
+        app.read(|cx| {
+            let state = state.read(cx);
+            assert_eq!(state.digit_count, 4);
+            assert_eq!(state.digits.len(), 4);
+            assert_eq!(state.focus_handles.len(), 4);
+        });
+    }
+
+    #[gpui::test]
+    #[allow(deprecated)]
+    fn digit_count_can_grow_again_within_focus_capacity() {
+        let mut app = TestApp::new();
+        let state =
+            app.update(|cx| cx.new(|cx| OTPState::new(cx, 8).digit_count(4).digit_count(8)));
+
+        app.update(|cx| {
+            state.update(cx, |state, cx| state.set_value("12345678", cx));
+        });
+
+        app.read(|cx| {
+            let state = state.read(cx);
+            assert_eq!(state.value(), "12345678");
+            assert_eq!(state.digit_count, 8);
+            assert_eq!(state.digits.len(), 8);
+            assert_eq!(state.focus_handles.len(), 8);
+        });
     }
 }
