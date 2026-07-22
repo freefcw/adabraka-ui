@@ -67,9 +67,16 @@ For local co-development, point `gpui` at your checked-out fork instead:
 gpui = { package = "adabraka-gpui", path = "../adabraka-gpui/crates/gpui" }
 ```
 
-## What's New in v0.6.0
+## What's New in v0.7.0
 
-**Current Repository Version (May 2026)**
+### v0.7.0 - App-Scoped State & Reliability
+- Themes are now stored per GPUI `App`; call `use_theme(cx)` from render code
+- Input-family callbacks use one state-owned subscription instead of accumulating detached subscriptions during render
+- Editor parse results are revision-checked before commit, preventing stale syntax trees
+- Initialization is complete and idempotent across root and component-specific entry points
+- Numeric chart, animation, and virtual-list contracts now reject or sanitize invalid values
+
+See [CHANGELOG.md](CHANGELOG.md#070---2026-07-22) for migration notes.
 
 ### v0.6.0 - Smaller Footprint & Modernized Deps
 - New **font feature flags** (`bundled-fonts`, `bundled-fonts-inter`, `bundled-fonts-inter-minimal`, `bundled-fonts-mono`, `bundled-fonts-mono-full`, plus per-weight flags) — embed only the font weights you need, or skip the bundled ~2.1 MB entirely

@@ -7,6 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## 0.7.0 - 2026-07-22
+
+### Changed
+- `use_theme` now requires an `&App`/GPUI context and stores themes per application instead of in process-global state.
+- The crate version is now `0.7.0` to reflect this public API change and the shared rich-text callback representation.
+- Variable virtual-list extents are snapshotted once at construction; non-finite and negative extents are treated as zero.
+
+### Fixed
+- Replaced render-time detached input subscriptions with one state-owned subscription for Input, Textarea, MentionInput, and OTPInput.
+- Prevented stale Editor parse results from landing after content, language, or file changes.
+- Made OTP digit-count configuration preserve focus-handle invariants, including repeated shrinking and growing within the construction capacity.
+- Made `InputState::set_value` replace existing content instead of inserting at the current selection.
+- Routed Markdown and HTML links through custom handlers when provided.
+- Made keyframe and chart range APIs robust to non-finite or degenerate numeric inputs, ignoring invalid chart points and defaulting an entirely invalid data set.
+- Made root and component initialization complete, per-App, and idempotent.
+- Centralized shared UTF-8/UTF-16 offset conversion logic used by text editing components.
+
+### Migration Notes
+- Replace `use_theme()` with `use_theme(cx)` at render sites.
+- `LinkClickHandler` is shared with `Rc`; construct custom handlers through the Markdown/HTML builder APIs where possible.
+
 ## 0.6.0 - 2026-05-10
 
 This release focuses on **shrinking the default binary footprint** and **modernizing
