@@ -35,7 +35,7 @@ impl DataPoint {
     }
 }
 
-#[derive(Clone, Debug, Default)]
+#[derive(Clone, Debug)]
 pub struct DataRange {
     pub x_min: f64,
     pub x_max: f64,
@@ -44,7 +44,10 @@ pub struct DataRange {
 }
 
 impl DataRange {
+    /// Construct a finite range with ordered, non-zero axes.
     pub fn new(x_min: f64, x_max: f64, y_min: f64, y_max: f64) -> Self {
+        let (x_min, x_max) = Self::finite_bounds(x_min, x_max);
+        let (y_min, y_max) = Self::finite_bounds(y_min, y_max);
         Self {
             x_min,
             x_max,
@@ -53,21 +56,49 @@ impl DataRange {
         }
     }
 
-    pub fn from_points(points: &[DataPoint]) -> Self {
-        if points.is_empty() {
-            return Self::new(0.0, 1.0, 0.0, 1.0);
+    fn empty() -> Self {
+        Self {
+            x_min: f64::MAX,
+            x_max: f64::MIN,
+            y_min: f64::MAX,
+            y_max: f64::MIN,
+        }
+    }
+
+    fn finite_bounds(min: f64, max: f64) -> (f64, f64) {
+        if !min.is_finite() || !max.is_finite() {
+            return (0.0, 1.0);
         }
 
+        let (min, max) = if min <= max { (min, max) } else { (max, min) };
+        if (max - min).abs() < f64::EPSILON {
+            let padding = (min.abs() * 0.01).max(0.5);
+            (min - padding, max + padding)
+        } else {
+            (min, max)
+        }
+    }
+
+    pub fn from_points(points: &[DataPoint]) -> Self {
         let mut x_min = f64::MAX;
         let mut x_max = f64::MIN;
         let mut y_min = f64::MAX;
         let mut y_max = f64::MIN;
+        let mut has_finite_point = false;
 
-        for p in points {
-            x_min = x_min.min(p.x);
-            x_max = x_max.max(p.x);
-            y_min = y_min.min(p.y);
-            y_max = y_max.max(p.y);
+        for point in points {
+            if !point.x.is_finite() || !point.y.is_finite() {
+                continue;
+            }
+            has_finite_point = true;
+            x_min = x_min.min(point.x);
+            x_max = x_max.max(point.x);
+            y_min = y_min.min(point.y);
+            y_max = y_max.max(point.y);
+        }
+
+        if !has_finite_point {
+            return Self::default();
         }
 
         if (x_max - x_min).abs() < f64::EPSILON {
@@ -88,11 +119,19 @@ impl DataRange {
     }
 
     pub fn normalize_x(&self, x: f64) -> f32 {
-        ((x - self.x_min) / (self.x_max - self.x_min)) as f32
+        if !x.is_finite() {
+            return 0.0;
+        }
+        let (min, max) = Self::finite_bounds(self.x_min, self.x_max);
+        ((x - min) / (max - min)) as f32
     }
 
     pub fn normalize_y(&self, y: f64) -> f32 {
-        ((y - self.y_min) / (self.y_max - self.y_min)) as f32
+        if !y.is_finite() {
+            return 0.0;
+        }
+        let (min, max) = Self::finite_bounds(self.y_min, self.y_max);
+        ((y - min) / (max - min)) as f32
     }
 
     pub fn with_padding(&self, padding: f64) -> Self {
@@ -104,6 +143,12 @@ impl DataRange {
             self.y_min - y_range * padding,
             self.y_max + y_range * padding,
         )
+    }
+}
+
+impl Default for DataRange {
+    fn default() -> Self {
+        Self::new(0.0, 1.0, 0.0, 1.0)
     }
 }
 
@@ -597,7 +642,7 @@ impl Chart {
     }
 
     fn compute_data_range(&self) -> DataRange {
-        let mut range = DataRange::new(f64::MAX, f64::MIN, f64::MAX, f64::MIN);
+        let mut range = DataRange::empty();
 
         for series in &self.series {
             let series_range = series.data_range();
@@ -621,13 +666,69 @@ impl Chart {
             range.y_max = max;
         }
 
-        range
+        DataRange::new(range.x_min, range.x_max, range.y_min, range.y_max)
     }
 }
 
 impl Styled for Chart {
     fn style(&mut self) -> &mut StyleRefinement {
         &mut self.style
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{DataPoint, DataRange};
+
+    #[test]
+    fn data_range_normalization_is_finite_for_invalid_public_inputs() {
+        for range in [
+            DataRange::new(1.0, 1.0, 2.0, 2.0),
+            DataRange::new(2.0, -2.0, 4.0, -4.0),
+            DataRange::new(f64::NAN, 1.0, 0.0, f64::INFINITY),
+        ] {
+            assert!(range.normalize_x(0.0).is_finite());
+            assert!(range.normalize_y(0.0).is_finite());
+            assert!(range.x_min < range.x_max);
+            assert!(range.y_min < range.y_max);
+        }
+    }
+
+    #[test]
+    fn data_range_ignores_non_finite_points() {
+        let range = DataRange::from_points(&[
+            DataPoint::new(f64::NAN, 1.0),
+            DataPoint::new(2.0, f64::INFINITY),
+            DataPoint::new(3.0, 4.0),
+        ]);
+
+        assert!(range.x_min <= 3.0 && range.x_max >= 3.0);
+        assert!(range.y_min <= 4.0 && range.y_max >= 4.0);
+        assert!(range.normalize_x(3.0).is_finite());
+        assert!(range.normalize_y(4.0).is_finite());
+    }
+
+    #[test]
+    fn single_finite_point_keeps_the_existing_one_unit_range() {
+        let range = DataRange::from_points(&[DataPoint::new(3.0, 4.0)]);
+
+        assert_eq!(range.x_min, 3.0);
+        assert_eq!(range.x_max, 4.0);
+        assert_eq!(range.y_min, 4.0);
+        assert_eq!(range.y_max, 5.0);
+    }
+
+    #[test]
+    fn data_range_defaults_when_no_points_are_finite() {
+        let range = DataRange::from_points(&[
+            DataPoint::new(f64::NAN, 1.0),
+            DataPoint::new(2.0, f64::INFINITY),
+        ]);
+
+        assert_eq!(range.x_min, 0.0);
+        assert_eq!(range.x_max, 1.0);
+        assert_eq!(range.y_min, 0.0);
+        assert_eq!(range.y_max, 1.0);
     }
 }
 
