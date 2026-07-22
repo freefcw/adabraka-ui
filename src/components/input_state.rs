@@ -184,6 +184,12 @@ pub struct InputState {
     pub shake_triggered: bool,
     pub(crate) shake_count: u32,
     cursor_position_override: Option<usize>,
+
+    // Tracks whether the Input builder's `initial_value` has already been
+    // applied to this state. Without this, `Input::render` would re-apply
+    // the initial value every frame, overwriting user edits and emitting
+    // a spurious `Change` event on each render.
+    initial_value_applied: bool,
 }
 
 impl EventEmitter<InputEvent> for InputState {}
@@ -224,6 +230,7 @@ impl InputState {
             shake_triggered: false,
             shake_count: 0,
             cursor_position_override: None,
+            initial_value_applied: false,
         }
     }
 
@@ -318,17 +325,29 @@ impl InputState {
         window: &mut Window,
         cx: &mut Context<Self>,
     ) {
+        let full_range_utf16 = 0..self.offset_to_utf16(self.content.len());
         let value = value.into();
-        let filtered_value = self.filter_input(&value);
-        self.replace_text_in_range(None, &filtered_value, window, cx);
-        let len = filtered_value.len();
-        self.selected_range = len..len;
+        self.replace_text_in_range(Some(full_range_utf16), &value, window, cx);
+    }
 
-        if self.validate_on_change {
-            self.validate(cx).ok();
+    /// Apply the builder-supplied initial value exactly once.
+    ///
+    /// `Input::render` runs every frame; calling `set_value` there would
+    /// overwrite user edits and emit a `Change` event on every render.
+    /// This helper applies the value only on the first call, so subsequent
+    /// renders leave the state untouched. To forcefully replace the value
+    /// later (e.g., resetting a form), call `set_value` directly.
+    pub fn apply_initial_value(
+        &mut self,
+        value: impl Into<SharedString>,
+        window: &mut Window,
+        cx: &mut Context<Self>,
+    ) {
+        if self.initial_value_applied {
+            return;
         }
-
-        cx.emit(InputEvent::Change);
+        self.initial_value_applied = true;
+        self.set_value(value, window, cx);
     }
 
     /// Validate the current input value

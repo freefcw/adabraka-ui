@@ -546,7 +546,7 @@ impl RenderOnce for Input {
             state.helper_text = self.helper_text.clone();
 
             if let Some(value) = self.initial_value.clone() {
-                state.set_value(value, window, cx);
+                state.apply_initial_value(value, window, cx);
             }
         });
 
@@ -889,5 +889,76 @@ impl RenderOnce for Input {
                 vstack.style().refine(&user_style);
                 vstack
             })
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::theme::{install_theme, Theme};
+    use std::{cell::Cell, rc::Rc};
+
+    struct InputRenderTestView {
+        state: Entity<InputState>,
+        callback_calls: Option<Rc<Cell<usize>>>,
+        initial_value: Option<SharedString>,
+    }
+
+    impl Render for InputRenderTestView {
+        fn render(&mut self, _window: &mut Window, _cx: &mut Context<Self>) -> impl IntoElement {
+            Input::new(&self.state)
+                .when_some(self.initial_value.clone(), Input::value)
+                .when_some(self.callback_calls.clone(), |input, calls| {
+                    input.on_change(move |_, _| calls.set(calls.get() + 1))
+                })
+        }
+    }
+
+    #[gpui::test]
+    fn initial_value_does_not_overwrite_user_edits_on_rerender() {
+        let mut app = TestApp::new();
+        app.update(|cx| install_theme(cx, Theme::light()));
+        let mut window = app.open_window(|_, cx| InputRenderTestView {
+            state: cx.new(InputState::new),
+            callback_calls: None,
+            initial_value: Some("initial".into()),
+        });
+
+        window.draw();
+        window.update(|view, _, cx| {
+            view.state.update(cx, |state, cx| {
+                state.content = "edited".into();
+                cx.notify();
+            });
+            cx.notify();
+        });
+        window.draw();
+
+        assert_eq!(
+            window.read(|view, cx| view.state.read(cx).content().to_string()),
+            "edited"
+        );
+    }
+
+    #[gpui::test]
+    fn set_value_replaces_existing_content() {
+        let mut app = TestApp::new();
+        app.update(|cx| install_theme(cx, Theme::light()));
+        let mut window = app.open_window(|_, cx| InputRenderTestView {
+            state: cx.new(InputState::new),
+            callback_calls: None,
+            initial_value: Some("initial".into()),
+        });
+
+        window.draw();
+        window.update(|view, window, cx| {
+            view.state
+                .update(cx, |state, cx| state.set_value("edited", window, cx));
+        });
+
+        assert_eq!(
+            window.read(|view, cx| view.state.read(cx).content().to_string()),
+            "edited"
+        );
     }
 }
