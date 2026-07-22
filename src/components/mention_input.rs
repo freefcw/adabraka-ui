@@ -83,6 +83,7 @@ pub struct MentionInputState {
     pub dropdown_filter: String,
     pub dropdown_index: usize,
     trigger_start: Option<usize>,
+    event_subscription: Option<Subscription>,
 }
 
 impl EventEmitter<MentionInputEvent> for MentionInputState {}
@@ -106,7 +107,12 @@ impl MentionInputState {
             dropdown_filter: String::new(),
             dropdown_index: 0,
             trigger_start: None,
+            event_subscription: None,
         }
+    }
+
+    fn replace_event_subscription(&mut self, subscription: Option<Subscription>) {
+        self.event_subscription = subscription;
     }
 
     pub fn content(&self) -> &str {
@@ -743,6 +749,43 @@ impl MentionInput {
         self
     }
 
+    fn install_event_subscription(&self, cx: &mut App) {
+        let on_change = self.on_change.clone();
+        let on_mention = self.on_mention.clone();
+        let on_enter = self.on_enter.clone();
+        let has_callbacks = on_change.is_some() || on_mention.is_some() || on_enter.is_some();
+
+        let subscription = has_callbacks.then(|| {
+            cx.subscribe(
+                &self.state,
+                move |emitter, event: &MentionInputEvent, cx| match event {
+                    MentionInputEvent::Change => {
+                        if let Some(callback) = on_change.as_ref() {
+                            let content = emitter.read(cx).content.clone();
+                            callback(&content, cx);
+                        }
+                    }
+                    MentionInputEvent::MentionSelected(item) => {
+                        if let Some(callback) = on_mention.as_ref() {
+                            callback(item, cx);
+                        }
+                    }
+                    MentionInputEvent::Enter => {
+                        if let Some(callback) = on_enter.as_ref() {
+                            let content = emitter.read(cx).content.clone();
+                            callback(&content, cx);
+                        }
+                    }
+                    MentionInputEvent::Focus | MentionInputEvent::Blur => {}
+                },
+            )
+        });
+
+        self.state.update(cx, |state, _| {
+            state.replace_event_subscription(subscription);
+        });
+    }
+
     fn filtered_items(&self, filter: &str) -> Vec<&MentionItem> {
         let filter_lower = filter.to_lowercase();
         self.items
@@ -789,35 +832,9 @@ impl RenderOnce for MentionInput {
         let filtered = self.filtered_items(&dropdown_filter);
         let filtered_count = filtered.len();
 
-        let on_change = self.on_change.clone();
-        let on_mention = self.on_mention.clone();
-        let on_enter = self.on_enter.clone();
         let items_for_confirm = self.items.clone();
 
-        cx.subscribe(
-            &state_entity,
-            move |_emitter, event: &MentionInputEvent, cx| match event {
-                MentionInputEvent::Change => {
-                    if let Some(ref callback) = on_change {
-                        let content = _emitter.read(cx).content.clone();
-                        callback(&content, cx);
-                    }
-                }
-                MentionInputEvent::MentionSelected(item) => {
-                    if let Some(ref callback) = on_mention {
-                        callback(item, cx);
-                    }
-                }
-                MentionInputEvent::Enter => {
-                    if let Some(ref callback) = on_enter {
-                        let content = _emitter.read(cx).content.clone();
-                        callback(&content, cx);
-                    }
-                }
-                _ => {}
-            },
-        )
-        .detach();
+        self.install_event_subscription(cx);
 
         let _bounds = self.bounds;
 
@@ -1350,4 +1367,61 @@ pub fn init_mention_input(cx: &mut App) {
         #[cfg(not(target_os = "macos"))]
         KeyBinding::new("ctrl-v", MentionPaste, Some("MentionInput")),
     ]);
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::theme::{install_theme, Theme};
+    use std::{cell::Cell, rc::Rc};
+
+    struct MentionRenderTestView {
+        state: Entity<MentionInputState>,
+        callback_calls: Option<Rc<Cell<usize>>>,
+    }
+
+    impl Render for MentionRenderTestView {
+        fn render(&mut self, _window: &mut Window, _cx: &mut Context<Self>) -> impl IntoElement {
+            MentionInput::new(&self.state, Vec::new())
+                .when_some(self.callback_calls.clone(), |input, calls| {
+                    input.on_change(move |_, _| calls.set(calls.get() + 1))
+                })
+        }
+    }
+
+    #[gpui::test]
+    fn repeated_render_replaces_mention_event_subscription() {
+        let mut app = TestApp::new();
+        app.update(|cx| install_theme(cx, Theme::light()));
+        let stale_calls = Rc::new(Cell::new(0));
+        let current_calls = Rc::new(Cell::new(0));
+        let mut window = app.open_window(|_, cx| MentionRenderTestView {
+            state: cx.new(MentionInputState::new),
+            callback_calls: Some(stale_calls.clone()),
+        });
+
+        window.draw();
+        window.update(|view, _, cx| {
+            view.callback_calls = Some(current_calls.clone());
+            cx.notify();
+        });
+        window.draw();
+        window.update(|view, _, cx| {
+            view.state
+                .update(cx, |_, cx| cx.emit(MentionInputEvent::Change));
+        });
+        assert_eq!(stale_calls.get(), 0);
+        assert_eq!(current_calls.get(), 1);
+
+        window.update(|view, _, cx| {
+            view.callback_calls = None;
+            cx.notify();
+        });
+        window.draw();
+        window.update(|view, _, cx| {
+            view.state
+                .update(cx, |_, cx| cx.emit(MentionInputEvent::Change));
+        });
+        assert_eq!(current_calls.get(), 1);
+    }
 }

@@ -410,6 +410,57 @@ impl Input {
         self
     }
 
+    fn install_event_subscription(&self, cx: &mut App) {
+        let on_change = self.on_change.clone();
+        let on_enter = self.on_enter.clone();
+        let on_focus = self.on_focus.clone();
+        let on_blur = self.on_blur.clone();
+        let on_validate = self.on_validate.clone();
+
+        let has_callbacks = on_change.is_some()
+            || on_enter.is_some()
+            || on_focus.is_some()
+            || on_blur.is_some()
+            || on_validate.is_some();
+        let subscription = has_callbacks.then(|| {
+            cx.subscribe(&self.state, move |emitter, event: &InputEvent, cx| {
+                let callback_value = || emitter.read(cx).content.clone();
+                match event {
+                    InputEvent::Change => {
+                        if let Some(callback) = on_change.as_ref() {
+                            callback(callback_value(), cx);
+                        }
+                    }
+                    InputEvent::Enter => {
+                        if let Some(callback) = on_enter.as_ref() {
+                            callback(callback_value(), cx);
+                        }
+                    }
+                    InputEvent::Focus => {
+                        if let Some(callback) = on_focus.as_ref() {
+                            callback(callback_value(), cx);
+                        }
+                    }
+                    InputEvent::Blur => {
+                        if let Some(callback) = on_blur.as_ref() {
+                            callback(callback_value(), cx);
+                        }
+                    }
+                    InputEvent::Validate(result) => {
+                        if let Some(callback) = on_validate.as_ref() {
+                            callback(result.clone(), cx);
+                        }
+                    }
+                    InputEvent::Tab | InputEvent::ShiftTab => {}
+                }
+            })
+        });
+
+        self.state.update(cx, |state, _| {
+            state.replace_event_subscription(subscription);
+        });
+    }
+
     /// Get height based on size
     fn height(&self) -> Pixels {
         match self.size {
@@ -550,64 +601,7 @@ impl RenderOnce for Input {
             }
         });
 
-        let on_change_callback = self.on_change.clone();
-        let on_enter_callback = self.on_enter.clone();
-        let on_focus_callback = self.on_focus.clone();
-        let on_blur_callback = self.on_blur.clone();
-        let on_validate_callback = self.on_validate.clone();
-
-        if on_change_callback.is_some()
-            || on_enter_callback.is_some()
-            || on_focus_callback.is_some()
-            || on_blur_callback.is_some()
-            || on_validate_callback.is_some()
-        {
-            let state_entity = self.state.clone();
-            let state_for_callback = state_entity.clone();
-            cx.subscribe(
-                &state_entity,
-                move |_emitter: Entity<InputState>, event: &InputEvent, cx: &mut App| {
-                    match event {
-                        InputEvent::Change => {
-                            if let Some(callback) = on_change_callback.as_ref() {
-                                let value = state_for_callback.read(cx).content.clone();
-                                callback(value, cx);
-                            }
-                        }
-                        InputEvent::Enter => {
-                            if let Some(callback) = on_enter_callback.as_ref() {
-                                let value = state_for_callback.read(cx).content.clone();
-                                callback(value, cx);
-                            }
-                        }
-                        InputEvent::Focus => {
-                            if let Some(callback) = on_focus_callback.as_ref() {
-                                let value = state_for_callback.read(cx).content.clone();
-                                callback(value, cx);
-                            }
-                        }
-                        InputEvent::Blur => {
-                            if let Some(callback) = on_blur_callback.as_ref() {
-                                let value = state_for_callback.read(cx).content.clone();
-                                callback(value, cx);
-                            }
-                        }
-                        InputEvent::Validate(result) => {
-                            if let Some(callback) = on_validate_callback.as_ref() {
-                                callback(result.clone(), cx);
-                            }
-                        }
-                        InputEvent::Tab => {
-                            // Focus navigation handled in InputState action handlers
-                        }
-                        InputEvent::ShiftTab => {
-                            // Focus navigation handled in InputState action handlers
-                        }
-                    }
-                },
-            )
-            .detach();
-        }
+        self.install_event_subscription(cx);
 
         let (bg_color, border_color, text_color) = if self.disabled {
             (
@@ -915,6 +909,41 @@ mod tests {
     }
 
     #[gpui::test]
+    fn repeated_render_replaces_input_event_subscription() {
+        let mut app = TestApp::new();
+        app.update(|cx| install_theme(cx, Theme::light()));
+        let stale_calls = Rc::new(Cell::new(0));
+        let current_calls = Rc::new(Cell::new(0));
+        let mut window = app.open_window(|_, cx| InputRenderTestView {
+            state: cx.new(InputState::new),
+            callback_calls: Some(stale_calls.clone()),
+            initial_value: None,
+        });
+
+        window.draw();
+        window.update(|view, _, cx| {
+            view.callback_calls = Some(current_calls.clone());
+            cx.notify();
+        });
+        window.draw();
+        window.update(|view, _, cx| {
+            view.state.update(cx, |_, cx| cx.emit(InputEvent::Change));
+        });
+        assert_eq!(stale_calls.get(), 0);
+        assert_eq!(current_calls.get(), 1);
+
+        window.update(|view, _, cx| {
+            view.callback_calls = None;
+            cx.notify();
+        });
+        window.draw();
+        window.update(|view, _, cx| {
+            view.state.update(cx, |_, cx| cx.emit(InputEvent::Change));
+        });
+        assert_eq!(current_calls.get(), 1);
+    }
+
+    #[gpui::test]
     fn initial_value_does_not_overwrite_user_edits_on_rerender() {
         let mut app = TestApp::new();
         app.update(|cx| install_theme(cx, Theme::light()));
@@ -938,6 +967,26 @@ mod tests {
             window.read(|view, cx| view.state.read(cx).content().to_string()),
             "edited"
         );
+    }
+
+    #[gpui::test]
+    fn set_value_emits_one_change_event() {
+        let mut app = TestApp::new();
+        app.update(|cx| install_theme(cx, Theme::light()));
+        let calls = Rc::new(Cell::new(0));
+        let mut window = app.open_window(|_, cx| InputRenderTestView {
+            state: cx.new(InputState::new),
+            callback_calls: Some(calls.clone()),
+            initial_value: None,
+        });
+
+        window.draw();
+        window.update(|view, window, cx| {
+            view.state
+                .update(cx, |state, cx| state.set_value("edited", window, cx));
+        });
+
+        assert_eq!(calls.get(), 1);
     }
 
     #[gpui::test]

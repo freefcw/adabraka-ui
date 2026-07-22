@@ -144,6 +144,57 @@ impl Textarea {
         self
     }
 
+    fn install_event_subscription(&self, cx: &mut App) {
+        let on_change = self.on_change.clone();
+        let on_enter = self.on_enter.clone();
+        let on_shift_enter = self.on_shift_enter.clone();
+        let on_focus = self.on_focus.clone();
+        let on_blur = self.on_blur.clone();
+
+        let has_callbacks = on_change.is_some()
+            || on_enter.is_some()
+            || on_shift_enter.is_some()
+            || on_focus.is_some()
+            || on_blur.is_some();
+        let subscription = has_callbacks.then(|| {
+            cx.subscribe(
+                &self.state,
+                move |emitter, event: &TextareaEvent, cx| match event {
+                    TextareaEvent::Change => {
+                        if let Some(callback) = on_change.as_ref() {
+                            callback(emitter.read(cx).content.clone(), cx);
+                        }
+                    }
+                    TextareaEvent::Enter => {
+                        if let Some(callback) = on_enter.as_ref() {
+                            callback(emitter.read(cx).content.clone(), cx);
+                        }
+                    }
+                    TextareaEvent::ShiftEnter => {
+                        if let Some(callback) = on_shift_enter.as_ref() {
+                            callback(emitter.read(cx).content.clone(), cx);
+                        }
+                    }
+                    TextareaEvent::Focus => {
+                        if let Some(callback) = on_focus.as_ref() {
+                            callback(emitter.read(cx).content.clone(), cx);
+                        }
+                    }
+                    TextareaEvent::Blur => {
+                        if let Some(callback) = on_blur.as_ref() {
+                            callback(emitter.read(cx).content.clone(), cx);
+                        }
+                    }
+                    TextareaEvent::Tab | TextareaEvent::ShiftTab => {}
+                },
+            )
+        });
+
+        self.state.update(cx, |state, _| {
+            state.replace_event_subscription(subscription);
+        });
+    }
+
     fn calculate_height(&self, window: &Window, cx: &App) -> Pixels {
         let line_height = window.line_height().to_f64() as f32;
         let padding_y = 8.0;
@@ -196,61 +247,7 @@ impl RenderOnce for Textarea {
             }
         });
 
-        // Event subscriptions (same pattern as Input component)
-        let on_change_callback = self.on_change.clone();
-        let on_enter_callback = self.on_enter.clone();
-        let on_shift_enter_callback = self.on_shift_enter.clone();
-        let on_focus_callback = self.on_focus.clone();
-        let on_blur_callback = self.on_blur.clone();
-
-        if on_change_callback.is_some()
-            || on_enter_callback.is_some()
-            || on_shift_enter_callback.is_some()
-            || on_focus_callback.is_some()
-            || on_blur_callback.is_some()
-        {
-            let state_entity = self.state.clone();
-            let state_for_callback = state_entity.clone();
-            cx.subscribe(
-                &state_entity,
-                move |_emitter: Entity<TextareaState>, event: &TextareaEvent, cx: &mut App| {
-                    match event {
-                        TextareaEvent::Change => {
-                            if let Some(callback) = on_change_callback.as_ref() {
-                                let value = state_for_callback.read(cx).content.clone();
-                                callback(value, cx);
-                            }
-                        }
-                        TextareaEvent::Enter => {
-                            if let Some(callback) = on_enter_callback.as_ref() {
-                                let value = state_for_callback.read(cx).content.clone();
-                                callback(value, cx);
-                            }
-                        }
-                        TextareaEvent::ShiftEnter => {
-                            if let Some(callback) = on_shift_enter_callback.as_ref() {
-                                let value = state_for_callback.read(cx).content.clone();
-                                callback(value, cx);
-                            }
-                        }
-                        TextareaEvent::Focus => {
-                            if let Some(callback) = on_focus_callback.as_ref() {
-                                let value = state_for_callback.read(cx).content.clone();
-                                callback(value, cx);
-                            }
-                        }
-                        TextareaEvent::Blur => {
-                            if let Some(callback) = on_blur_callback.as_ref() {
-                                let value = state_for_callback.read(cx).content.clone();
-                                callback(value, cx);
-                            }
-                        }
-                        _ => {}
-                    }
-                },
-            )
-            .detach();
-        }
+        self.install_event_subscription(cx);
 
         let (bg_color, border_color, text_color) = if self.disabled {
             (
@@ -384,5 +381,61 @@ impl RenderOnce for Textarea {
                 div
             })
             .child(self.state.clone())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::theme::{install_theme, Theme};
+    use std::{cell::Cell, rc::Rc};
+
+    struct TextareaRenderTestView {
+        state: Entity<TextareaState>,
+        callback_calls: Option<Rc<Cell<usize>>>,
+    }
+
+    impl Render for TextareaRenderTestView {
+        fn render(&mut self, _window: &mut Window, _cx: &mut Context<Self>) -> impl IntoElement {
+            Textarea::new(&self.state).when_some(self.callback_calls.clone(), |textarea, calls| {
+                textarea.on_change(move |_, _| calls.set(calls.get() + 1))
+            })
+        }
+    }
+
+    #[gpui::test]
+    fn repeated_render_replaces_textarea_event_subscription() {
+        let mut app = TestApp::new();
+        app.update(|cx| install_theme(cx, Theme::light()));
+        let stale_calls = Rc::new(Cell::new(0));
+        let current_calls = Rc::new(Cell::new(0));
+        let mut window = app.open_window(|_, cx| TextareaRenderTestView {
+            state: cx.new(TextareaState::new),
+            callback_calls: Some(stale_calls.clone()),
+        });
+
+        window.draw();
+        window.update(|view, _, cx| {
+            view.callback_calls = Some(current_calls.clone());
+            cx.notify();
+        });
+        window.draw();
+        window.update(|view, _, cx| {
+            view.state
+                .update(cx, |_, cx| cx.emit(TextareaEvent::Change));
+        });
+        assert_eq!(stale_calls.get(), 0);
+        assert_eq!(current_calls.get(), 1);
+
+        window.update(|view, _, cx| {
+            view.callback_calls = None;
+            cx.notify();
+        });
+        window.draw();
+        window.update(|view, _, cx| {
+            view.state
+                .update(cx, |_, cx| cx.emit(TextareaEvent::Change));
+        });
+        assert_eq!(current_calls.get(), 1);
     }
 }

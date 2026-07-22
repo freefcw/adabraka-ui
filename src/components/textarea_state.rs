@@ -129,6 +129,7 @@ pub struct TextareaState {
     was_focused: bool,
     cursor_visible: bool,
     _blink_task: Option<Task<()>>,
+    event_subscription: Option<Subscription>,
 }
 
 #[derive(Clone, Copy)]
@@ -160,7 +161,12 @@ impl TextareaState {
             was_focused: false,
             cursor_visible: true,
             _blink_task: None,
+            event_subscription: None,
         }
+    }
+
+    pub(super) fn replace_event_subscription(&mut self, subscription: Option<Subscription>) {
+        self.event_subscription = subscription;
     }
 
     pub fn content(&self) -> &str {

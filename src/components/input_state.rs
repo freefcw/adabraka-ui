@@ -190,6 +190,7 @@ pub struct InputState {
     // the initial value every frame, overwriting user edits and emitting
     // a spurious `Change` event on each render.
     initial_value_applied: bool,
+    event_subscription: Option<Subscription>,
 }
 
 impl EventEmitter<InputEvent> for InputState {}
@@ -231,7 +232,12 @@ impl InputState {
             shake_count: 0,
             cursor_position_override: None,
             initial_value_applied: false,
+            event_subscription: None,
         }
+    }
+
+    pub(super) fn replace_event_subscription(&mut self, subscription: Option<Subscription>) {
+        self.event_subscription = subscription;
     }
 
     /// Set the input type

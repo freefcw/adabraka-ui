@@ -77,6 +77,7 @@ pub struct OTPState {
     masked: bool,
     disabled: bool,
     state: OTPInputState,
+    event_subscription: Option<Subscription>,
 }
 
 impl EventEmitter<OTPInputEvent> for OTPState {}
@@ -94,7 +95,12 @@ impl OTPState {
             masked: false,
             disabled: false,
             state: OTPInputState::Default,
+            event_subscription: None,
         }
+    }
+
+    fn replace_event_subscription(&mut self, subscription: Option<Subscription>) {
+        self.event_subscription = subscription;
     }
 
     pub fn digit_count(mut self, count: usize) -> Self {
@@ -371,6 +377,35 @@ impl OTPInput {
         self
     }
 
+    fn install_event_subscription(&self, cx: &mut App) {
+        let on_change = self.on_change.clone();
+        let on_complete = self.on_complete.clone();
+        let has_callbacks = on_change.is_some() || on_complete.is_some();
+
+        let subscription = has_callbacks.then(|| {
+            cx.subscribe(
+                &self.state,
+                move |_, event: &OTPInputEvent, cx| match event {
+                    OTPInputEvent::Change(value) => {
+                        if let Some(callback) = on_change.as_ref() {
+                            callback(value.clone(), cx);
+                        }
+                    }
+                    OTPInputEvent::Complete(value) => {
+                        if let Some(callback) = on_complete.as_ref() {
+                            callback(value.clone(), cx);
+                        }
+                    }
+                    OTPInputEvent::Focus | OTPInputEvent::Blur => {}
+                },
+            )
+        });
+
+        self.state.update(cx, |state, _| {
+            state.replace_event_subscription(subscription);
+        });
+    }
+
     fn box_size(&self) -> Pixels {
         match self.size {
             OTPInputSize::Sm => px(36.0),
@@ -423,29 +458,7 @@ impl RenderOnce for OTPInput {
             state.masked = masked;
         });
 
-        let on_change_callback = self.on_change.clone();
-        let on_complete_callback = self.on_complete.clone();
-
-        if on_change_callback.is_some() || on_complete_callback.is_some() {
-            let state_entity = self.state.clone();
-            cx.subscribe(
-                &state_entity,
-                move |_emitter: Entity<OTPState>, event: &OTPInputEvent, cx: &mut App| match event {
-                    OTPInputEvent::Change(value) => {
-                        if let Some(callback) = on_change_callback.as_ref() {
-                            callback(value.clone(), cx);
-                        }
-                    }
-                    OTPInputEvent::Complete(value) => {
-                        if let Some(callback) = on_complete_callback.as_ref() {
-                            callback(value.clone(), cx);
-                        }
-                    }
-                    _ => {}
-                },
-            )
-            .detach();
-        }
+        self.install_event_subscription(cx);
 
         let (border_color, focus_border_color) = match state {
             OTPInputState::Default => (theme.tokens.border, theme.tokens.ring),
@@ -579,5 +592,61 @@ impl RenderOnce for OTPInput {
                 container.style().refine(&user_style);
                 container
             })
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::theme::{install_theme, Theme};
+    use std::{cell::Cell, rc::Rc};
+
+    struct OtpRenderTestView {
+        state: Entity<OTPState>,
+        callback_calls: Option<Rc<Cell<usize>>>,
+    }
+
+    impl Render for OtpRenderTestView {
+        fn render(&mut self, _window: &mut Window, _cx: &mut Context<Self>) -> impl IntoElement {
+            OTPInput::new(&self.state).when_some(self.callback_calls.clone(), |input, calls| {
+                input.on_change(move |_, _| calls.set(calls.get() + 1))
+            })
+        }
+    }
+
+    #[gpui::test]
+    fn repeated_render_replaces_otp_event_subscription() {
+        let mut app = TestApp::new();
+        app.update(|cx| install_theme(cx, Theme::light()));
+        let stale_calls = Rc::new(Cell::new(0));
+        let current_calls = Rc::new(Cell::new(0));
+        let mut window = app.open_window(|_, cx| OtpRenderTestView {
+            state: cx.new(|cx| OTPState::new(cx, 6)),
+            callback_calls: Some(stale_calls.clone()),
+        });
+
+        window.draw();
+        window.update(|view, _, cx| {
+            view.callback_calls = Some(current_calls.clone());
+            cx.notify();
+        });
+        window.draw();
+        window.update(|view, _, cx| {
+            view.state
+                .update(cx, |_, cx| cx.emit(OTPInputEvent::Change("1".to_string())));
+        });
+        assert_eq!(stale_calls.get(), 0);
+        assert_eq!(current_calls.get(), 1);
+
+        window.update(|view, _, cx| {
+            view.callback_calls = None;
+            cx.notify();
+        });
+        window.draw();
+        window.update(|view, _, cx| {
+            view.state
+                .update(cx, |_, cx| cx.emit(OTPInputEvent::Change("2".to_string())));
+        });
+        assert_eq!(current_calls.get(), 1);
     }
 }
