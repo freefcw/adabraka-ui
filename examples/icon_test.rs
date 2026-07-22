@@ -68,8 +68,8 @@ impl IconTestApp {
 }
 
 impl Render for IconTestApp {
-    fn render(&mut self, _window: &mut Window, _cx: &mut Context<Self>) -> impl IntoElement {
-        let theme = use_theme();
+    fn render(&mut self, _window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
+        let theme = use_theme(cx);
 
         div()
             .flex()

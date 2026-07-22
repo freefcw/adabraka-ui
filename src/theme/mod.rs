@@ -37,7 +37,7 @@
 //!
 //! // Access theme in components
 //! fn render(cx: &mut App) -> impl IntoElement {
-//!     let theme = use_theme();
+//!     let theme = use_theme(cx);
 //!
 //!     div()
 //!         .bg(theme.tokens.primary)
@@ -47,7 +47,7 @@
 //!
 //! // Switch themes dynamically
 //! fn toggle_theme(cx: &mut App) {
-//!     let current = use_theme();
+//!     let current = use_theme(cx);
 //!     let new_theme = match current.variant {
 //!         ThemeVariant::Light => Theme::dark(),
 //!         ThemeVariant::Dark => Theme::light(),

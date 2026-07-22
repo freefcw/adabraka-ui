@@ -54,8 +54,8 @@ impl Default for GradientBorder {
 }
 
 impl RenderOnce for GradientBorder {
-    fn render(self, _window: &mut Window, _cx: &mut App) -> impl IntoElement {
-        let theme = use_theme();
+    fn render(self, _window: &mut Window, cx: &mut App) -> impl IntoElement {
+        let theme = use_theme(cx);
         let start = self.start_color.unwrap_or(theme.tokens.primary);
         let end = self.end_color.unwrap_or(theme.tokens.accent);
         let radius = self.corner_radius.unwrap_or(theme.tokens.radius_lg);

@@ -39,7 +39,7 @@ impl LayoutDemo {
 
 impl Render for LayoutDemo {
     fn render(&mut self, _window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
-        let theme = use_theme();
+        let theme = use_theme(cx);
         let clicked_item = self.clicked_item.clone();
 
         div()
@@ -115,7 +115,7 @@ impl Render for LayoutDemo {
                                         .p(px(24.0))
                                         .gap(px(32.0))
                                         // Section 1: Styled VStack with borders and backgrounds
-                                        .child(demo_section(
+                                        .child(demo_section(theme.clone(),
                                             "🎨 Styled VStack",
                                             "VStack with borders, backgrounds, padding, and rounded corners",
                                             VStack::new()
@@ -126,12 +126,12 @@ impl Render for LayoutDemo {
                                                 .border_color(theme.tokens.primary)
                                                 .rounded(px(12.0))
                                                 .spacing(12.0)
-                                                .child(demo_card("Styled Item 1", theme.tokens.primary))
-                                                .child(demo_card("Styled Item 2", theme.tokens.secondary))
-                                                .child(demo_card("Styled Item 3", theme.tokens.accent)),
+                                                .child(demo_card(theme.clone(), "Styled Item 1", theme.tokens.primary))
+                                                .child(demo_card(theme.clone(), "Styled Item 2", theme.tokens.secondary))
+                                                .child(demo_card(theme.clone(), "Styled Item 3", theme.tokens.accent)),
                                         ))
                                         // Section 2: Interactive layouts with hover effects
-                                        .child(demo_section(
+                                        .child(demo_section(theme.clone(),
                                             "✨ Interactive Layouts",
                                             "Layouts with hover effects and click handlers",
                                             VStack::new()
@@ -194,13 +194,13 @@ impl Render for LayoutDemo {
                                                 ),
                                         ))
                                         // Section 3: Database Record Pattern
-                                        .child(demo_section(
+                                        .child(demo_section(theme.clone(),
                                             "📊 Database Record Pattern",
                                             "Real-world pattern for rendering database records with infinite scroll",
                                             VStack::new()
                                                 .w_full()
                                                 .spacing(8.0)
-                                                .child(database_record_header())
+                                                .child(database_record_header(theme.clone()))
                                                 .child(database_record("1", "John Doe", "john@example.com", "Active", &theme))
                                                 .child(database_record("2", "Jane Smith", "jane@example.com", "Active", &theme))
                                                 .child(database_record("3", "Bob Johnson", "bob@example.com", "Offline", &theme))
@@ -222,7 +222,7 @@ impl Render for LayoutDemo {
                                                 ),
                                         ))
                                         // Section 4: Complex nested layouts
-                                        .child(demo_section(
+                                        .child(demo_section(theme.clone(),
                                             "🏗️ Complex Nested Layouts",
                                             "Combining multiple styled layouts for advanced UIs",
                                             HStack::new()
@@ -244,9 +244,9 @@ impl Render for LayoutDemo {
                                                                 .text_color(theme.tokens.foreground)
                                                                 .child("Sidebar Panel"),
                                                         )
-                                                        .child(demo_card("Item 1", theme.tokens.primary))
-                                                        .child(demo_card("Item 2", theme.tokens.primary))
-                                                        .child(demo_card("Item 3", theme.tokens.primary)),
+                                                        .child(demo_card(theme.clone(), "Item 1", theme.tokens.primary))
+                                                        .child(demo_card(theme.clone(), "Item 2", theme.tokens.primary))
+                                                        .child(demo_card(theme.clone(), "Item 3", theme.tokens.primary)),
                                                 )
                                                 .child(
                                                     VStack::new()
@@ -276,15 +276,15 @@ impl Render for LayoutDemo {
                                                                 .columns(2)
                                                                 .gap(12.0)
                                                                 .w_full()
-                                                                .child(demo_card("1", theme.tokens.secondary))
-                                                                .child(demo_card("2", theme.tokens.secondary))
-                                                                .child(demo_card("3", theme.tokens.secondary))
-                                                                .child(demo_card("4", theme.tokens.secondary)),
+                                                                .child(demo_card(theme.clone(), "1", theme.tokens.secondary))
+                                                                .child(demo_card(theme.clone(), "2", theme.tokens.secondary))
+                                                                .child(demo_card(theme.clone(), "3", theme.tokens.secondary))
+                                                                .child(demo_card(theme.clone(), "4", theme.tokens.secondary)),
                                                         ),
                                                 ),
                                         ))
                                         // Section 5: Flow with styling
-                                        .child(demo_section(
+                                        .child(demo_section(theme.clone(),
                                             "🌊 Styled Flow Layout",
                                             "Flow layout with background and borders",
                                             Flow::new()
@@ -307,7 +307,7 @@ impl Render for LayoutDemo {
                                                 .child(Badge::new("Ember").variant(BadgeVariant::Outline)),
                                         ))
                                         // Section 6: Spacer Demo
-                                        .child(demo_section(
+                                        .child(demo_section(theme.clone(),
                                             "↔️ Spacer - Flexible Spacing",
                                             "Spacer expands to fill available space",
                                             VStack::new()
@@ -365,11 +365,11 @@ impl Render for LayoutDemo {
 }
 
 fn demo_section(
+    theme: Theme,
     title: impl Into<SharedString>,
     description: impl Into<SharedString>,
     content: impl IntoElement,
 ) -> impl IntoElement {
-    let theme = use_theme();
     let title: SharedString = title.into();
     let description: SharedString = description.into();
 
@@ -403,8 +403,7 @@ fn demo_section(
         )
 }
 
-fn demo_card(label: impl Into<SharedString>, bg: Hsla) -> impl IntoElement {
-    let theme = use_theme();
+fn demo_card(theme: Theme, label: impl Into<SharedString>, bg: Hsla) -> impl IntoElement {
     let label: SharedString = label.into();
 
     div()
@@ -426,7 +425,7 @@ fn clickable_card(
     clicked_item: Option<String>,
     cx: &mut Context<LayoutDemo>,
 ) -> impl IntoElement {
-    let theme = use_theme();
+    let theme = use_theme(cx);
     let label: SharedString = label.into();
     let is_clicked = clicked_item.as_ref().map(|s| s.as_str()) == Some(id);
     let id_string = id.to_string();
@@ -468,9 +467,7 @@ fn clickable_card(
         )
 }
 
-fn database_record_header() -> impl IntoElement {
-    let theme = use_theme();
-
+fn database_record_header(theme: Theme) -> impl IntoElement {
     HStack::new()
         .w_full()
         .p(px(12.0))

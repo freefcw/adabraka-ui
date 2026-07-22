@@ -107,7 +107,7 @@ impl Styled for Radio {
 
 impl RenderOnce for Radio {
     fn render(self, window: &mut Window, cx: &mut App) -> impl IntoElement {
-        let theme = use_theme();
+        let theme = use_theme(cx);
         let user_style = self.style;
 
         let focus_handle = window
@@ -287,7 +287,7 @@ impl RadioGroup {
 }
 
 impl RenderOnce for RadioGroup {
-    fn render(self, _: &mut Window, _: &mut App) -> impl IntoElement {
+    fn render(self, _: &mut Window, _cx: &mut App) -> impl IntoElement {
         let on_change = self.on_change;
         let disabled = self.disabled;
         let selected_ix = self.selected_index;

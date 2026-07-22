@@ -366,7 +366,7 @@ impl Styled for FileUpload {
 
 impl RenderOnce for FileUpload {
     fn render(self, _window: &mut Window, cx: &mut App) -> impl IntoElement {
-        let theme = use_theme();
+        let theme = use_theme(cx);
         let state = self.state.read(cx);
         let is_dragging = state.is_dragging;
         let is_uploading = state.is_uploading;

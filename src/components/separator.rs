@@ -93,8 +93,8 @@ impl Styled for Separator {
 }
 
 impl RenderOnce for Separator {
-    fn render(self, _: &mut Window, _cx: &mut App) -> impl IntoElement {
-        let theme = use_theme();
+    fn render(self, _: &mut Window, cx: &mut App) -> impl IntoElement {
+        let theme = use_theme(cx);
         let line_color = self.color.unwrap_or(theme.tokens.border);
         let user_style = self.style;
 

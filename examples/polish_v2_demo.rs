@@ -327,8 +327,8 @@ impl PolishV2Demo {
             )
     }
 
-    fn render_easing_showcase(&self, _cx: &mut Context<Self>) -> impl IntoElement {
-        let theme = use_theme();
+    fn render_easing_showcase(&self, cx: &mut Context<Self>) -> impl IntoElement {
+        let theme = use_theme(cx);
         let easings_list: Vec<(&str, fn(f32) -> f32)> = vec![
             ("ease_out_cubic", easings::ease_out_cubic),
             ("ease_out_quart", easings::ease_out_quart),
@@ -387,7 +387,7 @@ impl PolishV2Demo {
     }
 
     fn render_content_transition(&self, cx: &mut Context<Self>) -> impl IntoElement {
-        let theme = use_theme();
+        let theme = use_theme(cx);
         let key = self.content_key;
 
         let current_content = match key % 3 {
@@ -476,7 +476,7 @@ impl PolishV2Demo {
             .child(div().w(px(400.0)).h(px(90.0)).child(transition))
     }
 
-    fn render_responsive_info(&self, window: &Window) -> impl IntoElement {
+    fn render_responsive_info(&self, window: &Window, theme: Theme) -> impl IntoElement {
         let breakpoint = current_breakpoint(window);
         let columns: usize = responsive_value(window, 1, 2, 3, 4);
         let bp_label = match breakpoint {
@@ -487,8 +487,6 @@ impl PolishV2Demo {
             Breakpoint::Xl => "Xl (1280px+)",
             Breakpoint::Xxl => "Xxl (1536px+)",
         };
-
-        let theme = use_theme();
 
         VStack::new()
             .gap(px(16.0))
@@ -550,9 +548,7 @@ impl PolishV2Demo {
             )
     }
 
-    fn render_elevation_shadows(&self) -> impl IntoElement {
-        let theme = use_theme();
-
+    fn render_elevation_shadows(&self, theme: Theme) -> impl IntoElement {
         let mut cards = HStack::new().gap(px(16.0)).flex_wrap();
 
         for level in 0u8..=5 {
@@ -588,9 +584,7 @@ impl PolishV2Demo {
             .child(cards)
     }
 
-    fn render_gradient_presets(&self) -> impl IntoElement {
-        let theme = use_theme();
-
+    fn render_gradient_presets(&self, theme: Theme) -> impl IntoElement {
         VStack::new()
             .gap(px(16.0))
             .child(Self::section_header(
@@ -731,9 +725,7 @@ impl PolishV2Demo {
             )
     }
 
-    fn render_focus_ring_animated(&self) -> impl IntoElement {
-        let theme = use_theme();
-
+    fn render_focus_ring_animated(&self, theme: Theme) -> impl IntoElement {
         VStack::new()
             .gap(px(16.0))
             .child(Self::section_header(
@@ -804,9 +796,7 @@ impl PolishV2Demo {
             )
     }
 
-    fn render_momentum_scroll(&self) -> impl IntoElement {
-        let theme = use_theme();
-
+    fn render_momentum_scroll(&self, theme: Theme) -> impl IntoElement {
         let mut scroll_content = VStack::new().gap(px(4.0)).p(px(8.0));
         for i in 0..50 {
             scroll_content = scroll_content.child(
@@ -845,8 +835,7 @@ impl PolishV2Demo {
             )
     }
 
-    fn render_spring_presets(&self) -> impl IntoElement {
-        let theme = use_theme();
+    fn render_spring_presets(&self, theme: Theme) -> impl IntoElement {
         let presets: Vec<(&str, &str)> = vec![
             ("gentle", "stiffness: 120, damping: 14, mass: 1.0"),
             ("wobbly", "stiffness: 180, damping: 12, mass: 1.0"),
@@ -911,7 +900,7 @@ impl PolishV2Demo {
 
 impl Render for PolishV2Demo {
     fn render(&mut self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
-        let theme = use_theme();
+        let theme = use_theme(cx);
 
         div()
             .size_full()
@@ -953,17 +942,17 @@ impl Render for PolishV2Demo {
                         .child(render_separator(&theme))
                         .child(self.render_content_transition(cx))
                         .child(render_separator(&theme))
-                        .child(self.render_responsive_info(window))
+                        .child(self.render_responsive_info(window, theme.clone()))
                         .child(render_separator(&theme))
-                        .child(self.render_elevation_shadows())
+                        .child(self.render_elevation_shadows(theme.clone()))
                         .child(render_separator(&theme))
-                        .child(self.render_gradient_presets())
+                        .child(self.render_gradient_presets(theme.clone()))
                         .child(render_separator(&theme))
-                        .child(self.render_focus_ring_animated())
+                        .child(self.render_focus_ring_animated(theme.clone()))
                         .child(render_separator(&theme))
-                        .child(self.render_momentum_scroll())
+                        .child(self.render_momentum_scroll(theme.clone()))
                         .child(render_separator(&theme))
-                        .child(self.render_spring_presets())
+                        .child(self.render_spring_presets(theme.clone()))
                         .child(div().h(px(60.0))),
                 ),
             )

@@ -27,7 +27,7 @@ impl ProgressDemo {
 
 impl Render for ProgressDemo {
     fn render(&mut self, _window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
-        let theme = use_theme();
+        let theme = use_theme(cx);
 
         // Animate the growing circle progress using frame counter
         self.frame_counter += 1;

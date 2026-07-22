@@ -7,7 +7,7 @@ use crate::{
         icon_source::IconSource,
         text::caption,
     },
-    theme::use_theme,
+    theme::{use_theme, Theme},
 };
 use gpui::{prelude::FluentBuilder as _, InteractiveElement, *};
 use std::rc::Rc;
@@ -183,8 +183,8 @@ impl Default for StatusBar {
 }
 
 impl Render for StatusBar {
-    fn render(&mut self, _window: &mut Window, _cx: &mut Context<Self>) -> impl IntoElement {
-        let theme = use_theme();
+    fn render(&mut self, _window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
+        let theme = use_theme(cx);
         let user_style = self.style.clone();
 
         div()
@@ -207,29 +207,27 @@ impl Render for StatusBar {
                 div().flex().items_center().gap(px(12.0)).children(
                     self.left_items
                         .iter()
-                        .map(|item| render_status_item(item.clone())),
+                        .map(|item| render_status_item(item.clone(), theme.clone())),
                 ),
             )
             .child(
                 div().flex().items_center().gap(px(12.0)).children(
                     self.center_items
                         .iter()
-                        .map(|item| render_status_item(item.clone())),
+                        .map(|item| render_status_item(item.clone(), theme.clone())),
                 ),
             )
             .child(
                 div().flex().items_center().gap(px(12.0)).children(
                     self.right_items
                         .iter()
-                        .map(|item| render_status_item(item.clone())),
+                        .map(|item| render_status_item(item.clone(), theme.clone())),
                 ),
             )
     }
 }
 
-fn render_status_item(item: StatusItem) -> impl IntoElement {
-    let theme = use_theme();
-
+fn render_status_item(item: StatusItem, theme: Theme) -> impl IntoElement {
     div()
         .flex()
         .items_center()

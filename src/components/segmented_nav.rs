@@ -142,7 +142,7 @@ impl Styled for SegmentedNav {
 
 impl RenderOnce for SegmentedNav {
     fn render(self, _window: &mut Window, cx: &mut App) -> impl IntoElement {
-        let theme = use_theme();
+        let theme = use_theme(cx);
         let user_style = self.style;
         let state = self.state.read(cx);
         let active_id = state.active.clone();

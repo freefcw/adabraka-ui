@@ -190,7 +190,7 @@ impl Focusable for SplitPaneState {
 impl EventEmitter<SplitPaneEvent> for SplitPaneState {}
 
 impl Render for SplitPaneState {
-    fn render(&mut self, _: &mut Window, _: &mut Context<Self>) -> impl IntoElement {
+    fn render(&mut self, _: &mut Window, _cx: &mut Context<Self>) -> impl IntoElement {
         div()
     }
 }
@@ -261,7 +261,7 @@ impl Styled for SplitPane {
 
 impl RenderOnce for SplitPane {
     fn render(self, window: &mut Window, cx: &mut App) -> impl IntoElement {
-        let theme = use_theme();
+        let theme = use_theme(cx);
         let state = self.state.read(cx);
         let direction = self.direction.unwrap_or(state.direction);
         let ratio = state.ratio;

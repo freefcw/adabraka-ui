@@ -79,8 +79,8 @@ impl Styled for Waveform {
 }
 
 impl RenderOnce for Waveform {
-    fn render(self, _window: &mut Window, _cx: &mut App) -> impl IntoElement {
-        let theme = crate::theme::use_theme();
+    fn render(self, _window: &mut Window, cx: &mut App) -> impl IntoElement {
+        let theme = crate::theme::use_theme(cx);
         let user_style = self.style;
 
         let default_color = theme.tokens.muted_foreground.opacity(0.4);

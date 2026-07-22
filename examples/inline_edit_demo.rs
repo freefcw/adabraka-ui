@@ -51,7 +51,7 @@ impl InlineEditDemo {
 
 impl Render for InlineEditDemo {
     fn render(&mut self, _window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
-        let theme = use_theme();
+        let theme = use_theme(cx);
         let entity = cx.entity().clone();
 
         div()

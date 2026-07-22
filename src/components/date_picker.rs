@@ -329,7 +329,7 @@ impl Styled for DatePicker {
 
 impl RenderOnce for DatePicker {
     fn render(self, _window: &mut Window, cx: &mut App) -> impl IntoElement {
-        let theme = use_theme();
+        let theme = use_theme(cx);
         let state_entity = self.state.clone();
         let state = self.state.read(cx);
 
@@ -445,7 +445,7 @@ impl RenderOnce for DatePicker {
                         window,
                         cx,
                         move |_window, popover_cx: &mut Context<PopoverContent>| {
-                            let theme = use_theme();
+                            let theme = use_theme(popover_cx);
                             let state = state_ref.read(popover_cx);
                             let viewing_month = state.viewing_month;
                             let selected_date = state.selected_date;

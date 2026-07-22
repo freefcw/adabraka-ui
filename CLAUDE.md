@@ -72,9 +72,9 @@ let slider_state = cx.new(|cx| SliderState::new(cx));
 Slider::new(slider_state.clone()).show_value(true)
 ```
 
-**Theme System**: Use `use_theme()` for colors, never hardcode:
+**Theme System**: Use `use_theme(cx)` for colors, never hardcode:
 ```rust
-let theme = use_theme();
+let theme = use_theme(cx);
 div().bg(theme.tokens.background).text_color(theme.tokens.foreground)
 ```
 

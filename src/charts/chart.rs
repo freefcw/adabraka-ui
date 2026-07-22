@@ -632,8 +632,8 @@ impl Styled for Chart {
 }
 
 impl RenderOnce for Chart {
-    fn render(self, _window: &mut Window, _cx: &mut App) -> impl IntoElement {
-        let theme = use_theme();
+    fn render(self, _window: &mut Window, cx: &mut App) -> impl IntoElement {
+        let theme = use_theme(cx);
 
         let show_y_axis = self.y_axis.show_labels;
         let show_x_axis = self.x_axis.show_labels;

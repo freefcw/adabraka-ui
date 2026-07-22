@@ -170,7 +170,7 @@ impl Render for Dialog {
             return div().into_any_element();
         }
 
-        let theme = use_theme();
+        let theme = use_theme(cx);
         let has_slot_header = self.header.is_some();
         let has_header = has_slot_header
             || self.title.is_some()

@@ -1453,7 +1453,7 @@ impl gpui::Element for InputTextElement {
             )
         };
         let style = window.text_style();
-        let theme = use_theme();
+        let theme = use_theme(cx);
 
         let (display_text, text_color) = if content.is_empty() {
             (input.placeholder.clone(), theme.tokens.muted_foreground)

@@ -262,7 +262,7 @@ impl ParentElement for CropArea {
 
 impl RenderOnce for CropArea {
     fn render(self, _window: &mut Window, cx: &mut App) -> impl IntoElement {
-        let theme = use_theme();
+        let theme = use_theme(cx);
         let user_style = self.style;
         let selection = self.state.read(cx).selection;
 

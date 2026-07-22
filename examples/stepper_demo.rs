@@ -161,8 +161,8 @@ impl StepperDemo {
 }
 
 impl Render for StepperDemo {
-    fn render(&mut self, _window: &mut Window, _cx: &mut Context<Self>) -> impl IntoElement {
-        let theme = use_theme();
+    fn render(&mut self, _window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
+        let theme = use_theme(cx);
 
         let horizontal_state = self.horizontal_stepper.clone();
         let vertical_state = self.vertical_stepper.clone();

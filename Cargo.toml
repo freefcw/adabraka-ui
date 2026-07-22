@@ -78,6 +78,9 @@ markup5ever_rcdom = { version = "0.38", optional = true }
 # Audio playback (optional)
 rodio = { version = "0.19", optional = true }
 
+[dev-dependencies]
+gpui = { package = "adabraka-gpui", git = "https://github.com/freefcw/adabraka-gpui", rev = "cb783cd", default-features = false, features = ["test-support"] }
+
 [features]
 default = ["http", "bundled-fonts"]
 http = ["reqwest"]

@@ -60,8 +60,8 @@ impl GlassMorphism {
 }
 
 impl RenderOnce for GlassMorphism {
-    fn render(self, _window: &mut Window, _cx: &mut App) -> impl IntoElement {
-        let theme = use_theme();
+    fn render(self, _window: &mut Window, cx: &mut App) -> impl IntoElement {
+        let theme = use_theme(cx);
 
         let (bg_alpha, border_alpha) = match self.intensity {
             GlassIntensity::Light => (0.05, 0.08),

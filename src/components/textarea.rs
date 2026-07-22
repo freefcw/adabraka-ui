@@ -177,7 +177,7 @@ impl Styled for Textarea {
 
 impl RenderOnce for Textarea {
     fn render(self, window: &mut Window, cx: &mut App) -> impl IntoElement {
-        let theme = use_theme();
+        let theme = use_theme(cx);
         let height = self.calculate_height(window, cx);
 
         // Update state with properties

@@ -312,7 +312,7 @@ struct ColSnapshot {
 
 impl<T: 'static> RenderOnce for DataGrid<T> {
     fn render(self, _window: &mut Window, cx: &mut App) -> impl IntoElement {
-        let theme = use_theme();
+        let theme = use_theme(cx);
         let state_entity = self.state.clone();
         let striped = self.striped;
         let bordered = self.bordered;

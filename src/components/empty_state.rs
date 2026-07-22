@@ -114,8 +114,8 @@ impl Styled for EmptyState {
 }
 
 impl RenderOnce for EmptyState {
-    fn render(self, _window: &mut Window, _cx: &mut App) -> impl IntoElement {
-        let theme = use_theme();
+    fn render(self, _window: &mut Window, cx: &mut App) -> impl IntoElement {
+        let theme = use_theme(cx);
         let user_style = self.style;
         let icon_size = self.size.icon_size();
         let title_size = self.size.title_size();

@@ -127,8 +127,8 @@ impl Styled for Avatar {
 }
 
 impl RenderOnce for Avatar {
-    fn render(self, _: &mut Window, _: &mut App) -> impl IntoElement {
-        let theme = use_theme();
+    fn render(self, _: &mut Window, cx: &mut App) -> impl IntoElement {
+        let theme = use_theme(cx);
         let size_px = self.size.size_px();
         let text_size_px = self.size.text_size_px();
         let user_style = self.style;

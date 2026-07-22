@@ -156,7 +156,7 @@ impl Styled for FloatingActionButton {
 
 impl RenderOnce for FloatingActionButton {
     fn render(self, _window: &mut Window, cx: &mut App) -> impl IntoElement {
-        let theme = use_theme();
+        let theme = use_theme(cx);
         let user_style = self.style;
         let state = self.state.read(cx);
         let is_expanded = state.is_expanded;

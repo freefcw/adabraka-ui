@@ -228,7 +228,7 @@ impl Styled for SearchInput {
 
 impl Render for SearchInput {
     fn render(&mut self, _window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
-        let theme = use_theme();
+        let theme = use_theme(cx);
         let state = self.state.read(cx);
         let has_query = !state.input.read(cx).content().is_empty();
         let user_style = self.style.clone();

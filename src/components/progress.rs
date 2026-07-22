@@ -109,8 +109,8 @@ impl Styled for ProgressBar {
 }
 
 impl RenderOnce for ProgressBar {
-    fn render(self, _window: &mut Window, _cx: &mut App) -> impl IntoElement {
-        let theme = use_theme();
+    fn render(self, _window: &mut Window, cx: &mut App) -> impl IntoElement {
+        let theme = use_theme(cx);
         let user_style = self.style;
 
         let height = match self.size {
@@ -275,8 +275,8 @@ impl Styled for CircularProgress {
 }
 
 impl RenderOnce for CircularProgress {
-    fn render(self, _window: &mut Window, _cx: &mut App) -> impl IntoElement {
-        let theme = use_theme();
+    fn render(self, _window: &mut Window, cx: &mut App) -> impl IntoElement {
+        let theme = use_theme(cx);
         let user_style = self.style;
 
         let stroke_color = match self.variant {

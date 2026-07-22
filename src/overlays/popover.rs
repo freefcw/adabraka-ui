@@ -45,7 +45,7 @@ impl Focusable for PopoverContent {
 
 impl Render for PopoverContent {
     fn render(&mut self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
-        let theme = use_theme();
+        let theme = use_theme(cx);
         let dismissing = self.dismissing;
 
         div()

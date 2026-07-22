@@ -153,7 +153,7 @@ impl SliderStyledDemo {
 
 impl Render for SliderStyledDemo {
     fn render(&mut self, _window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
-        let theme = use_theme();
+        let theme = use_theme(cx);
 
         let value1 = self.slider1.read(cx).value();
         let value2 = self.slider2.read(cx).value();

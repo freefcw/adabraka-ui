@@ -102,7 +102,7 @@ impl Focusable for DropdownState {
 }
 
 impl Render for DropdownState {
-    fn render(&mut self, _: &mut Window, _: &mut Context<Self>) -> impl IntoElement {
+    fn render(&mut self, _: &mut Window, _cx: &mut Context<Self>) -> impl IntoElement {
         div()
     }
 }
@@ -159,7 +159,7 @@ impl Styled for Dropdown {
 
 impl RenderOnce for Dropdown {
     fn render(self, _window: &mut Window, cx: &mut App) -> impl IntoElement {
-        let theme = use_theme();
+        let theme = use_theme(cx);
         let user_style = self.style;
         let is_open = self.state.read(cx).open;
         let state = self.state.clone();

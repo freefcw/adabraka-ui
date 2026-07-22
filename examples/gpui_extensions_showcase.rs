@@ -60,8 +60,8 @@ fn demo_box() -> Div {
 }
 
 impl Render for ShowcaseApp {
-    fn render(&mut self, _window: &mut Window, _cx: &mut Context<Self>) -> impl IntoElement {
-        let theme = use_theme();
+    fn render(&mut self, _window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
+        let theme = use_theme(cx);
         let tick = self.animation_tick;
         let time = tick as f32 * 0.05;
 

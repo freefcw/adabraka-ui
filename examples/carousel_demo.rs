@@ -155,7 +155,7 @@ fn create_image_slide(index: usize, _theme: &Theme) -> CarouselSlide {
 
 impl Render for CarouselDemo {
     fn render(&mut self, _window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
-        let theme = use_theme();
+        let theme = use_theme(cx);
 
         let current1 = self.carousel1.read(cx).current_index();
         let current2 = self.carousel2.read(cx).current_index();

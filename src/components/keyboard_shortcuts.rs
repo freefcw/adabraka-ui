@@ -108,8 +108,8 @@ impl Styled for KeyboardShortcuts {
 }
 
 impl Render for KeyboardShortcuts {
-    fn render(&mut self, _window: &mut Window, _cx: &mut Context<Self>) -> impl IntoElement {
-        let theme = use_theme();
+    fn render(&mut self, _window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
+        let theme = use_theme(cx);
         let user_style = self.style.clone();
 
         div()

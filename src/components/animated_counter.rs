@@ -114,7 +114,7 @@ impl AnimatedCounter {
 
 impl RenderOnce for AnimatedCounter {
     fn render(self, _window: &mut Window, cx: &mut App) -> impl IntoElement {
-        let theme = use_theme();
+        let theme = use_theme(cx);
         let state = self.state.read(cx);
         let value = state.display_value();
 

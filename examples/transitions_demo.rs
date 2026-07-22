@@ -65,8 +65,8 @@ impl TransitionsDemo {
 }
 
 impl Render for TransitionsDemo {
-    fn render(&mut self, _window: &mut Window, _cx: &mut Context<Self>) -> impl IntoElement {
-        let theme = use_theme();
+    fn render(&mut self, _window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
+        let theme = use_theme(cx);
 
         div()
             .flex()
@@ -99,7 +99,7 @@ impl Render for TransitionsDemo {
             .child(
                 Button::new("toggle-all-btn", "Toggle All Transitions")
                     .variant(ButtonVariant::Secondary)
-                    .on_click(_cx.listener(|this, _, _, cx| {
+                    .on_click(cx.listener(|this, _, _, cx| {
                         this.toggle_all(cx);
                     })),
             )
@@ -129,7 +129,7 @@ impl Render for TransitionsDemo {
                                     .child(
                                         Button::new("toggle-fade-btn", "Toggle")
                                             .variant(ButtonVariant::Outline)
-                                            .on_click(_cx.listener(|this, _, _, cx| {
+                                            .on_click(cx.listener(|this, _, _, cx| {
                                                 this.show_fade = !this.show_fade;
                                                 cx.notify();
                                             })),
@@ -169,7 +169,7 @@ impl Render for TransitionsDemo {
                                     .child(
                                         Button::new("toggle-slide-up-btn", "Toggle")
                                             .variant(ButtonVariant::Outline)
-                                            .on_click(_cx.listener(|this, _, _, cx| {
+                                            .on_click(cx.listener(|this, _, _, cx| {
                                                 this.show_slide_up = !this.show_slide_up;
                                                 cx.notify();
                                             })),
@@ -209,7 +209,7 @@ impl Render for TransitionsDemo {
                                     .child(
                                         Button::new("toggle-slide-down-btn", "Toggle")
                                             .variant(ButtonVariant::Outline)
-                                            .on_click(_cx.listener(|this, _, _, cx| {
+                                            .on_click(cx.listener(|this, _, _, cx| {
                                                 this.show_slide_down = !this.show_slide_down;
                                                 cx.notify();
                                             })),
@@ -249,7 +249,7 @@ impl Render for TransitionsDemo {
                                     .child(
                                         Button::new("toggle-slide-left-btn", "Toggle")
                                             .variant(ButtonVariant::Outline)
-                                            .on_click(_cx.listener(|this, _, _, cx| {
+                                            .on_click(cx.listener(|this, _, _, cx| {
                                                 this.show_slide_left = !this.show_slide_left;
                                                 cx.notify();
                                             })),
@@ -289,7 +289,7 @@ impl Render for TransitionsDemo {
                                     .child(
                                         Button::new("toggle-slide-right-btn", "Toggle")
                                             .variant(ButtonVariant::Outline)
-                                            .on_click(_cx.listener(|this, _, _, cx| {
+                                            .on_click(cx.listener(|this, _, _, cx| {
                                                 this.show_slide_right = !this.show_slide_right;
                                                 cx.notify();
                                             })),
@@ -329,7 +329,7 @@ impl Render for TransitionsDemo {
                                     .child(
                                         Button::new("toggle-scale-btn", "Toggle")
                                             .variant(ButtonVariant::Outline)
-                                            .on_click(_cx.listener(|this, _, _, cx| {
+                                            .on_click(cx.listener(|this, _, _, cx| {
                                                 this.show_scale = !this.show_scale;
                                                 cx.notify();
                                             })),

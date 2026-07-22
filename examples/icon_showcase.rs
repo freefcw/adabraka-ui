@@ -68,7 +68,7 @@ impl IconShowcaseApp {
     }
 
     fn render_icon_grid(&self, cx: &mut Context<Self>) -> impl IntoElement {
-        let theme = use_theme();
+        let theme = use_theme(cx);
 
         let icons = vec![
             ("arrow-up", "Arrow Up"),
@@ -165,9 +165,9 @@ impl IconShowcaseApp {
         &self,
         icon_name: &str,
         label: &str,
-        _cx: &mut Context<Self>,
+        cx: &mut Context<Self>,
     ) -> impl IntoElement {
-        let theme = use_theme();
+        let theme = use_theme(cx);
         let icon_name = icon_name.to_string();
         let label = label.to_string();
 

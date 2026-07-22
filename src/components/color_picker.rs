@@ -2,7 +2,7 @@
 
 use crate::components::text::{Text, TextVariant};
 use crate::overlays::popover::{Popover, PopoverContent};
-use crate::theme::use_theme;
+use crate::theme::{use_theme, Theme};
 use gpui::{prelude::FluentBuilder as _, *};
 use std::rc::Rc;
 
@@ -199,7 +199,7 @@ impl Styled for ColorPicker {
 
 impl RenderOnce for ColorPicker {
     fn render(self, _window: &mut Window, cx: &mut App) -> impl IntoElement {
-        let theme = use_theme();
+        let theme = use_theme(cx);
         let state = self.state.clone();
         let color = state.read(cx).selected_color();
         let _show_alpha = self.show_alpha;
@@ -256,7 +256,7 @@ impl RenderOnce for ColorPicker {
 
                 cx.new(|cx| {
                     PopoverContent::new(window, cx, move |_window, cx| {
-                        let _theme = use_theme();
+                        let theme = use_theme(cx);
 
                         // Read state fresh on every render so mode changes work
                         let current_color = state_for_content.read(cx).selected_color();
@@ -271,17 +271,23 @@ impl RenderOnce for ColorPicker {
                             .flex_col()
                             .gap_3()
                             .w(px(280.0))
-                            .child(render_color_preview(current_color))
+                            .child(render_color_preview(current_color, theme.clone()))
                             .child(render_mode_selector(
                                 current_mode,
                                 state_for_content.clone(),
+                                theme.clone(),
                             ))
-                            .child(render_color_value(current_color, current_mode))
+                            .child(render_color_value(
+                                current_color,
+                                current_mode,
+                                theme.clone(),
+                            ))
                             .when(!swatches_clone.is_empty(), |this| {
                                 this.child(render_swatches(
                                     swatches_clone,
                                     state_for_content.clone(),
                                     on_change_clone.clone(),
+                                    theme.clone(),
                                 ))
                             })
                             .when(!recent_vec.is_empty(), |this| {
@@ -289,12 +295,14 @@ impl RenderOnce for ColorPicker {
                                     recent_vec,
                                     state_for_content.clone(),
                                     on_change_clone.clone(),
+                                    theme.clone(),
                                 ))
                             })
                             .child(render_actions(
                                 current_color,
                                 state_for_content.clone(),
                                 on_change_clone.clone(),
+                                theme.clone(),
                             ))
                             .into_any_element()
                     })
@@ -304,9 +312,7 @@ impl RenderOnce for ColorPicker {
     }
 }
 
-fn render_color_preview(color: Hsla) -> impl IntoElement {
-    let theme = use_theme();
-
+fn render_color_preview(color: Hsla, theme: Theme) -> impl IntoElement {
     div()
         .flex()
         .flex_col()
@@ -331,6 +337,7 @@ fn render_color_preview(color: Hsla) -> impl IntoElement {
 fn render_mode_selector(
     current_mode: ColorMode,
     state: Entity<ColorPickerState>,
+    theme: Theme,
 ) -> impl IntoElement {
     div()
         .flex()
@@ -340,18 +347,21 @@ fn render_mode_selector(
             ColorMode::HSL,
             current_mode,
             state.clone(),
+            theme.clone(),
         ))
         .child(render_mode_button(
             "RGB",
             ColorMode::RGB,
             current_mode,
             state.clone(),
+            theme.clone(),
         ))
         .child(render_mode_button(
             "HEX",
             ColorMode::HEX,
             current_mode,
             state,
+            theme,
         ))
 }
 
@@ -360,8 +370,8 @@ fn render_mode_button(
     mode: ColorMode,
     current_mode: ColorMode,
     state: Entity<ColorPickerState>,
+    theme: Theme,
 ) -> impl IntoElement {
-    let theme = use_theme();
     let is_active = mode == current_mode;
 
     div()
@@ -390,9 +400,7 @@ fn render_mode_button(
         .child(label)
 }
 
-fn render_color_value(color: Hsla, mode: ColorMode) -> impl IntoElement {
-    let theme = use_theme();
-
+fn render_color_value(color: Hsla, mode: ColorMode, theme: Theme) -> impl IntoElement {
     let value = match mode {
         ColorMode::HSL => {
             format!(
@@ -428,9 +436,8 @@ fn render_swatches(
     swatches: Vec<Hsla>,
     state: Entity<ColorPickerState>,
     on_change: Option<Rc<dyn Fn(Hsla, &mut Window, &mut App)>>,
+    theme: Theme,
 ) -> impl IntoElement {
-    let theme = use_theme();
-
     div()
         .flex()
         .flex_col()
@@ -442,11 +449,13 @@ fn render_swatches(
                 .color(theme.tokens.muted_foreground),
         )
         .child(
-            div().flex().flex_wrap().gap_2().children(
-                swatches.into_iter().map(move |swatch| {
-                    render_color_swatch(swatch, state.clone(), on_change.clone())
-                }),
-            ),
+            div()
+                .flex()
+                .flex_wrap()
+                .gap_2()
+                .children(swatches.into_iter().map(move |swatch| {
+                    render_color_swatch(swatch, state.clone(), on_change.clone(), theme.clone())
+                })),
         )
 }
 
@@ -454,9 +463,8 @@ fn render_recent_colors(
     recent: Vec<Hsla>,
     state: Entity<ColorPickerState>,
     on_change: Option<Rc<dyn Fn(Hsla, &mut Window, &mut App)>>,
+    theme: Theme,
 ) -> impl IntoElement {
-    let theme = use_theme();
-
     div()
         .flex()
         .flex_col()
@@ -468,11 +476,13 @@ fn render_recent_colors(
                 .color(theme.tokens.muted_foreground),
         )
         .child(
-            div().flex().flex_wrap().gap_2().children(
-                recent
-                    .into_iter()
-                    .map(move |color| render_color_swatch(color, state.clone(), on_change.clone())),
-            ),
+            div()
+                .flex()
+                .flex_wrap()
+                .gap_2()
+                .children(recent.into_iter().map(move |color| {
+                    render_color_swatch(color, state.clone(), on_change.clone(), theme.clone())
+                })),
         )
 }
 
@@ -480,9 +490,8 @@ fn render_color_swatch(
     color: Hsla,
     state: Entity<ColorPickerState>,
     on_change: Option<Rc<dyn Fn(Hsla, &mut Window, &mut App)>>,
+    theme: Theme,
 ) -> impl IntoElement {
-    let theme = use_theme();
-
     div()
         .size(px(28.0))
         .rounded(theme.tokens.radius_sm)
@@ -506,9 +515,8 @@ fn render_actions(
     color: Hsla,
     state: Entity<ColorPickerState>,
     on_change: Option<Rc<dyn Fn(Hsla, &mut Window, &mut App)>>,
+    theme: Theme,
 ) -> impl IntoElement {
-    let theme = use_theme();
-
     div()
         .flex()
         .gap_2()

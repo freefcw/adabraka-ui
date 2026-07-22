@@ -141,7 +141,7 @@ fn demo_label(text: &str, theme: &Theme) -> Div {
 
 impl Render for ShowcaseApp {
     fn render(&mut self, _window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
-        let theme = use_theme();
+        let theme = use_theme(cx);
 
         let active_tab = self.segmented_state.read(cx).active().clone();
         let seg_state = self.segmented_state.clone();

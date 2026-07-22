@@ -59,6 +59,7 @@ fn icon_path_from_name(name: &str) -> String {
     resolve_icon_path(name)
 }
 
+#[derive(IntoElement)]
 pub struct Icon {
     source: IconSource,
     variant: IconVariant,
@@ -142,11 +143,9 @@ impl Styled for Icon {
     }
 }
 
-impl IntoElement for Icon {
-    type Element = AnyElement;
-
-    fn into_element(self) -> Self::Element {
-        let theme = use_theme();
+impl RenderOnce for Icon {
+    fn render(self, _window: &mut Window, cx: &mut App) -> impl IntoElement {
+        let theme = use_theme(cx);
         let color = self.color.unwrap_or(theme.tokens.primary);
         let svg_content = self.get_svg_path();
 

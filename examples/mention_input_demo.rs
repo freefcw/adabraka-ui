@@ -131,7 +131,7 @@ impl MentionInputDemo {
 
 impl Render for MentionInputDemo {
     fn render(&mut self, _window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
-        let theme = use_theme();
+        let theme = use_theme(cx);
         let entity = cx.entity().clone();
 
         div()
@@ -404,7 +404,7 @@ impl Render for MentionInputDemo {
                                             div()
                                                 .text_size(px(13.0))
                                                 .text_color(theme.tokens.accent_foreground)
-                                                .child("- Proper theming using use_theme()"),
+                                                .child("- Proper theming using use_theme(cx)"),
                                         ),
                                 ),
                         ),

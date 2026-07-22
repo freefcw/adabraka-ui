@@ -284,7 +284,7 @@ impl CountdownState {
 }
 
 impl Render for CountdownState {
-    fn render(&mut self, _: &mut Window, _: &mut Context<Self>) -> impl IntoElement {
+    fn render(&mut self, _: &mut Window, _cx: &mut Context<Self>) -> impl IntoElement {
         div()
     }
 }
@@ -422,7 +422,7 @@ impl Styled for Countdown {
 
 impl RenderOnce for Countdown {
     fn render(self, window: &mut Window, cx: &mut App) -> impl IntoElement {
-        let theme = use_theme();
+        let theme = use_theme(cx);
         let state = self.state.read(cx);
         let units = state.time_units();
         let completed = state.is_completed();

@@ -18,7 +18,7 @@ impl OTPInputDemoApp {
 
 impl Render for OTPInputDemoApp {
     fn render(&mut self, _window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
-        let theme = use_theme();
+        let theme = use_theme(cx);
 
         let value1 = self.otp_state1.read(cx).value();
         let value2 = self.otp_state2.read(cx).value();

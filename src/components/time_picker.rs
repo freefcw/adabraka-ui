@@ -286,7 +286,7 @@ impl Focusable for TimePickerState {
 }
 
 impl Render for TimePickerState {
-    fn render(&mut self, _: &mut Window, _: &mut Context<Self>) -> impl IntoElement {
+    fn render(&mut self, _: &mut Window, _cx: &mut Context<Self>) -> impl IntoElement {
         div()
     }
 }
@@ -338,7 +338,7 @@ impl Styled for TimePicker {
 
 impl RenderOnce for TimePicker {
     fn render(self, _window: &mut Window, cx: &mut App) -> impl IntoElement {
-        let theme = use_theme();
+        let theme = use_theme(cx);
         let user_style = self.style;
         let state_data = self.state.read(cx);
         let is_open = state_data.open;

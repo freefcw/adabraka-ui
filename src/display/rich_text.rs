@@ -307,8 +307,9 @@ pub fn render_inlines(
     base_size: Pixels,
     link_handler: Option<&LinkClickHandler>,
     element_id: Option<ElementId>,
+    cx: &App,
 ) -> AnyElement {
-    let theme = use_theme();
+    let theme = use_theme(cx);
     let font_family = theme.tokens.font_family.clone();
     let font_mono = theme.tokens.font_mono.clone();
     let text_color = theme.tokens.foreground;
@@ -361,8 +362,9 @@ pub fn render_inlines_with_handler(
     _link_urls: &[LinkInfo],
     on_link_click: &Option<LinkClickHandler>,
     element_id: Option<ElementId>,
+    cx: &App,
 ) -> AnyElement {
-    let theme = use_theme();
+    let theme = use_theme(cx);
     let font_family = theme.tokens.font_family.clone();
     let font_mono = theme.tokens.font_mono.clone();
     let text_color = theme.tokens.foreground;
@@ -426,12 +428,20 @@ pub fn render_blocks(
     base_size: Pixels,
     on_link_click: &Option<LinkClickHandler>,
     id_prefix: &str,
+    cx: &App,
 ) -> Vec<AnyElement> {
     let mut elements = Vec::new();
     let mut block_idx = 0u32;
 
     for block in blocks {
-        let el = render_block(block, base_size, on_link_click, id_prefix, &mut block_idx);
+        let el = render_block(
+            block,
+            base_size,
+            on_link_click,
+            id_prefix,
+            &mut block_idx,
+            cx,
+        );
         elements.push(el);
     }
 
@@ -444,15 +454,16 @@ fn render_block(
     on_link_click: &Option<LinkClickHandler>,
     id_prefix: &str,
     block_idx: &mut u32,
+    cx: &App,
 ) -> AnyElement {
-    let theme = use_theme();
+    let theme = use_theme(cx);
     *block_idx += 1;
     let idx = *block_idx;
 
     match block {
         RichBlock::Paragraph(inlines) => {
             let id = ElementId::Name(format!("{}-p-{}", id_prefix, idx).into());
-            let el = render_inline_element(inlines, base_size, on_link_click, Some(id));
+            let el = render_inline_element(inlines, base_size, on_link_click, Some(id), cx);
             div().mb(px(12.0)).child(el).into_any_element()
         }
 
@@ -476,7 +487,7 @@ fn render_block(
                 _ => px(12.0),
             };
 
-            let el = render_inline_element(content, size, on_link_click, Some(id));
+            let el = render_inline_element(content, size, on_link_click, Some(id), cx);
             div()
                 .mt(top_margin)
                 .mb(px(8.0))
@@ -496,7 +507,7 @@ fn render_block(
         }
 
         RichBlock::BlockQuote(inner_blocks) => {
-            let children = render_blocks(inner_blocks, base_size, on_link_click, id_prefix);
+            let children = render_blocks(inner_blocks, base_size, on_link_click, id_prefix, cx);
             div()
                 .mb(px(12.0))
                 .pl(px(16.0))
@@ -518,6 +529,7 @@ fn render_block(
                 block_idx,
                 false,
                 1,
+                cx,
             );
             div().mb(px(12.0)).children(children).into_any_element()
         }
@@ -531,6 +543,7 @@ fn render_block(
                 block_idx,
                 true,
                 *start,
+                cx,
             );
             div().mb(px(12.0)).children(children).into_any_element()
         }
@@ -547,6 +560,7 @@ fn render_block(
             on_link_click,
             id_prefix,
             block_idx,
+            cx,
         ),
 
         RichBlock::HorizontalRule => div()
@@ -566,8 +580,9 @@ fn render_inline_element(
     base_size: Pixels,
     on_link_click: &Option<LinkClickHandler>,
     element_id: Option<ElementId>,
+    cx: &App,
 ) -> AnyElement {
-    let theme = use_theme();
+    let theme = use_theme(cx);
     let font_family = theme.tokens.font_family.clone();
     let font_mono = theme.tokens.font_mono.clone();
     let text_color = theme.tokens.foreground;
@@ -633,8 +648,9 @@ fn render_list_items(
     block_idx: &mut u32,
     ordered: bool,
     start: u64,
+    cx: &App,
 ) -> Vec<AnyElement> {
-    let theme = use_theme();
+    let theme = use_theme(cx);
     let mut elements = Vec::new();
 
     for (i, item) in items.iter().enumerate() {
@@ -654,7 +670,8 @@ fn render_list_items(
         };
 
         let id = ElementId::Name(format!("{}-li-{}", id_prefix, idx).into());
-        let content_el = render_inline_element(&item.content, base_size, on_link_click, Some(id));
+        let content_el =
+            render_inline_element(&item.content, base_size, on_link_click, Some(id), cx);
 
         let row = div()
             .flex()
@@ -682,6 +699,7 @@ fn render_list_items(
                 block_idx,
                 false,
                 1,
+                cx,
             );
             elements.push(div().pl(px(20.0)).children(children).into_any_element());
         }
@@ -698,8 +716,9 @@ fn render_table(
     on_link_click: &Option<LinkClickHandler>,
     id_prefix: &str,
     block_idx: &mut u32,
+    cx: &App,
 ) -> AnyElement {
-    let theme = use_theme();
+    let theme = use_theme(cx);
     let col_count = headers.len();
     if col_count == 0 {
         return div().into_any_element();
@@ -725,7 +744,7 @@ fn render_table(
         for (ci, header) in headers.iter().enumerate() {
             *block_idx += 1;
             let id = ElementId::Name(format!("{}-th-{}", id_prefix, *block_idx).into());
-            let el = render_inline_element(header, base_size, on_link_click, Some(id));
+            let el = render_inline_element(header, base_size, on_link_click, Some(id), cx);
             let mut cell = div()
                 .flex_1()
                 .px(px(12.0))
@@ -761,7 +780,7 @@ fn render_table(
         for (ci, cell_data) in row_data.iter().enumerate() {
             *block_idx += 1;
             let id = ElementId::Name(format!("{}-td-{}", id_prefix, *block_idx).into());
-            let el = render_inline_element(cell_data, base_size, on_link_click, Some(id));
+            let el = render_inline_element(cell_data, base_size, on_link_click, Some(id), cx);
             let mut cell = div()
                 .flex_1()
                 .px(px(12.0))

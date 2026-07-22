@@ -106,7 +106,7 @@ impl StatefulInteractiveElement for Checkbox {}
 
 impl RenderOnce for Checkbox {
     fn render(self, window: &mut Window, cx: &mut App) -> impl IntoElement {
-        let theme = use_theme();
+        let theme = use_theme(cx);
 
         let size = match self.size {
             CheckboxSize::Sm => px(16.0),

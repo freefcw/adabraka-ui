@@ -36,7 +36,7 @@ impl Render for MinimalButtonTest {
         );
 
         div()
-            .bg(use_theme().tokens.background)
+            .bg(use_theme(cx).tokens.background)
             .size_full()
             .flex()
             .items_center()
@@ -46,7 +46,7 @@ impl Render for MinimalButtonTest {
             .child(
                 div()
                     .text_size(px(18.0))
-                    .text_color(use_theme().tokens.foreground)
+                    .text_color(use_theme(cx).tokens.foreground)
                     .child(format!("Clicked {} times", self.click_count)),
             )
             .child(Button::new("click-btn", "Click Me!").on_click(cx.listener(

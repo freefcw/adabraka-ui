@@ -170,7 +170,7 @@ impl Focusable for CarouselState {
 }
 
 impl Render for CarouselState {
-    fn render(&mut self, _: &mut Window, _: &mut Context<Self>) -> impl IntoElement {
+    fn render(&mut self, _: &mut Window, _cx: &mut Context<Self>) -> impl IntoElement {
         div()
     }
 }
@@ -303,7 +303,7 @@ impl Styled for Carousel {
 
 impl RenderOnce for Carousel {
     fn render(self, window: &mut Window, cx: &mut App) -> impl IntoElement {
-        let theme = use_theme();
+        let theme = use_theme(cx);
         let state = self.state.clone();
         let slide_count = self.slides.len();
 

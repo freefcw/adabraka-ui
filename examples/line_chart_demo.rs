@@ -79,8 +79,8 @@ fn generate_cosine_data() -> Vec<LineChartPoint> {
 }
 
 impl Render for LineChartDemo {
-    fn render(&mut self, _window: &mut Window, _cx: &mut Context<Self>) -> impl IntoElement {
-        let theme = use_theme();
+    fn render(&mut self, _window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
+        let theme = use_theme(cx);
 
         let x_labels: Vec<&str> = vec![
             "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",

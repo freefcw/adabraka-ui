@@ -67,8 +67,8 @@ impl Styled for Label {
 }
 
 impl RenderOnce for Label {
-    fn render(self, _: &mut Window, _: &mut App) -> impl IntoElement {
-        let theme = use_theme();
+    fn render(self, _: &mut Window, cx: &mut App) -> impl IntoElement {
+        let theme = use_theme(cx);
         let user_style = self.style;
 
         div()

@@ -203,7 +203,7 @@ impl ValidationDemoApp {
 
 impl Render for ValidationDemoApp {
     fn render(&mut self, _window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
-        let theme = adabraka_ui::theme::use_theme();
+        let theme = adabraka_ui::theme::use_theme(cx);
 
         VStack::new()
             .size_full()

@@ -203,7 +203,7 @@ impl Focusable for RangeSliderState {
 }
 
 impl Render for RangeSliderState {
-    fn render(&mut self, _: &mut Window, _: &mut Context<Self>) -> impl IntoElement {
+    fn render(&mut self, _: &mut Window, _cx: &mut Context<Self>) -> impl IntoElement {
         div()
     }
 }
@@ -748,7 +748,7 @@ impl RangeSlider {
 
 impl RenderOnce for RangeSlider {
     fn render(self, window: &mut Window, cx: &mut App) -> impl IntoElement {
-        let theme = use_theme();
+        let theme = use_theme(cx);
         let state = self.state.read(cx);
         let focus_handle = state.focus_handle(cx);
         let is_focused = focus_handle.is_focused(window);

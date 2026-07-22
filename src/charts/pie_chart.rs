@@ -146,7 +146,7 @@ impl Styled for PieChart {
 }
 
 impl RenderOnce for PieChart {
-    fn render(self, _window: &mut Window, _cx: &mut App) -> impl IntoElement {
+    fn render(self, _window: &mut Window, cx: &mut App) -> impl IntoElement {
         let chart_size = self.size.to_pixels();
         let show_legend = self.label_position == PieChartLabelPosition::Legend;
         let show_percentages = self.show_percentages;
@@ -155,7 +155,7 @@ impl RenderOnce for PieChart {
         let total: f64 = self.segments.iter().map(|s| s.value).sum();
 
         let chart = if total == 0.0 || self.segments.is_empty() {
-            render_empty_chart(chart_size)
+            render_empty_chart(chart_size, cx)
         } else {
             render_pie_chart(
                 chart_size,
@@ -164,11 +164,12 @@ impl RenderOnce for PieChart {
                 self.variant,
                 self.donut_thickness,
                 self.center_label.clone(),
+                cx,
             )
         };
 
         let legend = if show_legend {
-            Some(render_legend(&self.segments, total, show_percentages))
+            Some(render_legend(&self.segments, total, show_percentages, cx))
         } else {
             None
         };
@@ -194,8 +195,9 @@ fn render_pie_chart(
     variant: PieChartVariant,
     donut_thickness: f32,
     center_label: Option<SharedString>,
+    cx: &App,
 ) -> Div {
-    let theme = use_theme();
+    let theme = use_theme(cx);
     let size_f32 = pixels_to_f32(chart_size);
     let center = size_f32 * 0.5;
     let outer_radius = size_f32 * 0.5;
@@ -226,6 +228,7 @@ fn render_pie_chart(
             inner_radius,
             variant,
             center_label,
+            cx,
         );
     }
 
@@ -318,8 +321,9 @@ fn render_single_segment(
     inner_radius: f32,
     variant: PieChartVariant,
     center_label: Option<SharedString>,
+    cx: &App,
 ) -> Div {
-    let theme = use_theme();
+    let theme = use_theme(cx);
     let size_f32 = pixels_to_f32(chart_size);
     let center = size_f32 * 0.5;
 
@@ -359,8 +363,8 @@ fn render_single_segment(
     container
 }
 
-fn render_empty_chart(chart_size: Pixels) -> Div {
-    let theme = use_theme();
+fn render_empty_chart(chart_size: Pixels, cx: &App) -> Div {
+    let theme = use_theme(cx);
 
     div()
         .size(chart_size)
@@ -377,8 +381,13 @@ fn render_empty_chart(chart_size: Pixels) -> Div {
         )
 }
 
-fn render_legend(segments: &[PieChartSegment], total: f64, show_percentages: bool) -> Div {
-    let theme = use_theme();
+fn render_legend(
+    segments: &[PieChartSegment],
+    total: f64,
+    show_percentages: bool,
+    cx: &App,
+) -> Div {
+    let theme = use_theme(cx);
 
     div()
         .flex()

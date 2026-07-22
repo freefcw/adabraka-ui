@@ -44,7 +44,7 @@ impl AppMenuStyledDemo {
 
 impl Render for AppMenuStyledDemo {
     fn render(&mut self, _window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
-        let theme = use_theme();
+        let theme = use_theme(cx);
 
         div()
             .track_focus(&self.focus)

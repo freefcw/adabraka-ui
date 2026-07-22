@@ -40,8 +40,8 @@ impl SimpleButtonApp {
 }
 
 impl Render for SimpleButtonApp {
-    fn render(&mut self, _window: &mut Window, _cx: &mut Context<Self>) -> impl IntoElement {
-        let theme = use_theme();
+    fn render(&mut self, _window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
+        let theme = use_theme(cx);
         let count = *self.click_count.lock().unwrap();
         let click_count = Arc::clone(&self.click_count);
 

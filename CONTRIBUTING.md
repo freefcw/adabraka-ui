@@ -251,7 +251,7 @@ impl Button {
 
 impl RenderOnce for Button {
     fn render(self, _window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
-        let theme = use_theme();
+        let theme = use_theme(cx);
 
         div()
             .child(self.label)
@@ -279,7 +279,7 @@ Always use theme tokens instead of hardcoded colors:
 
 ```rust
 // ✅ Good
-let theme = use_theme();
+let theme = use_theme(cx);
 div().bg(theme.tokens.background)
 
 // ❌ Bad

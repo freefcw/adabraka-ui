@@ -725,8 +725,8 @@ impl Styled for Timeline {
 }
 
 impl RenderOnce for Timeline {
-    fn render(self, _window: &mut Window, _cx: &mut App) -> impl IntoElement {
-        let theme = use_theme();
+    fn render(self, _window: &mut Window, cx: &mut App) -> impl IntoElement {
+        let theme = use_theme(cx);
         let items = self.items.clone();
         let items_len = items.len();
         let user_style = self.style.clone();

@@ -73,8 +73,8 @@ impl Styled for Accordion {
 }
 
 impl RenderOnce for Accordion {
-    fn render(self, _window: &mut Window, _cx: &mut App) -> impl IntoElement {
-        let _theme = use_theme();
+    fn render(self, _window: &mut Window, cx: &mut App) -> impl IntoElement {
+        let _theme = use_theme(cx);
         let user_style = self.style;
         let open_indices = Rc::new(std::cell::RefCell::new(self.open_indices));
         let multiple = self.multiple;
@@ -192,8 +192,8 @@ impl AccordionItem {
 }
 
 impl RenderOnce for AccordionItem {
-    fn render(self, _window: &mut Window, _cx: &mut App) -> impl IntoElement {
-        let theme = use_theme();
+    fn render(self, _window: &mut Window, cx: &mut App) -> impl IntoElement {
+        let theme = use_theme(cx);
         let is_open = self.is_open;
 
         div()

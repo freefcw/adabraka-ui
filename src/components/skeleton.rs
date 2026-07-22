@@ -40,8 +40,8 @@ impl Skeleton {
 }
 
 impl RenderOnce for Skeleton {
-    fn render(self, _window: &mut Window, _cx: &mut App) -> impl IntoElement {
-        let theme = use_theme();
+    fn render(self, _window: &mut Window, cx: &mut App) -> impl IntoElement {
+        let theme = use_theme(cx);
 
         let base_color = if self.secondary {
             theme.tokens.muted.opacity(0.5)

@@ -217,7 +217,7 @@ impl Styled for NotificationCenter {
 
 impl RenderOnce for NotificationCenter {
     fn render(self, _window: &mut Window, cx: &mut App) -> impl IntoElement {
-        let theme = use_theme();
+        let theme = use_theme(cx);
         let user_style = self.style;
         let state = self.state.read(cx);
         let notifications = state.notifications().to_vec();
@@ -545,7 +545,7 @@ impl Styled for NotificationBell {
 
 impl RenderOnce for NotificationBell {
     fn render(self, _window: &mut Window, cx: &mut App) -> impl IntoElement {
-        let theme = use_theme();
+        let theme = use_theme(cx);
         let user_style = self.style;
         let unread_count = self.state.read(cx).unread_count();
         let on_click = self.on_click.clone();

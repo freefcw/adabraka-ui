@@ -83,8 +83,8 @@ fn generate_modules(data: &str, ec_level: EcLevel) -> Vec<Vec<bool>> {
 }
 
 impl RenderOnce for QRCodeComponent {
-    fn render(self, _window: &mut Window, _cx: &mut App) -> impl IntoElement {
-        let theme = use_theme();
+    fn render(self, _window: &mut Window, cx: &mut App) -> impl IntoElement {
+        let theme = use_theme(cx);
         let user_style = self.style;
 
         let fg = self.fg_color.unwrap_or(theme.tokens.foreground);

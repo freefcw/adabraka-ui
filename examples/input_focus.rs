@@ -89,7 +89,7 @@ impl FocusTestApp {
 
 impl Render for FocusTestApp {
     fn render(&mut self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
-        let theme = adabraka_ui::theme::use_theme();
+        let theme = adabraka_ui::theme::use_theme(cx);
 
         div()
             .size_full()

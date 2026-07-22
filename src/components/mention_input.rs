@@ -782,7 +782,7 @@ impl Styled for MentionInput {
 
 impl RenderOnce for MentionInput {
     fn render(self, window: &mut Window, cx: &mut App) -> impl IntoElement {
-        let theme = use_theme();
+        let theme = use_theme(cx);
 
         let state_entity = self.state.clone();
         let state = self.state.read(cx);
@@ -1186,7 +1186,7 @@ impl gpui::Element for MentionTextElement {
         let content: SharedString = input.content.clone().into();
         let selected_range = input.selected_range.clone();
         let cursor_offset = input.cursor_offset();
-        let theme = use_theme();
+        let theme = use_theme(cx);
         let style = window.text_style();
 
         let (display_text, text_color) = if content.is_empty() {

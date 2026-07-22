@@ -88,8 +88,8 @@ enum DigitOrSeparator {
 }
 
 impl RenderOnce for NumberTicker {
-    fn render(self, _window: &mut Window, _cx: &mut App) -> impl IntoElement {
-        let theme = use_theme();
+    fn render(self, _window: &mut Window, cx: &mut App) -> impl IntoElement {
+        let theme = use_theme(cx);
         let chars = format_with_separator(self.value, self.separator);
         let duration = self.duration;
         let digit_height = px(24.0);

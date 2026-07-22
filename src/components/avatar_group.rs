@@ -147,8 +147,8 @@ impl Styled for AvatarGroup {
 }
 
 impl RenderOnce for AvatarGroup {
-    fn render(self, _: &mut Window, _: &mut App) -> impl IntoElement {
-        let theme = use_theme();
+    fn render(self, _: &mut Window, cx: &mut App) -> impl IntoElement {
+        let theme = use_theme(cx);
 
         let size = self.size;
         let show_tooltips = self.show_tooltips;

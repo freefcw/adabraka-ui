@@ -3099,7 +3099,7 @@ impl Element for EditorElement {
         cx: &mut App,
     ) {
         let focus_handle = self.state.read(cx).focus_handle.clone();
-        let theme = use_theme();
+        let theme = use_theme(cx);
         let padding_top = px(12.0);
         let line_height = prepaint.line_height;
         let gutter_width = prepaint.gutter_width;
@@ -4115,7 +4115,7 @@ impl RenderOnce for Editor {
             state.fold_marker_color_override = self.fold_marker_color;
             state.syntax_color_fn = syn_fn;
         });
-        let theme = use_theme();
+        let theme = use_theme(cx);
         let font_family_for_editor = self
             .state
             .read(cx)
@@ -4259,6 +4259,7 @@ impl RenderOnce for Editor {
     }
 }
 
+#[derive(IntoElement)]
 struct HorizontalScrollbar {
     state: Entity<EditorState>,
     needs_scrollbar: bool,
@@ -4303,15 +4304,13 @@ impl HorizontalScrollbar {
     }
 }
 
-impl IntoElement for HorizontalScrollbar {
-    type Element = AnyElement;
-
-    fn into_element(self) -> Self::Element {
+impl RenderOnce for HorizontalScrollbar {
+    fn render(self, _window: &mut Window, cx: &mut App) -> impl IntoElement {
         if !self.needs_scrollbar {
             return div().h(px(0.0)).into_any_element();
         }
 
-        let theme = use_theme();
+        let theme = use_theme(cx);
         let editor_state = self.state.clone();
 
         div()
@@ -4371,6 +4370,7 @@ impl IntoElement for HorizontalScrollbar {
 }
 
 #[allow(dead_code)]
+#[derive(IntoElement)]
 struct VerticalScrollbar {
     state: Entity<EditorState>,
     needs_scrollbar: bool,
@@ -4420,15 +4420,13 @@ impl VerticalScrollbar {
     }
 }
 
-impl IntoElement for VerticalScrollbar {
-    type Element = AnyElement;
-
-    fn into_element(self) -> Self::Element {
+impl RenderOnce for VerticalScrollbar {
+    fn render(self, _window: &mut Window, cx: &mut App) -> impl IntoElement {
         if !self.needs_scrollbar {
             return div().w(px(0.0)).into_any_element();
         }
 
-        let theme = use_theme();
+        let theme = use_theme(cx);
         let editor_state = self.state.clone();
 
         div()

@@ -248,7 +248,7 @@ impl DataTableDemoApp {
 
 impl Render for DataTableDemoApp {
     fn render(&mut self, _window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
-        let theme = use_theme();
+        let theme = use_theme(cx);
 
         div()
             .bg(theme.tokens.background)
@@ -355,22 +355,22 @@ impl Render for DataTableDemoApp {
                                                             Grid::new()
                                                                 .columns(4)
                                                                 .gap(16.0)
-                                                                .child(feature_badge(
+                                                                .child(feature_badge(theme.clone(),
                                                                     "Virtual Scrolling",
                                                                     "Only renders visible rows",
                                                                     theme.tokens.primary
                                                                 ))
-                                                                .child(feature_badge(
+                                                                .child(feature_badge(theme.clone(),
                                                                     "Column Resizing",
                                                                     "Drag column borders to resize",
                                                                     theme.tokens.accent
                                                                 ))
-                                                                .child(feature_badge(
+                                                                .child(feature_badge(theme.clone(),
                                                                     "Sorting",
                                                                     "Click headers to sort",
                                                                     theme.tokens.secondary
                                                                 ))
-                                                                .child(feature_badge(
+                                                                .child(feature_badge(theme.clone(),
                                                                     "High Performance",
                                                                     "Rust-powered efficiency",
                                                                     theme.tokens.destructive
@@ -380,22 +380,22 @@ impl Render for DataTableDemoApp {
                                                             Grid::new()
                                                                 .columns(4)
                                                                 .gap(16.0)
-                                                                .child(feature_badge(
+                                                                .child(feature_badge(theme.clone(),
                                                                     "Row Selection",
                                                                     "Multi-select with checkboxes",
                                                                     theme.tokens.primary
                                                                 ))
-                                                                .child(feature_badge(
+                                                                .child(feature_badge(theme.clone(),
                                                                     "Inline Editing",
                                                                     "Click cells to edit values",
                                                                     theme.tokens.accent
                                                                 ))
-                                                                .child(feature_badge(
+                                                                .child(feature_badge(theme.clone(),
                                                                     "Search & Filter",
                                                                     "Column-specific filtering",
                                                                     theme.tokens.secondary
                                                                 ))
-                                                                .child(feature_badge(
+                                                                .child(feature_badge(theme.clone(),
                                                                     "Event Callbacks",
                                                                     "Rich interaction hooks",
                                                                     gpui::hsla(280.0 / 360.0, 0.65, 0.60, 1.0)
@@ -483,10 +483,10 @@ impl Render for DataTableDemoApp {
                                                 .content(
                                                     VStack::new()
                                                         .spacing(12.0)
-                                                        .child(perf_stat("Initial Render", "< 100ms", "Even with 50K rows"))
-                                                        .child(perf_stat("Scroll Performance", "60 FPS", "Smooth virtual scrolling"))
-                                                        .child(perf_stat("Memory Usage", "~200 MB", "For 50K rows with 8 columns"))
-                                                        .child(perf_stat("Column Resize", "< 16ms", "Instant UI response"))
+                                                        .child(perf_stat(theme.clone(), "Initial Render", "< 100ms", "Even with 50K rows"))
+                                                        .child(perf_stat(theme.clone(), "Scroll Performance", "60 FPS", "Smooth virtual scrolling"))
+                                                        .child(perf_stat(theme.clone(), "Memory Usage", "~200 MB", "For 50K rows with 8 columns"))
+                                                        .child(perf_stat(theme.clone(), "Column Resize", "< 16ms", "Instant UI response"))
                                                         .child(
                                                             div()
                                                                 .mt(px(16.0))
@@ -523,11 +523,11 @@ impl Render for DataTableDemoApp {
 
 // Helper functions
 fn feature_badge(
+    theme: Theme,
     title: impl Into<SharedString>,
     description: impl Into<SharedString>,
     color: Hsla,
 ) -> impl IntoElement {
-    let theme = use_theme();
     let title: SharedString = title.into();
     let description: SharedString = description.into();
 
@@ -557,11 +557,11 @@ fn feature_badge(
 }
 
 fn perf_stat(
+    theme: Theme,
     label: impl Into<SharedString>,
     value: impl Into<SharedString>,
     description: impl Into<SharedString>,
 ) -> impl IntoElement {
-    let theme = use_theme();
     let label: SharedString = label.into();
     let value: SharedString = value.into();
     let description: SharedString = description.into();

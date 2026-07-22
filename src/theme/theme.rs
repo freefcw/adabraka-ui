@@ -1,5 +1,4 @@
 use gpui::*;
-use std::sync::LazyLock;
 
 use super::tokens::ThemeTokens;
 
@@ -210,20 +209,36 @@ impl Theme {
     }
 }
 
-static THEME_STATE: LazyLock<std::sync::Mutex<Theme>> =
-    LazyLock::new(|| std::sync::Mutex::new(Theme::dark()));
+struct ThemeState(Theme);
 
-/// Install a theme globally for the app. Call early during app startup.
-pub fn install_theme(_cx: &mut App, theme: Theme) {
-    if let Ok(mut state) = THEME_STATE.lock() {
-        *state = theme;
-    }
+impl Global for ThemeState {}
+
+/// Install a theme for this application. Call early during app startup.
+pub fn install_theme(cx: &mut App, theme: Theme) {
+    cx.set_global(ThemeState(theme));
 }
 
-/// Access the current theme tokens.
-pub fn use_theme() -> Theme {
-    THEME_STATE
-        .lock()
-        .map(|guard| (*guard).clone())
-        .unwrap_or_else(|_| Theme::dark())
+/// Access this application's current theme tokens.
+pub fn use_theme(cx: &App) -> Theme {
+    cx.try_global::<ThemeState>()
+        .map(|state| state.0.clone())
+        .unwrap_or_else(Theme::dark)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{install_theme, use_theme, Theme, ThemeVariant};
+    use gpui::TestApp;
+
+    #[gpui::test]
+    fn themes_are_isolated_between_apps() {
+        let mut first = TestApp::new();
+        let mut second = TestApp::new();
+
+        first.update(|cx| install_theme(cx, Theme::light()));
+        second.update(|cx| install_theme(cx, Theme::dark()));
+
+        assert_eq!(first.read(|cx| use_theme(cx).variant), ThemeVariant::Light);
+        assert_eq!(second.read(|cx| use_theme(cx).variant), ThemeVariant::Dark);
+    }
 }

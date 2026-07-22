@@ -374,7 +374,7 @@ impl<T: Clone + 'static> Styled for Combobox<T> {
 
 impl<T: Clone + PartialEq + 'static> Render for Combobox<T> {
     fn render(&mut self, _window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
-        let theme = use_theme();
+        let theme = use_theme(cx);
         let user_style = self.style.clone();
 
         let state = self.state.read(cx);

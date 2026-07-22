@@ -81,12 +81,12 @@ fn inlines_to_plain_text(inlines: &[RichInline]) -> String {
 
 #[cfg(feature = "markdown")]
 impl RenderOnce for Markdown {
-    fn render(self, _window: &mut Window, _cx: &mut App) -> impl IntoElement {
-        let theme = use_theme();
+    fn render(self, _window: &mut Window, cx: &mut App) -> impl IntoElement {
+        let theme = use_theme(cx);
         let base_size = self.base_font_size.unwrap_or(px(14.0));
 
         let blocks = parse_markdown_with_urls(&self.source);
-        let elements = render_blocks(&blocks, base_size, &self.on_link_click, "md");
+        let elements = render_blocks(&blocks, base_size, &self.on_link_click, "md", cx);
 
         self.base
             .flex()

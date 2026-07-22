@@ -142,7 +142,7 @@ impl Styled for InfiniteScroll {
 
 impl RenderOnce for InfiniteScroll {
     fn render(self, _window: &mut Window, cx: &mut App) -> impl IntoElement {
-        let theme = use_theme();
+        let theme = use_theme(cx);
         let user_style = self.style;
         let (loading_state, scroll_handle) = {
             let s = self.state.read(cx);

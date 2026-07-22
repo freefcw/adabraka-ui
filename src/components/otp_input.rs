@@ -401,7 +401,7 @@ impl Styled for OTPInput {
 
 impl RenderOnce for OTPInput {
     fn render(self, window: &mut Window, cx: &mut App) -> impl IntoElement {
-        let theme = use_theme();
+        let theme = use_theme(cx);
         let box_size = self.box_size();
         let font_size = self.font_size();
         let input_gap = self.input_gap();

@@ -587,7 +587,7 @@ impl<T: 'static, E: 'static + Render> Element for ResizeHandle<T, E> {
     ) -> (gpui::LayoutId, Self::RequestLayoutState) {
         let neg_offset = -HANDLE_PADDING;
         let axis = self.axis;
-        let theme = use_theme();
+        let theme = use_theme(cx);
 
         window.with_element_state(id.unwrap(), |state, window| {
             let state = state.unwrap_or_else(ResizeHandleState::default);

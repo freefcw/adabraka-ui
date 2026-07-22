@@ -100,7 +100,7 @@ Once fonts are registered, you can use them with GPUI's font APIs:
 use gpui::*;
 
 // Use the UI font (via theme - recommended)
-let theme = adabraka_ui::theme::use_theme();
+let theme = adabraka_ui::theme::use_theme(cx);
 div().font_family(theme.tokens.font_family.clone())
 
 // Use the mono font

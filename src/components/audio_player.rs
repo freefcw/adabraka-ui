@@ -397,7 +397,7 @@ impl Focusable for AudioPlayerState {
 }
 
 impl Render for AudioPlayerState {
-    fn render(&mut self, _: &mut Window, _: &mut Context<Self>) -> impl IntoElement {
+    fn render(&mut self, _: &mut Window, _cx: &mut Context<Self>) -> impl IntoElement {
         div()
     }
 }
@@ -504,7 +504,7 @@ impl Styled for AudioPlayer {
 
 impl RenderOnce for AudioPlayer {
     fn render(self, window: &mut Window, cx: &mut App) -> impl IntoElement {
-        let theme = use_theme();
+        let theme = use_theme(cx);
         let state = self.state.read(cx);
         let is_playing = state.is_playing;
         let is_muted = state.is_muted;

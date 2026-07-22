@@ -125,8 +125,8 @@ impl SplitPaneDemo {
 }
 
 impl Render for SplitPaneDemo {
-    fn render(&mut self, _window: &mut Window, _cx: &mut Context<Self>) -> impl IntoElement {
-        let theme = use_theme();
+    fn render(&mut self, _window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
+        let theme = use_theme(cx);
 
         div()
             .size_full()
@@ -190,15 +190,16 @@ impl SplitPaneDemo {
                     .overflow_hidden()
                     .child(
                         SplitPane::horizontal(self.horizontal_split.clone())
-                            .first(
-                                self.render_panel("Left Panel", theme.tokens.primary.opacity(0.2)),
-                            )
-                            .second(
-                                self.render_panel(
-                                    "Right Panel",
-                                    theme.tokens.secondary.opacity(0.2),
-                                ),
-                            )
+                            .first(self.render_panel(
+                                theme.clone(),
+                                "Left Panel",
+                                theme.tokens.primary.opacity(0.2),
+                            ))
+                            .second(self.render_panel(
+                                theme.clone(),
+                                "Right Panel",
+                                theme.tokens.secondary.opacity(0.2),
+                            ))
                             .on_resize(|ratio, _, _| {
                                 println!("Horizontal split ratio: {:.2}", ratio);
                             }),
@@ -230,10 +231,16 @@ impl SplitPaneDemo {
                     .overflow_hidden()
                     .child(
                         SplitPane::vertical(self.vertical_split.clone())
-                            .first(self.render_panel("Top Panel", theme.tokens.accent.opacity(0.3)))
-                            .second(
-                                self.render_panel("Bottom Panel", theme.tokens.muted.opacity(0.5)),
-                            )
+                            .first(self.render_panel(
+                                theme.clone(),
+                                "Top Panel",
+                                theme.tokens.accent.opacity(0.3),
+                            ))
+                            .second(self.render_panel(
+                                theme.clone(),
+                                "Bottom Panel",
+                                theme.tokens.muted.opacity(0.5),
+                            ))
                             .on_resize(|ratio, _, _| {
                                 println!("Vertical split ratio: {:.2}", ratio);
                             }),
@@ -265,14 +272,20 @@ impl SplitPaneDemo {
                     .overflow_hidden()
                     .child(
                         SplitPane::horizontal(self.nested_outer.clone())
-                            .first(self.render_panel("Sidebar", theme.tokens.primary.opacity(0.15)))
+                            .first(self.render_panel(
+                                theme.clone(),
+                                "Sidebar",
+                                theme.tokens.primary.opacity(0.15),
+                            ))
                             .second(
                                 SplitPane::vertical(self.nested_inner.clone())
                                     .first(self.render_panel(
+                                        theme.clone(),
                                         "Main Content",
                                         theme.tokens.secondary.opacity(0.15),
                                     ))
                                     .second(self.render_panel(
+                                        theme.clone(),
                                         "Console",
                                         theme.tokens.accent.opacity(0.15),
                                     )),
@@ -306,12 +319,15 @@ impl SplitPaneDemo {
                     .child(
                         SplitPane::horizontal(self.constrained_split.clone())
                             .first(self.render_panel(
+                                theme.clone(),
                                 "Constrained (100-400px)",
                                 theme.tokens.destructive.opacity(0.2),
                             ))
-                            .second(
-                                self.render_panel("Min 150px", theme.tokens.primary.opacity(0.2)),
-                            ),
+                            .second(self.render_panel(
+                                theme.clone(),
+                                "Min 150px",
+                                theme.tokens.primary.opacity(0.2),
+                            )),
                     ),
             )
     }
@@ -348,13 +364,13 @@ impl SplitPaneDemo {
                     .overflow_hidden()
                     .child(
                         SplitPane::horizontal(self.collapsible_split.clone())
-                            .first(
-                                self.render_panel(
-                                    "Collapsible Left",
-                                    theme.tokens.accent.opacity(0.2),
-                                ),
-                            )
+                            .first(self.render_panel(
+                                theme.clone(),
+                                "Collapsible Left",
+                                theme.tokens.accent.opacity(0.2),
+                            ))
                             .second(self.render_panel(
+                                theme.clone(),
                                 "Collapsible Right",
                                 theme.tokens.secondary.opacity(0.2),
                             ))
@@ -411,9 +427,7 @@ impl SplitPaneDemo {
             })
     }
 
-    fn render_panel(&self, title: &str, bg_color: Hsla) -> impl IntoElement {
-        let theme = use_theme();
-
+    fn render_panel(&self, theme: Theme, title: &str, bg_color: Hsla) -> impl IntoElement {
         div()
             .size_full()
             .bg(bg_color)

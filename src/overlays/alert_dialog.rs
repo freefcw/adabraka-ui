@@ -108,7 +108,7 @@ impl Styled for AlertDialog {
 
 impl Render for AlertDialog {
     fn render(&mut self, _window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
-        let theme = use_theme();
+        let theme = use_theme(cx);
         let user_style = self.style.clone();
         let title = self.title.clone();
         let description = self.description.clone();

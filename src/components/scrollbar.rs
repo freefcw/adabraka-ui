@@ -290,9 +290,9 @@ impl Element for Scrollbar {
         bounds: Bounds<Pixels>,
         _: &mut Self::RequestLayoutState,
         window: &mut Window,
-        _cx: &mut App,
+        cx: &mut App,
     ) -> Self::PrepaintState {
-        let theme = use_theme();
+        let theme = use_theme(cx);
 
         let hitbox = window.with_content_mask(Some(ContentMask { bounds }), |window| {
             window.insert_hitbox(bounds, HitboxBehavior::Normal)

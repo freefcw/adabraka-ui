@@ -152,7 +152,7 @@ impl Styled for TypeWriter {
 
 impl RenderOnce for TypeWriter {
     fn render(self, _window: &mut Window, cx: &mut App) -> impl IntoElement {
-        let theme = use_theme();
+        let theme = use_theme(cx);
         let state = self.state.read(cx);
         let text = String::from(state.visible_text());
         let is_typing = state.is_typing();

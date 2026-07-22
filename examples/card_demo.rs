@@ -39,7 +39,7 @@ impl CardDemoApp {
 
 impl Render for CardDemoApp {
     fn render(&mut self, _window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
-        let theme = use_theme();
+        let theme = use_theme(cx);
 
         div()
             .bg(theme.tokens.background)
@@ -217,9 +217,9 @@ impl Render for CardDemoApp {
                                                         vstack = vstack.child(
                                                             VStack::new()
                                                                 .spacing(8.0)
-                                                                .child(notification_item("New comment on your post", "2 minutes ago", theme.tokens.primary))
-                                                                .child(notification_item("Someone liked your photo", "1 hour ago", theme.tokens.secondary))
-                                                                .child(notification_item("You have a new follower", "3 hours ago", theme.tokens.accent))
+                                                                .child(notification_item("New comment on your post", "2 minutes ago", theme.tokens.primary, theme.clone()))
+                                                                .child(notification_item("Someone liked your photo", "1 hour ago", theme.tokens.secondary, theme.clone()))
+                                                                .child(notification_item("You have a new follower", "3 hours ago", theme.tokens.accent, theme.clone()))
                                                         );
                                                     }
 
@@ -264,10 +264,10 @@ impl Render for CardDemoApp {
                                                     Grid::new()
                                                         .columns(2)
                                                         .gap(16.0)
-                                                        .child(stat_box("Total Users", "12,543", "+12%", theme.tokens.primary))
-                                                        .child(stat_box("Revenue", "$45,231", "+23%", theme.tokens.accent))
-                                                        .child(stat_box("Active Sessions", "1,234", "+5%", theme.tokens.secondary))
-                                                        .child(stat_box("Conversion Rate", "3.24%", "-2%", theme.tokens.destructive))
+                                                        .child(stat_box("Total Users", "12,543", "+12%", theme.tokens.primary, theme.clone()))
+                                                        .child(stat_box("Revenue", "$45,231", "+23%", theme.tokens.accent, theme.clone()))
+                                                        .child(stat_box("Active Sessions", "1,234", "+5%", theme.tokens.secondary, theme.clone()))
+                                                        .child(stat_box("Conversion Rate", "3.24%", "-2%", theme.tokens.destructive, theme.clone()))
                                                 )
                                         )
                                         // Recent Activity Card
@@ -296,10 +296,10 @@ impl Render for CardDemoApp {
                                                 .content(
                                                     VStack::new()
                                                         .spacing(12.0)
-                                                        .child(activity_item("Deployed to production", "5 minutes ago"))
-                                                        .child(activity_item("Merged PR #234", "1 hour ago"))
-                                                        .child(activity_item("Created new branch", "3 hours ago"))
-                                                        .child(activity_item("Updated dependencies", "5 hours ago"))
+                                                        .child(activity_item("Deployed to production", "5 minutes ago", theme.clone()))
+                                                        .child(activity_item("Merged PR #234", "1 hour ago", theme.clone()))
+                                                        .child(activity_item("Created new branch", "3 hours ago", theme.clone()))
+                                                        .child(activity_item("Updated dependencies", "5 hours ago", theme.clone()))
                                                 )
                                         )
                                 )
@@ -314,8 +314,8 @@ fn notification_item(
     message: impl Into<SharedString>,
     time: impl Into<SharedString>,
     color: Hsla,
+    theme: Theme,
 ) -> impl IntoElement {
-    let theme = use_theme();
     let message: SharedString = message.into();
     let time: SharedString = time.into();
 
@@ -350,8 +350,8 @@ fn stat_box(
     value: impl Into<SharedString>,
     change: impl Into<SharedString>,
     color: Hsla,
+    theme: Theme,
 ) -> impl IntoElement {
-    let theme = use_theme();
     let label: SharedString = label.into();
     let value: SharedString = value.into();
     let change: SharedString = change.into();
@@ -391,8 +391,8 @@ fn stat_box(
 fn activity_item(
     message: impl Into<SharedString>,
     time: impl Into<SharedString>,
+    theme: Theme,
 ) -> impl IntoElement {
-    let theme = use_theme();
     let message: SharedString = message.into();
     let time: SharedString = time.into();
 

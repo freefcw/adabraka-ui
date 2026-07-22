@@ -112,8 +112,8 @@ impl Styled for ContextMenu {
 }
 
 impl RenderOnce for ContextMenu {
-    fn render(self, _window: &mut Window, _cx: &mut App) -> impl IntoElement {
-        let theme = use_theme();
+    fn render(self, _window: &mut Window, cx: &mut App) -> impl IntoElement {
+        let theme = use_theme(cx);
         let position = self.position;
         let on_close_handler = self.on_close.clone();
         let user_style = self.style;

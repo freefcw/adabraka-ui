@@ -1125,7 +1125,7 @@ impl Element for TextareaTextElement {
     ) -> Self::PrepaintState {
         let input = self.state.read(cx);
         let text_style = window.text_style();
-        let theme = use_theme();
+        let theme = use_theme(cx);
         let font_size = text_style.font_size.to_pixels(window.rem_size());
         let line_height = window.line_height();
 

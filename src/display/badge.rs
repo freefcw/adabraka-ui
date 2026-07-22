@@ -12,6 +12,7 @@ pub enum BadgeVariant {
     Warning,
 }
 
+#[derive(IntoElement)]
 pub struct Badge {
     label: SharedString,
     variant: BadgeVariant,
@@ -39,11 +40,9 @@ impl Styled for Badge {
     }
 }
 
-impl IntoElement for Badge {
-    type Element = Div;
-
-    fn into_element(self) -> Self::Element {
-        let theme = use_theme();
+impl RenderOnce for Badge {
+    fn render(self, _window: &mut Window, cx: &mut App) -> impl IntoElement {
+        let theme = use_theme(cx);
         let user_style = self.style;
 
         let (bg_color, fg_color, border_color) = match self.variant {

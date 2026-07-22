@@ -173,7 +173,7 @@ impl ToastManager {
 
 impl Render for ToastManager {
     fn render(&mut self, _window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
-        let theme = use_theme();
+        let theme = use_theme(cx);
 
         if self.toasts.is_empty() {
             return div().into_any_element();

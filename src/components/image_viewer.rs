@@ -252,7 +252,7 @@ impl EventEmitter<()> for ImageViewer {}
 
 impl Render for ImageViewer {
     fn render(&mut self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
-        let theme = use_theme();
+        let theme = use_theme(cx);
         let state = self.state.read(cx);
         let current_image = state.current_image().cloned();
         let current_index = state.current_index();

@@ -549,7 +549,7 @@ impl Element for InlineEditTextElement {
         let selected_range = state.selected_range.clone();
         let cursor = state.cursor_offset();
         let text_style = window.text_style();
-        let theme = use_theme();
+        let theme = use_theme(cx);
 
         let (display_text, text_color) = if content.is_empty() {
             (self.placeholder.clone(), theme.tokens.muted_foreground)
@@ -741,7 +741,7 @@ impl Styled for InlineEdit {
 
 impl RenderOnce for InlineEdit {
     fn render(self, _window: &mut Window, cx: &mut App) -> impl IntoElement {
-        let theme = use_theme();
+        let theme = use_theme(cx);
         let user_style = self.style;
         let is_editing = self.state.read(cx).is_editing();
         let value = self.state.read(cx).value().to_string();

@@ -112,8 +112,8 @@ impl InputDemoApp {
 }
 
 impl Render for InputDemoApp {
-    fn render(&mut self, _window: &mut Window, _cx: &mut Context<Self>) -> impl IntoElement {
-        let theme = adabraka_ui::theme::use_theme();
+    fn render(&mut self, _window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
+        let theme = adabraka_ui::theme::use_theme(cx);
 
         VStack::new()
             .size_full()
@@ -155,7 +155,7 @@ impl Render for InputDemoApp {
                                 .p(px(40.0))
                                 .gap(px(32.0))
                                 // Interactive Inputs Section
-                                .child(render_interactive_section(
+                                .child(render_interactive_section(theme.clone(),
                                     self.interactive_input1.clone(),
                                     self.interactive_input2.clone(),
                                     self.interactive_input3.clone(),
@@ -188,7 +188,7 @@ impl Render for InputDemoApp {
                                         )
                                 )
                                 // Section 1: Input Variants
-                                .child(render_section(
+                                .child(render_section(theme.clone(),
                                     "Input Variants",
                                     "Different visual styles for inputs",
                                     vec![
@@ -204,7 +204,7 @@ impl Render for InputDemoApp {
                                     ],
                                 ))
                                 // Section 2: Input Sizes
-                                .child(render_section(
+                                .child(render_section(theme.clone(),
                                     "Input Sizes",
                                     "Small, medium, and large input sizes",
                                     vec![
@@ -220,7 +220,7 @@ impl Render for InputDemoApp {
                                     ],
                                 ))
                                 // Section 3: Input States
-                                .child(render_section(
+                                .child(render_section(theme.clone(),
                                     "Input States",
                                     "Different input states and configurations",
                                     vec![
@@ -238,7 +238,7 @@ impl Render for InputDemoApp {
                                     ],
                                 ))
                                 // Section 4: Password Input
-                                .child(render_section(
+                                .child(render_section(theme.clone(),
                                     "Password Input",
                                     "Input with password masking and visibility toggle",
                                     vec![
@@ -248,13 +248,13 @@ impl Render for InputDemoApp {
                                     ],
                                 ))
                                 // Section 5: Input with Prefix/Suffix
-                                .child(render_prefix_suffix_section(
+                                .child(render_prefix_suffix_section(theme.clone(),
                                     &self.prefix_input,
                                     &self.suffix_input,
                                     &self.both_input,
                                 ))
                                 // Section 6: Form Example
-                                .child(render_form_example(
+                                .child(render_form_example(theme.clone(),
                                     &self.form_name,
                                     &self.form_email,
                                     &self.form_password,
@@ -267,12 +267,11 @@ impl Render for InputDemoApp {
 }
 
 fn render_interactive_section(
+    theme: Theme,
     input1: Entity<InputState>,
     input2: Entity<InputState>,
     input3: Entity<InputState>,
 ) -> impl IntoElement {
-    let theme = adabraka_ui::theme::use_theme();
-
     VStack::new()
         .w_full()
         .gap(px(16.0))
@@ -401,12 +400,11 @@ fn render_interactive_section(
 }
 
 fn render_section<I: IntoElement + 'static>(
+    theme: Theme,
     title: impl Into<SharedString>,
     description: impl Into<SharedString>,
     inputs: Vec<(&'static str, I)>,
 ) -> impl IntoElement {
-    let theme = adabraka_ui::theme::use_theme();
-
     VStack::new()
         .w_full()
         .gap(px(16.0))
@@ -455,12 +453,11 @@ fn render_section<I: IntoElement + 'static>(
 }
 
 fn render_prefix_suffix_section(
+    theme: Theme,
     prefix_input: &Entity<InputState>,
     suffix_input: &Entity<InputState>,
     both_input: &Entity<InputState>,
 ) -> impl IntoElement {
-    let theme = adabraka_ui::theme::use_theme();
-
     VStack::new()
         .w_full()
         .gap(px(16.0))
@@ -562,13 +559,12 @@ fn render_prefix_suffix_section(
 }
 
 fn render_form_example(
+    theme: Theme,
     form_name: &Entity<InputState>,
     form_email: &Entity<InputState>,
     form_password: &Entity<InputState>,
     form_bio: &Entity<InputState>,
 ) -> impl IntoElement {
-    let theme = adabraka_ui::theme::use_theme();
-
     VStack::new()
         .w_full()
         .gap(px(16.0))

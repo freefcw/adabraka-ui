@@ -150,8 +150,8 @@ impl Styled for Alert {
 }
 
 impl RenderOnce for Alert {
-    fn render(self, _window: &mut Window, _cx: &mut App) -> impl IntoElement {
-        let theme = use_theme();
+    fn render(self, _window: &mut Window, cx: &mut App) -> impl IntoElement {
+        let theme = use_theme(cx);
         let (bg_color, border_color, accent_color) = self.get_colors(&theme);
         let user_style = self.style;
 

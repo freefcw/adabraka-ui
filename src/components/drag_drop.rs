@@ -64,8 +64,8 @@ impl<T: Clone + Debug> DragData<T> {
 }
 
 impl<T: Clone + Debug + 'static> Render for DragData<T> {
-    fn render(&mut self, _: &mut Window, _: &mut Context<Self>) -> impl IntoElement {
-        let theme = use_theme();
+    fn render(&mut self, _: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
+        let theme = use_theme(cx);
 
         if let Some(factory) = &self.preview_factory {
             let preview = factory();
@@ -287,8 +287,8 @@ impl<T: Clone + Debug + 'static> ParentElement for DropZone<T> {
 }
 
 impl<T: Clone + Debug + 'static> RenderOnce for DropZone<T> {
-    fn render(self, _window: &mut Window, _cx: &mut App) -> impl IntoElement {
-        let theme = use_theme();
+    fn render(self, _window: &mut Window, cx: &mut App) -> impl IntoElement {
+        let theme = use_theme(cx);
         let user_style = self.user_style;
 
         let (border_width, border_color, bg_color) = match (self.drop_style, self.active) {

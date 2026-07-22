@@ -178,7 +178,7 @@ impl<T: Clone + PartialEq + 'static> Styled for Sidebar<T> {
 
 impl<T: Clone + PartialEq + 'static> RenderOnce for Sidebar<T> {
     fn render(self, _window: &mut Window, cx: &mut App) -> impl IntoElement {
-        let theme = use_theme();
+        let theme = use_theme(cx);
         let current_width = self.current_width();
         let is_collapsible = self.variant == SidebarVariant::Collapsible;
 

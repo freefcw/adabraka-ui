@@ -165,7 +165,7 @@ impl Styled for Sheet {
 
 impl Render for Sheet {
     fn render(&mut self, _window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
-        let theme = use_theme();
+        let theme = use_theme(cx);
         let has_header =
             self.title.is_some() || self.description.is_some() || self.show_close_button;
         let sheet_size = self.get_sheet_size();

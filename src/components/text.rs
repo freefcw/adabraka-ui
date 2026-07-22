@@ -98,6 +98,7 @@ pub struct Text {
     size: Option<Pixels>,
     weight: Option<FontWeight>,
     color: Option<Hsla>,
+    muted: bool,
     font: Option<SharedString>,
     line_height: Option<f32>,
     italic: bool,
@@ -117,6 +118,7 @@ impl Text {
             size: None,
             weight: None,
             color: None,
+            muted: false,
             font: None,
             line_height: None,
             italic: false,
@@ -149,6 +151,12 @@ impl Text {
     /// Set text color (overrides theme foreground)
     pub fn color(mut self, color: Hsla) -> Self {
         self.color = Some(color);
+        self
+    }
+
+    /// Use the current theme's muted foreground color.
+    pub fn muted(mut self) -> Self {
+        self.muted = true;
         self
     }
 
@@ -219,8 +227,8 @@ impl Styled for Text {
 }
 
 impl RenderOnce for Text {
-    fn render(self, _window: &mut Window, _cx: &mut App) -> impl IntoElement {
-        let theme = use_theme();
+    fn render(self, _window: &mut Window, cx: &mut App) -> impl IntoElement {
+        let theme = use_theme(cx);
 
         let size = self.effective_size();
         let weight = self.effective_weight();
@@ -234,7 +242,13 @@ impl RenderOnce for Text {
             theme.tokens.font_family.clone()
         };
 
-        let text_color = self.color.unwrap_or(theme.tokens.foreground);
+        let text_color = self.color.unwrap_or_else(|| {
+            if self.muted {
+                theme.tokens.muted_foreground
+            } else {
+                theme.tokens.foreground
+            }
+        });
 
         let mut base = div();
         *base.style() = self.style;
@@ -344,16 +358,10 @@ pub fn code_small<S: Into<SharedString>>(content: S) -> Text {
 
 /// Create muted text (secondary color)
 pub fn muted<S: Into<SharedString>>(content: S) -> Text {
-    let theme = use_theme();
-    Text::new(content)
-        .variant(TextVariant::Body)
-        .color(theme.tokens.muted_foreground)
+    Text::new(content).variant(TextVariant::Body).muted()
 }
 
 /// Create muted small text
 pub fn muted_small<S: Into<SharedString>>(content: S) -> Text {
-    let theme = use_theme();
-    Text::new(content)
-        .variant(TextVariant::BodySmall)
-        .color(theme.tokens.muted_foreground)
+    Text::new(content).variant(TextVariant::BodySmall).muted()
 }

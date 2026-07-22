@@ -125,7 +125,7 @@ impl CountdownDemo {
 
 impl Render for CountdownDemo {
     fn render(&mut self, _window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
-        let theme = use_theme();
+        let theme = use_theme(cx);
 
         let countdown1_state = self.countdown1.read(cx);
         let countdown4_state = self.countdown4.read(cx);

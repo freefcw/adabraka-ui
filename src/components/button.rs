@@ -173,7 +173,7 @@ impl StatefulInteractiveElement for Button {}
 
 impl RenderOnce for Button {
     fn render(self, window: &mut Window, cx: &mut App) -> impl IntoElement {
-        let theme = use_theme();
+        let theme = use_theme(cx);
 
         let (height, px_h, text_size) = match self.size {
             ButtonSize::Sm => (px(36.0), px(12.0), px(13.0)),

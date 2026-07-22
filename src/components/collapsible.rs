@@ -76,8 +76,8 @@ impl Styled for Collapsible {
 }
 
 impl RenderOnce for Collapsible {
-    fn render(self, _window: &mut Window, _cx: &mut App) -> impl IntoElement {
-        let theme = use_theme();
+    fn render(self, _window: &mut Window, cx: &mut App) -> impl IntoElement {
+        let theme = use_theme(cx);
         let user_style = self.style;
         let Collapsible {
             trigger,

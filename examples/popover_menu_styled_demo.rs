@@ -86,7 +86,7 @@ impl PopoverMenuStyledDemoView {
 
 impl Render for PopoverMenuStyledDemoView {
     fn render(&mut self, _window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
-        let _theme = use_theme();
+        let _theme = use_theme(cx);
 
         div()
             .size_full()

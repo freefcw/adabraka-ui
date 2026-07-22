@@ -43,6 +43,7 @@ impl TableRow {
     }
 }
 
+#[derive(IntoElement)]
 pub struct Table {
     columns: Vec<TableColumn>,
     rows: Vec<TableRow>,
@@ -81,11 +82,9 @@ impl Styled for Table {
     }
 }
 
-impl IntoElement for Table {
-    type Element = Div;
-
-    fn into_element(self) -> Self::Element {
-        let theme = use_theme();
+impl RenderOnce for Table {
+    fn render(self, _window: &mut Window, cx: &mut App) -> impl IntoElement {
+        let theme = use_theme(cx);
         let user_style = self.style;
 
         let header_cells = self.columns.iter().map(|column| {

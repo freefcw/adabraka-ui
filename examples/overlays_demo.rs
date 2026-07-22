@@ -65,7 +65,7 @@ impl OverlaysDemo {
 
 impl Render for OverlaysDemo {
     fn render(&mut self, _window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
-        let theme = use_theme();
+        let theme = use_theme(cx);
 
         div()
             .relative()
@@ -225,7 +225,7 @@ impl Render for OverlaysDemo {
                                                 Popover::new("actions-popover")
                                                     .trigger(Button::new("with-actions-btn", "With Actions").variant(ButtonVariant::Outline))
                                                     .content(|window, cx| {
-                                                        let theme = use_theme();
+                                                        let theme = use_theme(cx);
                                                         cx.new(|cx| {
                                                             PopoverContent::new(window, cx, move |_, _| {
                                                                 div()
@@ -372,7 +372,7 @@ impl Render for OverlaysDemo {
             )
             // Dialog Overlay
             .when(self.show_dialog, |this| {
-                let theme = use_theme();
+                let theme = use_theme(cx);
 
                 let dialog_width = match self.dialog_size {
                     DialogSize::Sm => px(400.0),

@@ -19,8 +19,8 @@ impl UniformDemo {
 }
 
 impl Render for UniformDemo {
-    fn render(&mut self, _window: &mut Window, _cx: &mut Context<Self>) -> impl IntoElement {
-        let theme = use_theme();
+    fn render(&mut self, _window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
+        let theme = use_theme(cx);
         let item_count: usize = 10_000_000; // 10M
         let item_extent = px(28.0);
 
@@ -76,8 +76,8 @@ impl VariableDemo {
 }
 
 impl Render for VariableDemo {
-    fn render(&mut self, _window: &mut Window, _cx: &mut Context<Self>) -> impl IntoElement {
-        let theme = use_theme();
+    fn render(&mut self, _window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
+        let theme = use_theme(cx);
         let item_count: usize = 1_000_000; // 1M
         let provider = RandomHeightsProvider;
 
@@ -121,8 +121,8 @@ impl VirtualListDemoApp {
 }
 
 impl Render for VirtualListDemoApp {
-    fn render(&mut self, _window: &mut Window, _cx: &mut Context<Self>) -> impl IntoElement {
-        let theme = use_theme();
+    fn render(&mut self, _window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
+        let theme = use_theme(cx);
         VStack::new()
             .size_full()
             .bg(theme.tokens.background)

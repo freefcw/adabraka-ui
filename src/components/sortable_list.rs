@@ -18,8 +18,8 @@ impl std::fmt::Debug for SortableItemDrag {
 }
 
 impl Render for SortableItemDrag {
-    fn render(&mut self, _window: &mut Window, _cx: &mut Context<Self>) -> impl IntoElement {
-        let theme = use_theme();
+    fn render(&mut self, _window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
+        let theme = use_theme(cx);
         div().pl(self.position.x).pt(self.position.y).child(
             div()
                 .px(px(12.0))
@@ -127,7 +127,7 @@ impl<T: Clone + 'static> Styled for SortableList<T> {
 
 impl<T: Clone + 'static> RenderOnce for SortableList<T> {
     fn render(self, _window: &mut Window, cx: &mut App) -> impl IntoElement {
-        let theme = use_theme();
+        let theme = use_theme(cx);
         let user_style = self.style;
         let items = self.state.read(cx).items.clone();
         let dragging_index = self.state.read(cx).dragging_index;

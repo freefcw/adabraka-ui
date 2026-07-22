@@ -32,8 +32,8 @@ impl SimpleLayoutDemo {
 }
 
 impl Render for SimpleLayoutDemo {
-    fn render(&mut self, _window: &mut Window, _cx: &mut Context<Self>) -> impl IntoElement {
-        let theme = use_theme();
+    fn render(&mut self, _window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
+        let theme = use_theme(cx);
 
         div()
             .bg(theme.tokens.background)
@@ -77,72 +77,105 @@ impl Render for SimpleLayoutDemo {
                         .gap(px(32.0))
                         // VStack Demo
                         .child(section_card(
+                            theme.clone(),
                             "VStack - Vertical Stacking",
                             VStack::new()
                                 .spacing(12.0)
-                                .child(colored_box("Item 1", theme.tokens.primary))
-                                .child(colored_box("Item 2", theme.tokens.secondary))
-                                .child(colored_box("Item 3", theme.tokens.accent)),
+                                .child(colored_box(theme.clone(), "Item 1", theme.tokens.primary))
+                                .child(colored_box(theme.clone(), "Item 2", theme.tokens.secondary))
+                                .child(colored_box(theme.clone(), "Item 3", theme.tokens.accent)),
                         ))
                         // HStack Demo
                         .child(section_card(
+                            theme.clone(),
                             "HStack - Horizontal Stacking",
                             VStack::new()
                                 .spacing(16.0)
                                 .child(
                                     VStack::new()
                                         .spacing(8.0)
-                                        .child(label("Justify: Between"))
+                                        .child(label(theme.clone(), "Justify: Between"))
                                         .child(
                                             HStack::new()
                                                 .justify(Justify::Between)
-                                                .child(colored_box("Left", theme.tokens.primary))
-                                                .child(colored_box("Right", theme.tokens.primary)),
+                                                .child(colored_box(
+                                                    theme.clone(),
+                                                    "Left",
+                                                    theme.tokens.primary,
+                                                ))
+                                                .child(colored_box(
+                                                    theme.clone(),
+                                                    "Right",
+                                                    theme.tokens.primary,
+                                                )),
                                         ),
                                 )
                                 .child(
                                     VStack::new()
                                         .spacing(8.0)
-                                        .child(label("Justify: Center"))
+                                        .child(label(theme.clone(), "Justify: Center"))
                                         .child(
                                             HStack::new()
                                                 .justify(Justify::Center)
                                                 .spacing(12.0)
-                                                .child(colored_box("A", theme.tokens.secondary))
-                                                .child(colored_box("B", theme.tokens.secondary))
-                                                .child(colored_box("C", theme.tokens.secondary)),
+                                                .child(colored_box(
+                                                    theme.clone(),
+                                                    "A",
+                                                    theme.tokens.secondary,
+                                                ))
+                                                .child(colored_box(
+                                                    theme.clone(),
+                                                    "B",
+                                                    theme.tokens.secondary,
+                                                ))
+                                                .child(colored_box(
+                                                    theme.clone(),
+                                                    "C",
+                                                    theme.tokens.secondary,
+                                                )),
                                         ),
                                 ),
                         ))
                         // Grid Demo
                         .child(section_card(
+                            theme.clone(),
                             "Grid - Grid Layout",
                             Grid::new()
                                 .columns(3)
                                 .gap(16.0)
-                                .child(colored_box("Grid 1", theme.tokens.primary))
-                                .child(colored_box("Grid 2", theme.tokens.secondary))
-                                .child(colored_box("Grid 3", theme.tokens.accent))
-                                .child(colored_box("Grid 4", theme.tokens.destructive))
-                                .child(colored_box("Grid 5", theme.tokens.primary))
-                                .child(colored_box("Grid 6", theme.tokens.secondary)),
+                                .child(colored_box(theme.clone(), "Grid 1", theme.tokens.primary))
+                                .child(colored_box(theme.clone(), "Grid 2", theme.tokens.secondary))
+                                .child(colored_box(theme.clone(), "Grid 3", theme.tokens.accent))
+                                .child(colored_box(
+                                    theme.clone(),
+                                    "Grid 4",
+                                    theme.tokens.destructive,
+                                ))
+                                .child(colored_box(theme.clone(), "Grid 5", theme.tokens.primary))
+                                .child(colored_box(
+                                    theme.clone(),
+                                    "Grid 6",
+                                    theme.tokens.secondary,
+                                )),
                         ))
                         // Flow Demo
                         .child(section_card(
+                            theme.clone(),
                             "Flow - Wrapping Layout",
                             Flow::new()
                                 .spacing(8.0)
-                                .child(tag("React"))
-                                .child(tag("Vue"))
-                                .child(tag("Angular"))
-                                .child(tag("Svelte"))
-                                .child(tag("Solid"))
-                                .child(tag("Qwik"))
-                                .child(tag("Preact"))
-                                .child(tag("Alpine")),
+                                .child(tag(theme.clone(), "React"))
+                                .child(tag(theme.clone(), "Vue"))
+                                .child(tag(theme.clone(), "Angular"))
+                                .child(tag(theme.clone(), "Svelte"))
+                                .child(tag(theme.clone(), "Solid"))
+                                .child(tag(theme.clone(), "Qwik"))
+                                .child(tag(theme.clone(), "Preact"))
+                                .child(tag(theme.clone(), "Alpine")),
                         ))
                         // Cluster Demo
                         .child(section_card(
+                            theme.clone(),
                             "Cluster - Inline Grouping",
                             VStack::new()
                                 .spacing(16.0)
@@ -150,21 +183,22 @@ impl Render for SimpleLayoutDemo {
                                     Cluster::new()
                                         .spacing(8.0)
                                         .align(Align::Center)
-                                        .child(avatar("JD", theme.tokens.primary))
-                                        .child(label("John Doe"))
-                                        .child(tag("Admin")),
+                                        .child(avatar(theme.clone(), "JD", theme.tokens.primary))
+                                        .child(label(theme.clone(), "John Doe"))
+                                        .child(tag(theme.clone(), "Admin")),
                                 )
                                 .child(
                                     Cluster::new()
                                         .spacing(8.0)
                                         .align(Align::Center)
-                                        .child(avatar("JS", theme.tokens.secondary))
-                                        .child(label("Jane Smith"))
-                                        .child(tag("User")),
+                                        .child(avatar(theme.clone(), "JS", theme.tokens.secondary))
+                                        .child(label(theme.clone(), "Jane Smith"))
+                                        .child(tag(theme.clone(), "User")),
                                 ),
                         ))
                         // Spacer Demo
                         .child(section_card(
+                            theme.clone(),
                             "Spacer - Flexible Spacing",
                             VStack::new()
                                 .spacing(16.0)
@@ -185,28 +219,58 @@ impl Render for SimpleLayoutDemo {
                         ))
                         // Nested Layouts
                         .child(section_card(
+                            theme.clone(),
                             "Nested Layouts - Complex Compositions",
                             HStack::new()
                                 .spacing(16.0)
                                 .child(
                                     VStack::new()
                                         .spacing(12.0)
-                                        .child(colored_box("Header", theme.tokens.primary))
-                                        .child(colored_box("Content", theme.tokens.muted))
-                                        .child(colored_box("Footer", theme.tokens.accent)),
+                                        .child(colored_box(
+                                            theme.clone(),
+                                            "Header",
+                                            theme.tokens.primary,
+                                        ))
+                                        .child(colored_box(
+                                            theme.clone(),
+                                            "Content",
+                                            theme.tokens.muted,
+                                        ))
+                                        .child(colored_box(
+                                            theme.clone(),
+                                            "Footer",
+                                            theme.tokens.accent,
+                                        )),
                                 )
                                 .child(
                                     Grid::new()
                                         .columns(2)
                                         .gap(12.0)
-                                        .child(colored_box("1", theme.tokens.secondary))
-                                        .child(colored_box("2", theme.tokens.secondary))
-                                        .child(colored_box("3", theme.tokens.secondary))
-                                        .child(colored_box("4", theme.tokens.secondary)),
+                                        .child(colored_box(
+                                            theme.clone(),
+                                            "1",
+                                            theme.tokens.secondary,
+                                        ))
+                                        .child(colored_box(
+                                            theme.clone(),
+                                            "2",
+                                            theme.tokens.secondary,
+                                        ))
+                                        .child(colored_box(
+                                            theme.clone(),
+                                            "3",
+                                            theme.tokens.secondary,
+                                        ))
+                                        .child(colored_box(
+                                            theme.clone(),
+                                            "4",
+                                            theme.tokens.secondary,
+                                        )),
                                 ),
                         ))
                         // More examples to ensure scrolling
                         .child(section_card(
+                            theme.clone(),
                             "Custom Scrollbar",
                             VStack::new()
                                 .spacing(12.0)
@@ -218,34 +282,46 @@ impl Render for SimpleLayoutDemo {
                                             "This demo uses our custom animated scrollbar with:",
                                         ),
                                 )
-                                .child(colored_box("✓ Hover & drag states", theme.tokens.primary))
                                 .child(colored_box(
+                                    theme.clone(),
+                                    "✓ Hover & drag states",
+                                    theme.tokens.primary,
+                                ))
+                                .child(colored_box(
+                                    theme.clone(),
                                     "✓ Auto fade-in/fade-out",
                                     theme.tokens.secondary,
                                 ))
-                                .child(colored_box("✓ Click-to-jump support", theme.tokens.accent))
                                 .child(colored_box(
+                                    theme.clone(),
+                                    "✓ Click-to-jump support",
+                                    theme.tokens.accent,
+                                ))
+                                .child(colored_box(
+                                    theme.clone(),
                                     "✓ Smooth animations",
                                     theme.tokens.destructive,
                                 )),
                         ))
                         // Additional Grid examples
                         .child(section_card(
+                            theme.clone(),
                             "Grid - 4 Columns",
                             Grid::new()
                                 .columns(4)
                                 .gap(12.0)
-                                .child(colored_box("A", theme.tokens.primary))
-                                .child(colored_box("B", theme.tokens.secondary))
-                                .child(colored_box("C", theme.tokens.accent))
-                                .child(colored_box("D", theme.tokens.destructive))
-                                .child(colored_box("E", theme.tokens.primary))
-                                .child(colored_box("F", theme.tokens.secondary))
-                                .child(colored_box("G", theme.tokens.accent))
-                                .child(colored_box("H", theme.tokens.destructive)),
+                                .child(colored_box(theme.clone(), "A", theme.tokens.primary))
+                                .child(colored_box(theme.clone(), "B", theme.tokens.secondary))
+                                .child(colored_box(theme.clone(), "C", theme.tokens.accent))
+                                .child(colored_box(theme.clone(), "D", theme.tokens.destructive))
+                                .child(colored_box(theme.clone(), "E", theme.tokens.primary))
+                                .child(colored_box(theme.clone(), "F", theme.tokens.secondary))
+                                .child(colored_box(theme.clone(), "G", theme.tokens.accent))
+                                .child(colored_box(theme.clone(), "H", theme.tokens.destructive)),
                         ))
                         // More VStack examples
                         .child(section_card(
+                            theme.clone(),
                             "VStack with Different Alignments",
                             HStack::new()
                                 .spacing(16.0)
@@ -253,34 +329,58 @@ impl Render for SimpleLayoutDemo {
                                     VStack::new()
                                         .spacing(8.0)
                                         .align(Align::Start)
-                                        .child(label("Align: Start"))
-                                        .child(colored_box("Item 1", theme.tokens.primary))
-                                        .child(colored_box("Item 2", theme.tokens.secondary)),
+                                        .child(label(theme.clone(), "Align: Start"))
+                                        .child(colored_box(
+                                            theme.clone(),
+                                            "Item 1",
+                                            theme.tokens.primary,
+                                        ))
+                                        .child(colored_box(
+                                            theme.clone(),
+                                            "Item 2",
+                                            theme.tokens.secondary,
+                                        )),
                                 )
                                 .child(
                                     VStack::new()
                                         .spacing(8.0)
                                         .align(Align::Center)
-                                        .child(label("Align: Center"))
-                                        .child(colored_box("Item 1", theme.tokens.accent))
-                                        .child(colored_box("Item 2", theme.tokens.destructive)),
+                                        .child(label(theme.clone(), "Align: Center"))
+                                        .child(colored_box(
+                                            theme.clone(),
+                                            "Item 1",
+                                            theme.tokens.accent,
+                                        ))
+                                        .child(colored_box(
+                                            theme.clone(),
+                                            "Item 2",
+                                            theme.tokens.destructive,
+                                        )),
                                 ),
                         ))
                         // Final section
                         .child(section_card(
+                            theme.clone(),
                             "Scroll to See More!",
                             VStack::new()
                                 .spacing(12.0)
                                 .child(colored_box(
+                                    theme.clone(),
                                     "Try scrolling with mouse wheel",
                                     theme.tokens.primary,
                                 ))
                                 .child(colored_box(
+                                    theme.clone(),
                                     "Hover over the scrollbar",
                                     theme.tokens.secondary,
                                 ))
-                                .child(colored_box("Click and drag the thumb", theme.tokens.accent))
                                 .child(colored_box(
+                                    theme.clone(),
+                                    "Click and drag the thumb",
+                                    theme.tokens.accent,
+                                ))
+                                .child(colored_box(
+                                    theme.clone(),
                                     "You've reached the end!",
                                     theme.tokens.destructive,
                                 )),
@@ -292,7 +392,7 @@ impl Render for SimpleLayoutDemo {
                 HStack::new().padding(16.0).justify(Justify::Center).child(
                     div()
                         .text_size(px(12.0))
-                        .text_color(use_theme().tokens.muted_foreground)
+                        .text_color(use_theme(cx).tokens.muted_foreground)
                         .child("Layout System: Semantic • Composable • Type-Safe"),
                 ),
             )
@@ -300,8 +400,11 @@ impl Render for SimpleLayoutDemo {
 }
 
 // Helper functions
-fn section_card(title: impl Into<SharedString>, content: impl IntoElement) -> impl IntoElement {
-    let theme = use_theme();
+fn section_card(
+    theme: Theme,
+    title: impl Into<SharedString>,
+    content: impl IntoElement,
+) -> impl IntoElement {
     let title: SharedString = title.into();
 
     VStack::new()
@@ -324,8 +427,7 @@ fn section_card(title: impl Into<SharedString>, content: impl IntoElement) -> im
         )
 }
 
-fn colored_box(text: impl Into<SharedString>, color: Hsla) -> impl IntoElement {
-    let theme = use_theme();
+fn colored_box(theme: Theme, text: impl Into<SharedString>, color: Hsla) -> impl IntoElement {
     let text: SharedString = text.into();
 
     div()
@@ -340,8 +442,7 @@ fn colored_box(text: impl Into<SharedString>, color: Hsla) -> impl IntoElement {
         .child(text)
 }
 
-fn tag(text: impl Into<SharedString>) -> impl IntoElement {
-    let theme = use_theme();
+fn tag(theme: Theme, text: impl Into<SharedString>) -> impl IntoElement {
     let text: SharedString = text.into();
 
     div()
@@ -355,8 +456,7 @@ fn tag(text: impl Into<SharedString>) -> impl IntoElement {
         .child(text)
 }
 
-fn avatar(initials: impl Into<SharedString>, color: Hsla) -> impl IntoElement {
-    let theme = use_theme();
+fn avatar(theme: Theme, initials: impl Into<SharedString>, color: Hsla) -> impl IntoElement {
     let initials: SharedString = initials.into();
 
     div()
@@ -372,8 +472,7 @@ fn avatar(initials: impl Into<SharedString>, color: Hsla) -> impl IntoElement {
         .child(initials)
 }
 
-fn label(text: impl Into<SharedString>) -> impl IntoElement {
-    let theme = use_theme();
+fn label(theme: Theme, text: impl Into<SharedString>) -> impl IntoElement {
     let text: SharedString = text.into();
 
     div()

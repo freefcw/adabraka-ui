@@ -29,7 +29,7 @@
 //!
 //! ```rust,ignore
 //! // Access via theme (recommended)
-//! let theme = use_theme();
+//! let theme = use_theme(cx);
 //! div().font_family(theme.tokens.font_family.clone())
 //!
 //! // Direct access to font families

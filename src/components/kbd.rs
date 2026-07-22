@@ -10,6 +10,7 @@ pub enum KBDSize {
     Lg,
 }
 
+#[derive(IntoElement)]
 pub struct KBD {
     label: SharedString,
     size: KBDSize,
@@ -37,11 +38,9 @@ impl Styled for KBD {
     }
 }
 
-impl IntoElement for KBD {
-    type Element = Div;
-
-    fn into_element(self) -> Self::Element {
-        let theme = use_theme();
+impl RenderOnce for KBD {
+    fn render(self, _window: &mut Window, cx: &mut App) -> impl IntoElement {
+        let theme = use_theme(cx);
         let user_style = self.style;
 
         let (text_size, px_val, py_val, min_w) = match self.size {

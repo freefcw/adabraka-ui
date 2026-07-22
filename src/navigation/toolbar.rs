@@ -1,6 +1,10 @@
 //! Toolbar component with icon buttons and grouping.
 
-use crate::{components::icon::Icon, components::icon_source::IconSource, theme::use_theme};
+use crate::{
+    components::icon::Icon,
+    components::icon_source::IconSource,
+    theme::{use_theme, Theme},
+};
 use gpui::{prelude::FluentBuilder as _, *};
 use std::rc::Rc;
 
@@ -179,8 +183,8 @@ impl Styled for Toolbar {
 }
 
 impl Render for Toolbar {
-    fn render(&mut self, _window: &mut Window, _cx: &mut Context<Self>) -> impl IntoElement {
-        let theme = use_theme();
+    fn render(&mut self, _window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
+        let theme = use_theme(cx);
         let button_size = self.size.button_size();
         let icon_size = self.size.icon_size();
         let user_style = self.style.clone();
@@ -203,10 +207,13 @@ impl Render for Toolbar {
                     .gap(px(4.0))
                     .children(group.items.iter().map(|item| {
                         match item {
-                            ToolbarItem::Button(button) => {
-                                render_toolbar_button(button.clone(), button_size, icon_size)
-                                    .into_any_element()
-                            }
+                            ToolbarItem::Button(button) => render_toolbar_button(
+                                button.clone(),
+                                button_size,
+                                icon_size,
+                                theme.clone(),
+                            )
+                            .into_any_element(),
                             ToolbarItem::Separator => div()
                                 .w(px(1.0))
                                 .h(button_size * 0.6)
@@ -238,9 +245,8 @@ fn render_toolbar_button(
     button: ToolbarButton,
     button_size: Pixels,
     icon_size: Pixels,
+    theme: Theme,
 ) -> impl IntoElement {
-    let theme = use_theme();
-
     div()
         .size(button_size)
         .flex()

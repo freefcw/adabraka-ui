@@ -340,8 +340,8 @@ impl Styled for Calendar {
 }
 
 impl RenderOnce for Calendar {
-    fn render(self, _window: &mut Window, _cx: &mut App) -> impl IntoElement {
-        let theme = use_theme();
+    fn render(self, _window: &mut Window, cx: &mut App) -> impl IntoElement {
+        let theme = use_theme(cx);
         let current_month = self.current_month;
         let selected_date = self.selected_date;
         let locale = self.locale.clone();

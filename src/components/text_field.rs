@@ -154,7 +154,7 @@ impl EntityInputHandler for TextFieldState {
 }
 
 impl Render for TextFieldState {
-    fn render(&mut self, _: &mut Window, _: &mut Context<Self>) -> impl IntoElement {
+    fn render(&mut self, _: &mut Window, _cx: &mut Context<Self>) -> impl IntoElement {
         div()
     }
 }
@@ -226,7 +226,7 @@ impl Styled for TextField {
 
 impl RenderOnce for TextField {
     fn render(self, _window: &mut Window, cx: &mut App) -> impl IntoElement {
-        let theme = use_theme();
+        let theme = use_theme(cx);
         let user_style = self.style;
 
         let (height, padding_x, padding_y, text_size) = match self.size {

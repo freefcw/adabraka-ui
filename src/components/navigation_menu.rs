@@ -144,8 +144,8 @@ impl<T: Clone + PartialEq + Eq + Hash + 'static> Styled for NavigationMenu<T> {
 }
 
 impl<T: Clone + PartialEq + Eq + Hash + 'static> RenderOnce for NavigationMenu<T> {
-    fn render(self, _window: &mut Window, _cx: &mut App) -> impl IntoElement {
-        let theme = use_theme();
+    fn render(self, _window: &mut Window, cx: &mut App) -> impl IntoElement {
+        let theme = use_theme(cx);
         let orientation = self.orientation;
 
         let expanded_set: HashSet<T> = self.expanded_ids.into_iter().collect();

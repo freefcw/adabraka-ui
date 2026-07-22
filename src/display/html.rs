@@ -662,12 +662,12 @@ fn rgb_to_hsla(r: u8, g: u8, b: u8, a: f32) -> Hsla {
 
 #[cfg(feature = "html-render")]
 impl RenderOnce for Html {
-    fn render(self, _window: &mut Window, _cx: &mut App) -> impl IntoElement {
-        let theme = use_theme();
+    fn render(self, _window: &mut Window, cx: &mut App) -> impl IntoElement {
+        let theme = use_theme(cx);
         let base_size = self.base_font_size.unwrap_or(px(14.0));
 
         let blocks = parse_html(&self.source);
-        let elements = render_blocks(&blocks, base_size, &self.on_link_click, "html");
+        let elements = render_blocks(&blocks, base_size, &self.on_link_click, "html", cx);
 
         self.base
             .flex()

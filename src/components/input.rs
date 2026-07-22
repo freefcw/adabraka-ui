@@ -452,7 +452,7 @@ impl Styled for Input {
 
 impl RenderOnce for Input {
     fn render(self, window: &mut Window, cx: &mut App) -> impl IntoElement {
-        let theme = use_theme();
+        let theme = use_theme(cx);
         let height = self.height();
         let padding_x = self.padding_x();
         let font_size = self.font_size();

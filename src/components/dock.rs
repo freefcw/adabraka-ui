@@ -108,7 +108,7 @@ impl ParentElement for Dock {
 
 impl RenderOnce for Dock {
     fn render(self, _window: &mut Window, cx: &mut App) -> impl IntoElement {
-        let theme = use_theme();
+        let theme = use_theme(cx);
         let user_style = self.style;
         let state = self.state.read(cx);
         let item_count = self.children.len();

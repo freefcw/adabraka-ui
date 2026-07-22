@@ -761,7 +761,7 @@ impl<T: Clone + 'static> DataTable<T> {
     }
 
     fn render_search_bar(&self, cx: &mut Context<Self>) -> impl IntoElement {
-        let theme = use_theme();
+        let theme = use_theme(cx);
 
         div()
             .flex()
@@ -804,7 +804,7 @@ impl<T: Clone + 'static> DataTable<T> {
     }
 
     fn render_header(&self, cx: &mut Context<Self>) -> impl IntoElement {
-        let theme = use_theme();
+        let theme = use_theme(cx);
 
         let total_width = self.total_table_width();
         let mut header_row = div().flex().w(total_width).min_w(total_width);
@@ -965,7 +965,7 @@ impl<T: Clone + 'static> Styled for DataTable<T> {
 
 impl<T: Clone + 'static> Render for DataTable<T> {
     fn render(&mut self, _window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
-        let theme = use_theme();
+        let theme = use_theme(cx);
 
         let user_style = self.style.clone();
 
@@ -988,7 +988,7 @@ impl<T: Clone + 'static> Render for DataTable<T> {
                              range: Range<usize>,
                              _window: &mut Window,
                              cx: &mut Context<DataTable<T>>| {
-            let theme = use_theme();
+            let theme = use_theme(cx);
             range
                 .map(|row_idx| {
                     let actual_idx = if let Some(ref map) = filtered_indices_for_render {
@@ -1468,7 +1468,7 @@ impl<T: Clone + 'static> DataTable<T> {
         position: Point<Pixels>,
         cx: &mut Context<Self>,
     ) -> impl IntoElement {
-        let theme = use_theme();
+        let theme = use_theme(cx);
 
         deferred(
             anchored()

@@ -69,8 +69,8 @@ impl CodeBlock {
 }
 
 impl RenderOnce for CodeBlock {
-    fn render(self, _window: &mut Window, _cx: &mut App) -> impl IntoElement {
-        let theme = use_theme();
+    fn render(self, _window: &mut Window, cx: &mut App) -> impl IntoElement {
+        let theme = use_theme(cx);
         let lines: Vec<&str> = self.code.split('\n').collect();
         let is_rust = self
             .language

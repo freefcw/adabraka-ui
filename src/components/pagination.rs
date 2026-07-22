@@ -124,8 +124,8 @@ enum PageItem {
 }
 
 impl RenderOnce for Pagination {
-    fn render(self, _window: &mut Window, _cx: &mut App) -> impl IntoElement {
-        let theme = use_theme();
+    fn render(self, _window: &mut Window, cx: &mut App) -> impl IntoElement {
+        let theme = use_theme(cx);
         let current_page = self.current_page;
         let total_pages = self.total_pages;
         let page_range = self.get_page_range();

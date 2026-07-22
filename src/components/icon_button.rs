@@ -118,7 +118,7 @@ impl StatefulInteractiveElement for IconButton {}
 
 impl RenderOnce for IconButton {
     fn render(self, window: &mut Window, cx: &mut App) -> impl IntoElement {
-        let theme = use_theme();
+        let theme = use_theme(cx);
 
         let icon_size = self.icon_size.unwrap_or(self.size * 0.5);
 

@@ -110,7 +110,7 @@ impl Focusable for TagInputState {
 }
 
 impl Render for TagInputState {
-    fn render(&mut self, _: &mut Window, _: &mut Context<Self>) -> impl IntoElement {
+    fn render(&mut self, _: &mut Window, _cx: &mut Context<Self>) -> impl IntoElement {
         div()
     }
 }
@@ -169,7 +169,7 @@ impl Styled for TagInput {
 
 impl RenderOnce for TagInput {
     fn render(self, window: &mut Window, cx: &mut App) -> impl IntoElement {
-        let theme = use_theme();
+        let theme = use_theme(cx);
         let user_style = self.style;
         let state_data = self.state.read(cx);
         let tags = state_data.tags.clone();

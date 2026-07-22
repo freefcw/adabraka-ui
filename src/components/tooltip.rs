@@ -28,6 +28,7 @@ impl TooltipState {
     }
 }
 
+#[derive(IntoElement)]
 pub struct Tooltip {
     content: SharedString,
     placement: TooltipPlacement,
@@ -90,11 +91,9 @@ impl Styled for Tooltip {
     }
 }
 
-impl IntoElement for Tooltip {
-    type Element = Div;
-
-    fn into_element(self) -> Self::Element {
-        let theme = use_theme();
+impl RenderOnce for Tooltip {
+    fn render(self, _window: &mut Window, cx: &mut App) -> impl IntoElement {
+        let theme = use_theme(cx);
         let placement = self.placement;
         let user_style = self.style;
 

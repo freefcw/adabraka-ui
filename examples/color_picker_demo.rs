@@ -86,7 +86,7 @@ impl ColorPickerDemo {
 
 impl Render for ColorPickerDemo {
     fn render(&mut self, _window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
-        let theme = use_theme();
+        let theme = use_theme(cx);
         let basic_color = self.basic_state.read(cx).selected_color();
         let alpha_color = self.alpha_state.read(cx).selected_color();
         let _custom_swatches_color = self.custom_swatches_state.read(cx).selected_color();

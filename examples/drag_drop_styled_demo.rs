@@ -140,7 +140,7 @@ impl DragDropStyledDemo {
 
 impl Render for DragDropStyledDemo {
     fn render(&mut self, _window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
-        let theme = use_theme();
+        let theme = use_theme(cx);
 
         div()
             .size_full()
@@ -218,7 +218,7 @@ impl Render for DragDropStyledDemo {
                                         .font_weight(FontWeight::SEMIBOLD)
                                         .child("Styling Variations Showcase")
                                 )
-                                .child(self.render_styling_variations())
+                                .child(self.render_styling_variations(theme.clone()))
                         )
                 )
             )
@@ -235,7 +235,7 @@ impl DragDropStyledDemo {
         zone_style: DropZoneStyle,
         cx: &mut Context<Self>,
     ) -> impl IntoElement {
-        let theme = use_theme();
+        let theme = use_theme(cx);
 
         div()
             .flex()
@@ -376,9 +376,7 @@ impl DragDropStyledDemo {
             )
     }
 
-    fn render_styling_variations(&self) -> impl IntoElement {
-        let theme = use_theme();
-
+    fn render_styling_variations(&self, theme: Theme) -> impl IntoElement {
         VStack::new()
             .gap(px(24.0))
             .w_full()

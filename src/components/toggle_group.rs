@@ -178,8 +178,8 @@ impl Styled for ToggleGroup {
 }
 
 impl RenderOnce for ToggleGroup {
-    fn render(self, _window: &mut Window, _cx: &mut App) -> impl IntoElement {
-        let theme = use_theme();
+    fn render(self, _window: &mut Window, cx: &mut App) -> impl IntoElement {
+        let theme = use_theme(cx);
 
         let variant = self.variant;
         let current_value = self.value;

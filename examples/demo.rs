@@ -58,7 +58,7 @@ impl DemoApp {
                         div()
                             .text_size(px(20.0))
                             .font_weight(FontWeight::BOLD)
-                            .text_color(use_theme().tokens.foreground)
+                            .text_color(use_theme(cx).tokens.foreground)
                             .child("Buttons")
                     )
                     .child(
@@ -101,7 +101,7 @@ impl DemoApp {
                             .child(
                                 div()
                                     .text_size(px(14.0))
-                                    .text_color(use_theme().tokens.muted_foreground)
+                                    .text_color(use_theme(cx).tokens.muted_foreground)
                                     .child(format!("Button clicked {} times", self.click_count))
                             )
                     )
@@ -126,7 +126,7 @@ impl DemoApp {
                         div()
                             .text_size(px(20.0))
                             .font_weight(FontWeight::BOLD)
-                            .text_color(use_theme().tokens.foreground)
+                            .text_color(use_theme(cx).tokens.foreground)
                             .child("Inputs")
                     )
                     .child(
@@ -262,7 +262,7 @@ impl DemoApp {
                         div()
                             .text_size(px(20.0))
                             .font_weight(FontWeight::BOLD)
-                            .text_color(use_theme().tokens.foreground)
+                            .text_color(use_theme(cx).tokens.foreground)
                             .child("Tooltip")
                     )
                     .child(
@@ -282,7 +282,7 @@ impl DemoApp {
                         div()
                             .text_size(px(20.0))
                             .font_weight(FontWeight::BOLD)
-                            .text_color(use_theme().tokens.foreground)
+                            .text_color(use_theme(cx).tokens.foreground)
                             .child("Navigation")
                     )
                     .child(
@@ -305,7 +305,7 @@ impl DemoApp {
                         div()
                             .text_size(px(20.0))
                             .font_weight(FontWeight::BOLD)
-                            .text_color(use_theme().tokens.foreground)
+                            .text_color(use_theme(cx).tokens.foreground)
                             .child("Display Components")
                     )
                     .child(
@@ -326,7 +326,7 @@ impl DemoApp {
                                 div()
                                     .text_size(px(16.0))
                                     .font_weight(FontWeight::SEMIBOLD)
-                                    .text_color(use_theme().tokens.foreground)
+                                    .text_color(use_theme(cx).tokens.foreground)
                                     .child("Card")
                             )
                             .child(
@@ -347,7 +347,7 @@ impl DemoApp {
                                             .child(
                                                 div()
                                                     .text_size(px(12.0))
-                                                    .text_color(use_theme().tokens.muted_foreground)
+                                                    .text_color(use_theme(cx).tokens.muted_foreground)
                                                     .child("Card footer")
                                             )
                                             .child(
@@ -375,7 +375,7 @@ impl DemoApp {
                         div()
                             .text_size(px(20.0))
                             .font_weight(FontWeight::BOLD)
-                            .text_color(use_theme().tokens.foreground)
+                            .text_color(use_theme(cx).tokens.foreground)
                             .child("Table")
                     )
                     .child(
@@ -419,7 +419,7 @@ impl DemoApp {
                         div()
                             .text_size(px(20.0))
                             .font_weight(FontWeight::BOLD)
-                            .text_color(use_theme().tokens.foreground)
+                            .text_color(use_theme(cx).tokens.foreground)
                             .child("Overlays")
                     )
                     .child(
@@ -441,7 +441,7 @@ impl DemoApp {
                         div()
                             .text_size(px(20.0))
                             .font_weight(FontWeight::BOLD)
-                            .text_color(use_theme().tokens.foreground)
+                            .text_color(use_theme(cx).tokens.foreground)
                             .child("Component Status")
                     )
                     .child(
@@ -450,7 +450,7 @@ impl DemoApp {
                             .flex_col()
                             .gap(px(8.0))
                             .text_size(px(14.0))
-                            .text_color(use_theme().tokens.muted_foreground)
+                            .text_color(use_theme(cx).tokens.muted_foreground)
                             .child(div().child("✅ Scrollable - Fully functional with vertical/horizontal/both modes"))
                             .child(div().child("   • Interactive scrollbar with hover and drag states"))
                             .child(div().child("   • Auto fade-in/fade-out animations"))
@@ -486,7 +486,7 @@ impl DemoApp {
 
 impl Render for DemoApp {
     fn render(&mut self, _window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
-        let theme = use_theme();
+        let theme = use_theme(cx);
 
         div()
             .bg(theme.tokens.background)

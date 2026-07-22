@@ -370,8 +370,8 @@ impl<T: Clone + PartialEq + Eq + Hash + 'static> Styled for TreeList<T> {
 }
 
 impl<T: Clone + PartialEq + Eq + Hash + 'static> RenderOnce for TreeList<T> {
-    fn render(self, _window: &mut Window, _cx: &mut App) -> impl IntoElement {
-        let theme = use_theme();
+    fn render(self, _window: &mut Window, cx: &mut App) -> impl IntoElement {
+        let theme = use_theme(cx);
 
         let expanded_set: HashSet<T> = self.expanded_ids.iter().cloned().collect();
 
@@ -785,8 +785,8 @@ impl<T: Clone + PartialEq + 'static> List<T> {
 }
 
 impl<T: Clone + PartialEq + 'static> RenderOnce for List<T> {
-    fn render(self, _window: &mut Window, _cx: &mut App) -> impl IntoElement {
-        let theme = use_theme();
+    fn render(self, _window: &mut Window, cx: &mut App) -> impl IntoElement {
+        let theme = use_theme(cx);
 
         div()
             .flex()

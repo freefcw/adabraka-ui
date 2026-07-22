@@ -104,7 +104,7 @@ fn skeleton_line_width_pct(index: usize) -> f32 {
 
 impl RenderOnce for SkeletonLoader {
     fn render(self, _window: &mut Window, cx: &mut App) -> impl IntoElement {
-        let theme = use_theme();
+        let theme = use_theme(cx);
         let user_style = self.style;
         let loader_state = self.state.read(cx);
         let is_loading = loader_state.is_loading;

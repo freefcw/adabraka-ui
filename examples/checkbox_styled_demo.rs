@@ -91,7 +91,7 @@ impl CheckboxStyledDemo {
 
 impl Render for CheckboxStyledDemo {
     fn render(&mut self, _window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
-        let theme = use_theme();
+        let theme = use_theme(cx);
 
         div()
             .size_full()

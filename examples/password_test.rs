@@ -54,7 +54,7 @@ impl PasswordTestApp {
 
 impl Render for PasswordTestApp {
     fn render(&mut self, _window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
-        let theme = adabraka_ui::theme::use_theme();
+        let theme = adabraka_ui::theme::use_theme(cx);
 
         VStack::new()
             .size_full()

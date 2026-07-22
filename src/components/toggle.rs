@@ -97,7 +97,7 @@ impl StatefulInteractiveElement for Toggle {}
 
 impl RenderOnce for Toggle {
     fn render(self, window: &mut Window, cx: &mut App) -> impl IntoElement {
-        let theme = use_theme();
+        let theme = use_theme(cx);
         let user_style = self.style;
 
         let (bg_width, bg_height, bar_width, inset) = match self.size {

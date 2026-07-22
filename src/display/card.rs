@@ -3,6 +3,7 @@
 use crate::theme::use_theme;
 use gpui::{prelude::FluentBuilder as _, *};
 
+#[derive(IntoElement)]
 pub struct Card {
     header: Option<AnyElement>,
     content: Option<AnyElement>,
@@ -48,11 +49,9 @@ impl Styled for Card {
     }
 }
 
-impl IntoElement for Card {
-    type Element = Div;
-
-    fn into_element(self) -> Self::Element {
-        let theme = use_theme();
+impl RenderOnce for Card {
+    fn render(self, _window: &mut Window, cx: &mut App) -> impl IntoElement {
+        let theme = use_theme(cx);
         let user_style = self.style;
 
         let shadow_sm = BoxShadow {

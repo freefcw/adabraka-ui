@@ -6,7 +6,7 @@ use crate::{
         icon_source::IconSource,
         text::{body, caption},
     },
-    theme::use_theme,
+    theme::{use_theme, Theme},
 };
 use gpui::{prelude::FluentBuilder as _, InteractiveElement, *};
 use std::rc::Rc;
@@ -154,8 +154,8 @@ impl Styled for Menu {
 }
 
 impl RenderOnce for Menu {
-    fn render(self, _window: &mut Window, _cx: &mut App) -> impl IntoElement {
-        let theme = use_theme();
+    fn render(self, _window: &mut Window, cx: &mut App) -> impl IntoElement {
+        let theme = use_theme(cx);
         let user_style = self.style;
 
         div()
@@ -169,7 +169,11 @@ impl RenderOnce for Menu {
             .rounded(theme.tokens.radius_md)
             .shadow_lg()
             .p(px(4.0))
-            .children(self.items.into_iter().map(render_menu_item))
+            .children(
+                self.items
+                    .into_iter()
+                    .map(|item| render_menu_item(item, theme.clone())),
+            )
             .map(|this| {
                 let mut div = this;
                 div.style().refine(&user_style);
@@ -178,9 +182,7 @@ impl RenderOnce for Menu {
     }
 }
 
-fn render_menu_item(item: MenuItem) -> impl IntoElement {
-    let theme = use_theme();
-
+fn render_menu_item(item: MenuItem, theme: Theme) -> impl IntoElement {
     match item.kind {
         MenuItemKind::Separator => div()
             .h(px(1.0))
@@ -302,7 +304,7 @@ impl MenuBar {
 
 impl Render for MenuBar {
     fn render(&mut self, _window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
-        let theme = use_theme();
+        let theme = use_theme(cx);
 
         div()
             .flex()
@@ -355,8 +357,8 @@ impl ContextMenu {
 }
 
 impl RenderOnce for ContextMenu {
-    fn render(self, _window: &mut Window, _cx: &mut App) -> impl IntoElement {
-        let theme = use_theme();
+    fn render(self, _window: &mut Window, cx: &mut App) -> impl IntoElement {
+        let theme = use_theme(cx);
 
         anchored()
             .snap_to_window_with_margin(px(8.0))
@@ -374,7 +376,11 @@ impl RenderOnce for ContextMenu {
                     .rounded(theme.tokens.radius_md)
                     .shadow_lg()
                     .p(px(4.0))
-                    .children(self.items.into_iter().map(render_menu_item)),
+                    .children(
+                        self.items
+                            .into_iter()
+                            .map(|item| render_menu_item(item, theme.clone())),
+                    ),
             )
     }
 }
