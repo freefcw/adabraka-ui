@@ -393,5 +393,8 @@ impl Focusable for Dialog {
 impl EventEmitter<()> for Dialog {}
 
 pub fn init_dialog(cx: &mut App) {
+    if !crate::initialization::begin(cx, "dialog") {
+        return;
+    }
     cx.bind_keys([KeyBinding::new("escape", DialogCancel, Some("Dialog"))]);
 }

@@ -412,6 +412,9 @@ impl<T: Clone + PartialEq + 'static> RenderOnce for Tabs<T> {
 }
 
 pub fn init_tabs(cx: &mut App) {
+    if !crate::initialization::begin(cx, "tabs") {
+        return;
+    }
     cx.bind_keys([
         KeyBinding::new("right", TabNext, Some("Tabs")),
         KeyBinding::new("left", TabPrevious, Some("Tabs")),

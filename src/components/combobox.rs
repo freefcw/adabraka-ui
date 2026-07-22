@@ -654,6 +654,9 @@ impl<T: Clone + PartialEq + 'static> Render for Combobox<T> {
 
 /// Initialize combobox key bindings
 pub fn init_combobox(cx: &mut App) {
+    if !crate::initialization::begin(cx, "combobox") {
+        return;
+    }
     cx.bind_keys([
         KeyBinding::new("up", ComboboxUp, Some("Combobox")),
         KeyBinding::new("down", ComboboxDown, Some("Combobox")),

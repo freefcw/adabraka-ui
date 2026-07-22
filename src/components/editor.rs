@@ -51,6 +51,9 @@ actions!(
 );
 
 pub fn init(cx: &mut App) {
+    if !crate::initialization::begin(cx, "editor") {
+        return;
+    }
     cx.bind_keys([
         KeyBinding::new("up", MoveUp, Some("Editor")),
         KeyBinding::new("down", MoveDown, Some("Editor")),

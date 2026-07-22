@@ -637,6 +637,9 @@ impl<T: Clone + 'static> Render for Select<T> {
 
 /// Initialize select key bindings
 pub fn init_select(cx: &mut App) {
+    if !crate::initialization::begin(cx, "select") {
+        return;
+    }
     cx.bind_keys([
         KeyBinding::new("up", SelectUp, Some("Select")),
         KeyBinding::new("down", SelectDown, Some("Select")),

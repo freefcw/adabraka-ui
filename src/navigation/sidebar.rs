@@ -437,6 +437,9 @@ impl<T: Clone + PartialEq + 'static> Sidebar<T> {
 }
 
 pub fn init_sidebar(cx: &mut App) {
+    if !crate::initialization::begin(cx, "sidebar") {
+        return;
+    }
     cx.bind_keys([
         KeyBinding::new("cmd-b", ToggleSidebar, None),
         KeyBinding::new("ctrl-b", ToggleSidebar, None),

@@ -9,6 +9,9 @@ use std::rc::Rc;
 
 /// Initialize textarea component with key bindings
 pub fn init(cx: &mut App) {
+    if !crate::initialization::begin(cx, "textarea") {
+        return;
+    }
     crate::components::textarea_state::init(cx);
 }
 

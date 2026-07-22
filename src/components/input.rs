@@ -15,6 +15,9 @@ use std::sync::Arc;
 use std::time::Duration;
 
 pub fn init(cx: &mut App) {
+    if !crate::initialization::begin(cx, "input") {
+        return;
+    }
     cx.bind_keys([
         KeyBinding::new("backspace", Backspace, Some("Input")),
         KeyBinding::new("delete", Delete, Some("Input")),

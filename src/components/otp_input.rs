@@ -17,6 +17,9 @@ actions!(
 );
 
 pub fn init(cx: &mut App) {
+    if !crate::initialization::begin(cx, "otp-input") {
+        return;
+    }
     cx.bind_keys([
         KeyBinding::new("backspace", OTPBackspace, Some("OTPInput")),
         KeyBinding::new("delete", OTPDelete, Some("OTPInput")),

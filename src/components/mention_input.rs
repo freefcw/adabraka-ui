@@ -1341,6 +1341,9 @@ impl gpui::Element for MentionTextElement {
 }
 
 pub fn init_mention_input(cx: &mut App) {
+    if !crate::initialization::begin(cx, "mention-input") {
+        return;
+    }
     cx.bind_keys([
         KeyBinding::new("backspace", MentionBackspace, Some("MentionInput")),
         KeyBinding::new("delete", MentionDelete, Some("MentionInput")),

@@ -555,6 +555,9 @@ impl Render for ImageViewer {
 }
 
 pub fn init_image_viewer(cx: &mut App) {
+    if !crate::initialization::begin(cx, "image-viewer") {
+        return;
+    }
     cx.bind_keys([
         KeyBinding::new("escape", ImageViewerClose, Some("ImageViewer")),
         KeyBinding::new("left", ImageViewerPrev, Some("ImageViewer")),

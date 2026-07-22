@@ -192,6 +192,9 @@ actions!(
 
 /// Initialize DatePicker keybindings
 pub fn init(cx: &mut App) {
+    if !crate::initialization::begin(cx, "date-picker") {
+        return;
+    }
     cx.bind_keys([
         KeyBinding::new("escape", ClosePicker, Some("DatePicker")),
         KeyBinding::new("cmd-t", SelectToday, Some("DatePicker")),

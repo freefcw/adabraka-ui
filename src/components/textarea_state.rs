@@ -9,6 +9,9 @@ use std::ops::Range;
 use unicode_segmentation::*;
 
 pub fn init(cx: &mut App) {
+    if !crate::initialization::begin(cx, "textarea-state") {
+        return;
+    }
     cx.bind_keys([
         KeyBinding::new("backspace", Backspace, Some("Textarea")),
         KeyBinding::new("delete", Delete, Some("Textarea")),

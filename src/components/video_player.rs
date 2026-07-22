@@ -399,7 +399,7 @@ impl Focusable for VideoPlayerState {
 }
 
 impl Render for VideoPlayerState {
-    fn render(&mut self, _: &mut Window, _: &mut Context<Self>) -> impl IntoElement {
+    fn render(&mut self, _: &mut Window, _cx: &mut Context<Self>) -> impl IntoElement {
         div()
     }
 }
@@ -418,6 +418,9 @@ actions!(
 );
 
 pub fn init_video_player(cx: &mut App) {
+    if !crate::initialization::begin(cx, "video-player") {
+        return;
+    }
     cx.bind_keys([
         KeyBinding::new("space", VideoPlayerTogglePlay, Some("VideoPlayer")),
         KeyBinding::new("m", VideoPlayerMute, Some("VideoPlayer")),

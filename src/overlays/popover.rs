@@ -13,6 +13,9 @@ const CONTEXT: &str = "Popover";
 actions!(popover, [ClosePopover]);
 
 pub fn init(cx: &mut App) {
+    if !crate::initialization::begin(cx, "popover") {
+        return;
+    }
     cx.bind_keys([KeyBinding::new("escape", ClosePopover, Some(CONTEXT))]);
 }
 

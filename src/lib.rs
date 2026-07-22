@@ -83,6 +83,7 @@ pub mod fonts;
 
 /// Icon configuration for custom asset paths
 pub mod icon_config;
+mod initialization;
 
 /// HTTP client for remote image loading
 pub mod http;
@@ -99,6 +100,10 @@ pub use http::{init_http, init_http_with_user_agent};
 /// Registers custom fonts for the component library.
 /// Also initializes HTTP client for remote image loading.
 pub fn init(cx: &mut gpui::App) {
+    if !initialization::begin(cx, "adabraka-ui") {
+        return;
+    }
+
     fonts::register_fonts(cx);
     http::init_http(cx);
 
@@ -107,10 +112,17 @@ pub fn init(cx: &mut gpui::App) {
     components::otp_input::init(cx);
     components::select::init_select(cx);
     components::combobox::init_combobox(cx);
+    components::date_picker::init(cx);
+    components::image_viewer::init_image_viewer(cx);
+    components::inline_edit::init(cx);
+    components::mention_input::init_mention_input(cx);
+    components::video_player::init_video_player(cx);
     #[cfg(feature = "editor")]
     components::editor::init(cx);
     navigation::sidebar::init_sidebar(cx);
+    navigation::tabs::init_tabs(cx);
     overlays::popover::init(cx);
+    overlays::dialog::init_dialog(cx);
     overlays::sheet::init_sheet(cx);
     overlays::alert_dialog::init_alert_dialog(cx);
 }

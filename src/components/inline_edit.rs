@@ -6,6 +6,9 @@ use std::rc::Rc;
 actions!(inline_edit, [Save, Cancel]);
 
 pub fn init(cx: &mut App) {
+    if !crate::initialization::begin(cx, "inline-edit") {
+        return;
+    }
     cx.bind_keys([
         KeyBinding::new("enter", Save, Some("InlineEdit")),
         KeyBinding::new("escape", Cancel, Some("InlineEdit")),
