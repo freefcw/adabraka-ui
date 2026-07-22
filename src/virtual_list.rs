@@ -397,6 +397,8 @@ impl Element for UniformVirtualList {
 }
 
 pub trait ItemExtentProvider {
+    /// Return an item's extent. The list snapshots each value once during
+    /// construction; non-finite and negative values are treated as zero.
     fn extent(&self, index: usize) -> Pixels;
 }
 
@@ -405,6 +407,7 @@ const CHUNK_SIZE: usize = 1024;
 struct ChunkedExtents<P: ItemExtentProvider> {
     provider: P,
     item_count: usize,
+    item_extents: Vec<Pixels>,
     chunk_totals: Vec<Pixels>,
     chunk_offsets: Vec<Pixels>,
     intra_prefix: HashMap<usize, Rc<Vec<Pixels>>>,
@@ -416,6 +419,7 @@ impl<P: ItemExtentProvider> ChunkedExtents<P> {
         Self {
             provider,
             item_count,
+            item_extents: Vec::new(),
             chunk_totals: vec![px(0.0); chunk_count],
             chunk_offsets: vec![px(0.0); chunk_count + 1],
             intra_prefix: HashMap::new(),
@@ -426,14 +430,20 @@ impl<P: ItemExtentProvider> ChunkedExtents<P> {
         if self.item_count == 0 {
             return;
         }
+        if self.item_extents.is_empty() {
+            self.item_extents = (0..self.item_count)
+                .map(|index| Self::sanitize_extent(self.provider.extent(index)))
+                .collect();
+        }
+
         let chunk_count = self.chunk_totals.len();
         for c in 0..chunk_count {
             let start = c * CHUNK_SIZE;
             let end = ((c + 1) * CHUNK_SIZE).min(self.item_count);
-            let mut sum = 0.0;
-            for i in start..end {
-                sum += self.provider.extent(i).as_f32();
-            }
+            let sum = self.item_extents[start..end]
+                .iter()
+                .map(|extent| extent.as_f32())
+                .sum();
             self.chunk_totals[c] = px(sum);
         }
         let mut accum = 0.0;
@@ -441,6 +451,15 @@ impl<P: ItemExtentProvider> ChunkedExtents<P> {
         for c in 0..chunk_count {
             accum += self.chunk_totals[c].as_f32();
             self.chunk_offsets[c + 1] = px(accum);
+        }
+    }
+
+    fn sanitize_extent(extent: Pixels) -> Pixels {
+        let value = extent.as_f32();
+        if value.is_finite() && value >= 0.0 {
+            extent
+        } else {
+            px(0.0)
         }
     }
 
@@ -459,9 +478,9 @@ impl<P: ItemExtentProvider> ChunkedExtents<P> {
         let end = ((chunk_index + 1) * CHUNK_SIZE).min(self.item_count);
         let mut origins = Vec::with_capacity(end - start);
         let mut sum = 0.0;
-        for i in start..end {
+        for extent in &self.item_extents[start..end] {
             origins.push(px(sum));
-            sum += self.provider.extent(i).as_f32();
+            sum += extent.as_f32();
         }
         let rc = Rc::new(origins);
         self.intra_prefix.insert(chunk_index, rc.clone());
@@ -920,6 +939,47 @@ pub fn hlist_variable<R: IntoElement + 'static, P: ItemExtentProvider + 'static>
     renderer: impl 'static + Fn(Range<usize>, &mut Window, &mut App) -> Vec<R>,
 ) -> VariableVirtualList<P> {
     VariableVirtualList::new(id, Axis::Horizontal, item_count, provider, renderer)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{ChunkedExtents, ItemExtentProvider};
+    use gpui::{px, Pixels};
+    use std::{cell::Cell, rc::Rc};
+
+    struct CountingProvider {
+        calls: Rc<Cell<usize>>,
+        extents: Vec<f32>,
+    }
+
+    impl ItemExtentProvider for CountingProvider {
+        fn extent(&self, index: usize) -> Pixels {
+            self.calls.set(self.calls.get() + 1);
+            px(self.extents[index])
+        }
+    }
+
+    #[test]
+    fn variable_extents_are_snapshotted_once_and_sanitized() {
+        let calls = Rc::new(Cell::new(0));
+        let mut extents = ChunkedExtents::new(
+            CountingProvider {
+                calls: calls.clone(),
+                extents: vec![10.0, f32::NAN, -5.0, 20.0],
+            },
+            4,
+        );
+
+        extents.initialize_totals();
+        let prefix = extents.ensure_intra_prefix(0);
+
+        assert_eq!(calls.get(), 4);
+        assert_eq!(extents.total_extent(), px(30.0));
+        assert_eq!(
+            prefix.as_ref(),
+            &vec![px(0.0), px(10.0), px(10.0), px(10.0)]
+        );
+    }
 }
 
 pub fn vlist_uniform_view<R, V>(
