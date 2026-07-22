@@ -84,6 +84,7 @@ pub mod fonts;
 /// Icon configuration for custom asset paths
 pub mod icon_config;
 mod initialization;
+mod text_util;
 
 /// HTTP client for remote image loading
 pub mod http;

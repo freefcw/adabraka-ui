@@ -801,7 +801,7 @@ impl InputState {
         }
     }
 
-    fn on_mouse_up(&mut self, _: &MouseUpEvent, _window: &mut Window, _: &mut Context<Self>) {
+    fn on_mouse_up(&mut self, _: &MouseUpEvent, _window: &mut Window, _cx: &mut Context<Self>) {
         self.is_selecting = false;
     }
 
@@ -934,42 +934,16 @@ impl InputState {
         cx.notify()
     }
 
-    fn offset_from_utf16(&self, offset: usize) -> usize {
-        let mut utf8_offset = 0;
-        let mut utf16_count = 0;
-
-        for ch in self.content.chars() {
-            if utf16_count >= offset {
-                break;
-            }
-            utf16_count += ch.len_utf16();
-            utf8_offset += ch.len_utf8();
-        }
-
-        utf8_offset
-    }
-
     fn offset_to_utf16(&self, offset: usize) -> usize {
-        let mut utf16_offset = 0;
-        let mut utf8_count = 0;
-
-        for ch in self.content.chars() {
-            if utf8_count >= offset {
-                break;
-            }
-            utf8_count += ch.len_utf8();
-            utf16_offset += ch.len_utf16();
-        }
-
-        utf16_offset
+        crate::text_util::offset_to_utf16(&self.content, offset)
     }
 
     fn range_to_utf16(&self, range: &Range<usize>) -> Range<usize> {
-        self.offset_to_utf16(range.start)..self.offset_to_utf16(range.end)
+        crate::text_util::range_to_utf16(&self.content, range)
     }
 
     fn range_from_utf16(&self, range_utf16: &Range<usize>) -> Range<usize> {
-        self.offset_from_utf16(range_utf16.start)..self.offset_from_utf16(range_utf16.end)
+        crate::text_util::range_from_utf16(&self.content, range_utf16)
     }
 
     pub(crate) fn invalidate_layout_cache(&mut self) {

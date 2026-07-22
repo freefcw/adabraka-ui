@@ -171,38 +171,16 @@ impl InlineEditState {
             .unwrap_or(self.edit_value.len())
     }
 
-    fn offset_from_utf16(&self, offset: usize) -> usize {
-        let mut utf8_offset = 0;
-        let mut utf16_count = 0;
-        for ch in self.edit_value.chars() {
-            if utf16_count >= offset {
-                break;
-            }
-            utf16_count += ch.len_utf16();
-            utf8_offset += ch.len_utf8();
-        }
-        utf8_offset
-    }
-
     fn offset_to_utf16(&self, offset: usize) -> usize {
-        let mut utf16_offset = 0;
-        let mut utf8_count = 0;
-        for ch in self.edit_value.chars() {
-            if utf8_count >= offset {
-                break;
-            }
-            utf8_count += ch.len_utf8();
-            utf16_offset += ch.len_utf16();
-        }
-        utf16_offset
+        crate::text_util::offset_to_utf16(&self.edit_value, offset)
     }
 
     fn range_to_utf16(&self, range: &Range<usize>) -> Range<usize> {
-        self.offset_to_utf16(range.start)..self.offset_to_utf16(range.end)
+        crate::text_util::range_to_utf16(&self.edit_value, range)
     }
 
     fn range_from_utf16(&self, range_utf16: &Range<usize>) -> Range<usize> {
-        self.offset_from_utf16(range_utf16.start)..self.offset_from_utf16(range_utf16.end)
+        crate::text_util::range_from_utf16(&self.edit_value, range_utf16)
     }
 
     fn invalidate_layout_cache(&mut self) {
@@ -245,7 +223,7 @@ impl InlineEditState {
         }
     }
 
-    fn on_mouse_up(&mut self, _: &MouseUpEvent, _: &mut Context<Self>) {
+    fn on_mouse_up(&mut self, _: &MouseUpEvent, _cx: &mut Context<Self>) {
         self.is_selecting = false;
     }
 
@@ -489,7 +467,7 @@ impl EntityInputHandler for InlineEditState {
 }
 
 impl Render for InlineEditState {
-    fn render(&mut self, _: &mut Window, _: &mut Context<Self>) -> impl IntoElement {
+    fn render(&mut self, _: &mut Window, _cx: &mut Context<Self>) -> impl IntoElement {
         div()
     }
 }
