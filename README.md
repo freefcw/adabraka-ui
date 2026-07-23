@@ -4,7 +4,7 @@
 [![Downloads](https://img.shields.io/crates/d/adabraka-ui.svg)](https://crates.io/crates/adabraka-ui)
 [![Documentation](https://docs.rs/adabraka-ui/badge.svg)](https://docs.rs/adabraka-ui)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Rust](https://img.shields.io/badge/rust-nightly-orange.svg)](https://www.rust-lang.org/)
+[![Rust](https://img.shields.io/badge/rust-1.85%2B-orange.svg)](https://www.rust-lang.org/)
 [![GitHub Stars](https://img.shields.io/github/stars/Augani/adabraka-ui?style=social)](https://github.com/Augani/adabraka-ui)
 
 A comprehensive, professional UI component library for [GPUI](https://github.com/zed-industries/zed), the GPU-accelerated UI framework powering the Zed editor. Inspired by [shadcn/ui](https://ui.shadcn.com/), adabraka-ui provides 85+ polished, accessible components for building beautiful desktop applications in Rust.
@@ -40,7 +40,7 @@ A powerful task management application used to track the development of this UI 
 
 ## 🚀 Installation
 
-> **Note:** Currently requires Rust nightly due to GPUI dependencies. Install with: `rustup toolchain install nightly`
+> **Note:** Requires Rust 1.85 or newer on the stable toolchain. Install with: `rustup toolchain install stable`
 
 Add adabraka-ui to your `Cargo.toml`:
 
@@ -226,9 +226,9 @@ adabraka-ui provides **great defaults AND 100% control** over every component's 
 Every component now has a `*_styled_demo.rs` example showing full customization capabilities:
 
 ```bash
-cargo +nightly run --example button_styled_demo
-cargo +nightly run --example input_styled_demo
-cargo +nightly run --example data_table_styled_demo
+just run-example button_styled_demo
+just run-example input_styled_demo
+just run-example data_table_styled_demo
 # ... and 51 more!
 ```
 
@@ -1507,7 +1507,7 @@ div().with_animation("shake", presets::shake(), |div, delta| {
 Scrollable containers automatically include padding to ensure content at the bottom is fully visible.
 
 ```rust
-use adabraka_ui::components::scroll::*;
+use adabraka_ui::components::{scrollable::*, scrollbar::*};
 
 // Default scrolling with 24px padding (recommended)
 div()
@@ -1616,7 +1616,7 @@ Once configured, you can use icons in two ways:
 Named icons are automatically resolved using the configured base path:
 
 ```rust
-use adabraka_ui::components::icon::IconSource;
+use adabraka_ui::components::icon_source::IconSource;
 
 // Named icons (resolved to: assets/icons/{name}.svg)
 IconSource::Named("search".to_string())
@@ -1882,8 +1882,11 @@ just list-examples
 
 ## Architecture
 
-adabraka-ui is built on top of GPUI with these key principles:
+adabraka-ui is a single-crate, capability-oriented modular monolith. Canonical source ownership lives under `src/capabilities/` across foundation, layout, motion, primitives, scroll, overlays, controls, navigation, data, content, editor, media, and effects. Generic composition belongs to `layout`; scrolling and virtualization belong to `scroll`. Existing public paths such as `components`, `display`, `charts`, `navigation`, and `overlays` remain compatibility facades, so downstream imports and the root prelude stay stable.
 
+The architecture follows these key principles:
+
+- **Capability ownership** with automatically checked dependency direction
 - **Entity-based state management** for complex interactive components
 - **Immutable configuration** using the builder pattern
 - **Type-safe APIs** with comprehensive Rust types

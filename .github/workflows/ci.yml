@@ -51,6 +51,29 @@ jobs:
       - name: Run ${{ matrix.name }}
         run: just ${{ matrix.target }}
 
+  capabilities:
+    name: capability-contract
+    runs-on: macos-15
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Install just
+        uses: extractions/setup-just@v3
+        with:
+          just-version: 1.54.0
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache Rust artifacts
+        uses: Swatinem/rust-cache@v2
+        with:
+          shared-key: ${{ runner.os }}-cargo-capabilities
+
+      - name: Verify capability and feature contracts
+        run: just verify-capabilities-ci
+
   agents-md:
     name: agents-md
     runs-on: ubuntu-latest
@@ -63,8 +86,17 @@ jobs:
         with:
           just-version: 1.54.0
 
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
       - name: Verify documented commands in AGENTS.md and CLAUDE.md
         run: just validate-agent-docs
+
+      - name: Check capability boundaries
+        run: just check-boundaries
+
+      - name: Check Cargo compatibility contract
+        run: just check-cargo-contract
 
       - name: Enforce staged clippy policy
         run: just check-clippy-policy

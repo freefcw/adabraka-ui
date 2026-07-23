@@ -26,6 +26,14 @@ just fmt-check
 # Future strict clippy gate
 just clippy-strict
 
+# Capability architecture contracts
+just check-boundaries
+just check-cargo-contract
+just verify-capabilities-ci
+
+# After an intentional Cargo feature or example-target change
+just update-cargo-contract
+
 # Run a specific example
 just run-example <example_name>
 
@@ -47,14 +55,17 @@ This is a GPUI component library (73+ components) inspired by shadcn/ui for buil
 
 ### Module Structure
 
-- **`components/`** - Core interactive elements (Button, Input, Slider, Select, Editor, etc.)
-- **`display/`** - Presentation components (Table, DataTable, Card, Badge, Accordion)
-- **`navigation/`** - Navigation components (Sidebar, Tabs, Menu, Toolbar, StatusBar, Tree)
-- **`overlays/`** - Modal dialogs, popovers, tooltips, command palettes, toasts
-- **`theme/`** - Design tokens and theming (light/dark variants)
-- **`animations.rs`** - Animation presets and easing functions
-- **`layout.rs`** - Layout utilities (VStack, HStack, Grid)
-- **`prelude.rs`** - Common re-exports for end users
+Canonical implementation ownership lives in the private `src/capabilities/` namespace:
+
+- **`foundation/`** - Theme, fonts, extensions, HTTP, initialization guard, and utilities
+- **`layout/`** - Generic stacks, grids, panels, containers, and masonry; not scrolling
+- **`motion/`**, **`effects/`** - Animation mechanics and visual effects
+- **`primitives/`**, **`scroll/`**, **`overlays/`**, **`controls/`** - The low-level UI stack
+- **`navigation/`**, **`data/`**, **`content/`**, **`editor/`**, **`media/`** - Higher-level capabilities
+
+The public `components`, `display`, `charts`, `navigation`, `overlays`, theme, motion, layout, and utility modules are compatibility facades. Keep those paths and `prelude.rs` stable for downstream users. Read `src/capabilities/mod.rs` before placing a new component, and run `just check-boundaries` after changing canonical imports.
+
+When intentionally changing a Cargo feature or example target, run `just update-cargo-contract`, review `scripts/cargo_contract.json`, then run `just check-cargo-contract`.
 
 ### Key Patterns
 
@@ -85,13 +96,7 @@ Slider::new(state).w(px(400.0)).p(px(16.0)).rounded(px(12.0))
 
 ### Component Initialization
 
-Some components require initialization in `lib.rs:init()`:
-- `components::input::init(cx)`
-- `components::select::init_select(cx)`
-- `components::combobox::init_combobox(cx)`
-- `components::editor::init(cx)`
-- `navigation::sidebar::init_sidebar(cx)`
-- `overlays::popover::init(cx)`
+Some components require initialization. `lib.rs:init()` owns the ordered, idempotent root sequence, while capability modules own individual initializers. Individual initializers remain available through their legacy public paths.
 
 ### Font Feature Flags
 

@@ -21,6 +21,9 @@ adabraka-ui is a Rust GPUI component library with reusable UI primitives, demos,
 - `just clippy-ci`
 - `just fmt-check`
 - `just clippy-strict` (future hard gate, not currently wired into CI)
+- `just check-boundaries`
+- `just check-cargo-contract`
+- `just verify-capabilities-ci`
 
 GitHub Actions uses `gpui/runtime_shaders` on hosted macOS runners because the default GPUI Metal shader compilation path can fail when the Metal Toolchain is unavailable.
 
@@ -34,8 +37,11 @@ The `Justfile` is the canonical command source for local development and CI targ
 - Run `just fmt`, `just clippy`, and `just test` before finishing code changes.
 - If you change build, test, lint, or format commands, update `Justfile`, `AGENTS.md`, `CLAUDE.md`, and `.github/workflows/ci.yml` together.
 - The `agents-md` CI job validates that command docs, the Justfile, and workflow commands stay aligned.
+- When intentionally changing a Cargo feature or example target, run `just update-cargo-contract`, review `scripts/cargo_contract.json`, then run `just check-cargo-contract`.
 
 ## Repository Notes
 
-- Some components require initialization in `src/lib.rs`.
+- Canonical implementation ownership lives under `src/capabilities/`; `layout` owns generic composition while `scroll` owns scrolling and virtualization.
+- `components`, `display`, `charts`, `navigation`, `overlays`, and root utility modules are compatibility facades; preserve their public paths.
+- Some components require initialization; `src/lib.rs` owns the ordered root sequence and capability modules own their individual initializers.
 - Examples follow the `<component>_styled_demo.rs` naming pattern.

@@ -62,50 +62,32 @@ clippy-strict:
 fmt-check:
     {{ cargo }} fmt --all --check
 
+check-boundaries:
+    python3 -m unittest discover -s scripts/tests -p 'test_check_boundaries.py'
+    python3 scripts/check_boundaries.py
+
+check-cargo-contract:
+    python3 -m unittest discover -s scripts/tests -p 'test_check_cargo_contract.py'
+    python3 scripts/check_cargo_contract.py
+
+update-cargo-contract:
+    python3 scripts/check_cargo_contract.py --update
+
+verify-capabilities-ci:
+    {{ cargo }} test --no-default-features --features {{ runtime_shaders_feature }} --test public_api
+    {{ cargo }} check --no-default-features --features {{ runtime_shaders_feature }},markdown --example markdown_demo
+    {{ cargo }} check --no-default-features --features {{ runtime_shaders_feature }},html-render --example html_demo
+    {{ cargo }} check --no-default-features --features {{ runtime_shaders_feature }},audio --example audio_player_demo
+    {{ cargo }} check --no-default-features --features {{ runtime_shaders_feature }},qrcode --example components_showcase
+    {{ cargo }} check --no-default-features --features {{ runtime_shaders_feature }},editor --example editor_scroll_test
+    {{ cargo }} check --no-default-features --features {{ runtime_shaders_feature }},editor-languages --example editor_demo
+    {{ cargo }} check --no-default-features --features {{ runtime_shaders_feature }},bundled-fonts-inter-minimal,bundled-fonts-mono --lib
+    {{ cargo }} test --all-features --features {{ runtime_shaders_feature }} --lib
+    {{ cargo }} check --all-features --features {{ runtime_shaders_feature }} --examples
+
 validate-agent-docs:
-    #!/usr/bin/env bash
-    set -euo pipefail
-
-    summary="$(just --summary | tr ' ' '\n')"
-
-    recipe_exists() {
-      grep -Fx "$1" <<<"$summary" >/dev/null
-    }
-
-    for target in build test clippy fmt; do
-      grep -Fqx -- "- \`just $target\`" AGENTS.md
-      recipe_exists "$target"
-    done
-
-    grep -Fq -- "just run-example demo" AGENTS.md
-    grep -Fq -- "just run-example slider_styled_demo" AGENTS.md
-    grep -Fq -- "just list-examples" AGENTS.md
-    grep -Fq -- "just list-examples" README.md
-    grep -Fq -- "just run-example demo" CLAUDE.md
-    grep -Fq -- "just run-example slider_styled_demo" CLAUDE.md
-    grep -Fq -- "just list-examples" CLAUDE.md
-    recipe_exists run-example
-    recipe_exists list-examples
-
-    for target in build-ci test-ci clippy-ci fmt-check; do
-      grep -Fq -- "just $target" AGENTS.md
-      grep -Fq -- "just $target" CLAUDE.md
-      grep -Fq -- "target: $target" .github/workflows/ci.yml
-      recipe_exists "$target"
-    done
-
-    grep -Fq -- 'run: just $' .github/workflows/ci.yml
-    grep -Fq -- 'run: just validate-agent-docs' .github/workflows/ci.yml
-    grep -Fq -- 'run: just check-clippy-policy' .github/workflows/ci.yml
-
-    grep -Fq -- 'GitHub Actions uses `gpui/runtime_shaders` on hosted macOS runners' AGENTS.md
-    grep -Fq -- 'GitHub Actions uses `gpui/runtime_shaders` on hosted macOS runners' CLAUDE.md
-    grep -Fq -- 'The `Justfile` is the canonical command source' AGENTS.md
-    grep -Fq -- 'The `Justfile` is the canonical command source' CLAUDE.md
-
-    recipe_exists clippy-strict
-    grep -Fq -- 'clippy-strict' AGENTS.md
-    grep -Fq -- 'clippy-strict' CLAUDE.md
+    python3 -m unittest discover -s scripts/tests -p 'test_validate_agent_docs.py'
+    python3 scripts/validate_agent_docs.py
 
 check-clippy-policy:
     #!/usr/bin/env bash

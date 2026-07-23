@@ -260,10 +260,32 @@ impl RenderOnce for Button {
 }
 ```
 
+### Capability Ownership
+
+Canonical implementations belong under `src/capabilities/`; the public `components`, `display`, `charts`, `navigation`, and `overlays` modules are compatibility facades. Do not add a new implementation directly to a facade.
+
+Choose ownership by the primary user workflow, not by the old directory name:
+
+| User-facing behavior | Canonical capability |
+| --- | --- |
+| Compose generic stacks, grids, panels, or containers | `layout` |
+| Enter, select, validate, or edit a single value | `controls` |
+| Navigate an app, command, route, menu, or tree | `navigation` |
+| Present tables, charts, timelines, or structured data | `data` |
+| Render static, rich, Markdown, or HTML content | `content` |
+| Edit a rope-backed document with language behavior | `editor` |
+| Work with audio, images, video, canvas, or uploaded media | `media` |
+| Show a temporary dialog, popover, sheet, or toast | `overlays` |
+| Scroll, resize, split, or virtualize a collection | `scroll` |
+| Add animation or decorative visual effects | `motion` or `effects` |
+
+For the complete ownership and exclusion table, read `src/capabilities/mod.rs`. When a component spans two workflows, keep its primary state and public API with the user-facing capability, and depend on the other capability through its canonical module. Do not use a legacy facade as an internal import path.
+
 ### Component Checklist
 
 When creating a new component:
 
+- [ ] Choose its canonical capability owner before creating files
 - [ ] Follow the builder pattern for configuration
 - [ ] Use the theme system for colors and styling
 - [ ] Support common variants (size, style, state)
@@ -271,6 +293,9 @@ When creating a new component:
 - [ ] Add comprehensive documentation
 - [ ] Create a dedicated example file
 - [ ] Add tests for key functionality
+- [ ] Add an owner initializer and preserve the root `init()` ordering when the component registers keybindings
+- [ ] Preserve intended public API by updating the relevant facade, `prelude.rs`, and `tests/public_api.rs`
+- [ ] Run `just check-boundaries` after changing canonical imports
 - [ ] Update the main demo example
 
 ### Theming
@@ -354,6 +379,16 @@ When adding new components, update:
 - Component list in the main README
 - Appropriate category section
 - Examples list if you added a new example
+
+### Cargo Compatibility Contract
+
+Cargo features and example targets are part of the supported compatibility surface. When an intentional change adds or removes either one:
+
+1. Review the `Cargo.toml` change and its required feature combinations.
+2. Run `just update-cargo-contract` to refresh `scripts/cargo_contract.json`.
+3. Review the snapshot diff, then run `just check-cargo-contract`.
+
+Do not refresh the snapshot to bypass an unexpected contract failure.
 
 ## Testing Guidelines
 

@@ -1,0 +1,384 @@
+{
+  "examples": {
+    "accordion_demo": [],
+    "accordion_styled_demo": [],
+    "alert_demo": [],
+    "alert_dialog_styled_demo": [],
+    "animations_demo": [],
+    "app_menu_demo": [],
+    "app_menu_styled_demo": [],
+    "audio_player_demo": [],
+    "avatar_group_demo": [],
+    "avatar_styled_demo": [],
+    "badge_styled_demo": [],
+    "bar_chart_demo": [],
+    "bottom_sheet_styled_demo": [],
+    "breadcrumbs_styled_demo": [],
+    "button_features_demo": [],
+    "button_styled_demo": [],
+    "calendar_styled_demo": [],
+    "card_demo": [],
+    "card_styled_demo": [],
+    "carousel_demo": [],
+    "chart_demo": [],
+    "checkbox_styled_demo": [],
+    "click_test": [],
+    "collapsible_styled_demo": [],
+    "color_picker_demo": [],
+    "combobox_demo": [],
+    "command_palette_demo": [],
+    "command_palette_styled_demo": [],
+    "complex_layout_demo": [],
+    "components_showcase": [
+      "qrcode"
+    ],
+    "confirm_dialog_styled_demo": [],
+    "context_menu_styled_demo": [],
+    "countdown_demo": [],
+    "data_table_demo": [],
+    "data_table_styled_demo": [],
+    "date_picker_demo": [],
+    "debug_into_element": [],
+    "debug_scroll": [],
+    "demo": [],
+    "demo_no_scroll": [],
+    "dialog_styled_demo": [],
+    "drag_drop_demo": [],
+    "drag_drop_styled_demo": [],
+    "dropdown_demo": [],
+    "editor_demo": [
+      "editor",
+      "editor-languages"
+    ],
+    "editor_scroll_test": [
+      "editor"
+    ],
+    "editor_styled_demo": [],
+    "empty_state_demo": [],
+    "file_tree_demo": [],
+    "file_upload_demo": [],
+    "gpui-scroll": [],
+    "gpui_extensions_showcase": [],
+    "hotkey_input_demo": [],
+    "hover_card_styled_demo": [],
+    "html_demo": [
+      "html-render"
+    ],
+    "icon_button_styled_demo": [],
+    "icon_path_test": [],
+    "icon_showcase": [],
+    "icon_test": [],
+    "image_viewer_demo": [],
+    "infinite_scroll_demo": [],
+    "inline_edit_demo": [],
+    "input_custom": [],
+    "input_demo": [],
+    "input_focus": [],
+    "input_styled_demo": [],
+    "input_test": [],
+    "input_validation": [],
+    "keyboard_shortcuts_demo": [],
+    "keyboard_shortcuts_styled_demo": [],
+    "label_styled_demo": [],
+    "layout_demo": [],
+    "line_chart_demo": [],
+    "markdown_demo": [
+      "markdown"
+    ],
+    "masonry_grid_demo": [],
+    "mention_input_demo": [],
+    "menu_demo": [],
+    "menu_styled_demo": [],
+    "mimic_scroll_container": [],
+    "minimal_button": [],
+    "minimal_scroll_test": [],
+    "navigation_menu_demo": [],
+    "navigation_menu_styled_demo": [],
+    "notification_center_demo": [],
+    "number_input_demo": [],
+    "otp_input_demo": [],
+    "overlays_demo": [],
+    "pagination_styled_demo": [],
+    "password_test": [],
+    "pie_chart_demo": [],
+    "polish_v2_demo": [],
+    "popover_menu_styled_demo": [],
+    "popover_styled_demo": [],
+    "progress_demo": [],
+    "progress_styled_demo": [],
+    "radio_styled_demo": [],
+    "range_slider_demo": [],
+    "rating_demo": [],
+    "resizable_styled_demo": [],
+    "scroll_test": [],
+    "search_input_demo": [],
+    "search_input_styled_demo": [],
+    "select_styled_demo": [],
+    "select_tooltip_demo": [],
+    "separator_styled_demo": [],
+    "sheet_styled_demo": [],
+    "sidebar_demo": [],
+    "sidebar_styled_demo": [],
+    "simple_button_test": [],
+    "simple_layout_demo": [],
+    "slider_styled_demo": [],
+    "sparkline_demo": [],
+    "spinner_demo": [],
+    "split_pane_demo": [],
+    "status_bar_demo": [],
+    "status_bar_styled_demo": [],
+    "stepper_demo": [],
+    "table_styled_demo": [],
+    "tabs_demo": [],
+    "tabs_styled_demo": [],
+    "tag_input_demo": [],
+    "test_element_id": [],
+    "test_extra_fields": [],
+    "test_horizontal_scroll": [],
+    "test_real_scrollcontainer": [],
+    "test_scroll_container": [],
+    "test_simple_scroll": [],
+    "text_demo": [],
+    "text_field_styled_demo": [],
+    "textarea_demo": [],
+    "textarea_styled_demo": [],
+    "time_picker_demo": [],
+    "timeline_demo": [],
+    "toast_styled_demo": [],
+    "toggle_group_styled_demo": [],
+    "toggle_styled_demo": [],
+    "toolbar_demo": [],
+    "toolbar_styled_demo": [],
+    "tooltip_styled_demo": [],
+    "transitions_demo": [],
+    "tree_list_demo": [],
+    "tree_performance_demo": [],
+    "tree_styled_demo": [],
+    "video_player_demo": [],
+    "virtual_list_demo": []
+  },
+  "features": {
+    "audio": [
+      "rodio"
+    ],
+    "bundled-fonts": [
+      "bundled-fonts-inter",
+      "bundled-fonts-mono-full"
+    ],
+    "bundled-fonts-inter": [
+      "font-inter-regular",
+      "font-inter-medium",
+      "font-inter-semibold",
+      "font-inter-bold"
+    ],
+    "bundled-fonts-inter-minimal": [
+      "font-inter-regular",
+      "font-inter-semibold"
+    ],
+    "bundled-fonts-mono": [
+      "font-mono-regular"
+    ],
+    "bundled-fonts-mono-full": [
+      "font-mono-regular",
+      "font-mono-bold"
+    ],
+    "default": [
+      "http",
+      "bundled-fonts"
+    ],
+    "editor": [
+      "dep:ropey",
+      "dep:tree-sitter"
+    ],
+    "editor-languages": [
+      "editor",
+      "tree-sitter-rust",
+      "tree-sitter-javascript",
+      "tree-sitter-typescript",
+      "tree-sitter-python",
+      "tree-sitter-json",
+      "tree-sitter-toml-ng",
+      "tree-sitter-md",
+      "tree-sitter-go",
+      "tree-sitter-c",
+      "tree-sitter-cpp",
+      "tree-sitter-java",
+      "tree-sitter-ruby",
+      "tree-sitter-bash",
+      "tree-sitter-css",
+      "tree-sitter-html",
+      "tree-sitter-yaml",
+      "tree-sitter-lua",
+      "tree-sitter-zig",
+      "tree-sitter-scala",
+      "tree-sitter-php",
+      "tree-sitter-ocaml",
+      "tree-sitter-sequel"
+    ],
+    "font-inter-bold": [],
+    "font-inter-medium": [],
+    "font-inter-regular": [],
+    "font-inter-semibold": [],
+    "font-mono-bold": [],
+    "font-mono-regular": [],
+    "html-render": [
+      "html5ever",
+      "markup5ever_rcdom"
+    ],
+    "html5ever": [
+      "dep:html5ever"
+    ],
+    "http": [
+      "reqwest"
+    ],
+    "image-default-formats": [
+      "image-format-avif",
+      "image-format-bmp",
+      "image-format-dds",
+      "image-format-exr",
+      "image-format-farbfeld",
+      "image-format-gif",
+      "image-format-hdr",
+      "image-format-ico",
+      "image-format-jpeg",
+      "image-format-png",
+      "image-format-pnm",
+      "image-format-qoi",
+      "image-format-tga",
+      "image-format-tiff",
+      "image-format-webp"
+    ],
+    "image-format-avif": [
+      "gpui/image-format-avif"
+    ],
+    "image-format-bmp": [
+      "gpui/image-format-bmp"
+    ],
+    "image-format-dds": [
+      "gpui/image-format-dds"
+    ],
+    "image-format-exr": [
+      "gpui/image-format-exr"
+    ],
+    "image-format-farbfeld": [
+      "gpui/image-format-farbfeld"
+    ],
+    "image-format-gif": [
+      "gpui/image-format-gif"
+    ],
+    "image-format-hdr": [
+      "gpui/image-format-hdr"
+    ],
+    "image-format-ico": [
+      "gpui/image-format-ico"
+    ],
+    "image-format-jpeg": [
+      "gpui/image-format-jpeg"
+    ],
+    "image-format-png": [
+      "gpui/image-format-png"
+    ],
+    "image-format-pnm": [
+      "gpui/image-format-pnm"
+    ],
+    "image-format-qoi": [
+      "gpui/image-format-qoi"
+    ],
+    "image-format-tga": [
+      "gpui/image-format-tga"
+    ],
+    "image-format-tiff": [
+      "gpui/image-format-tiff"
+    ],
+    "image-format-webp": [
+      "gpui/image-format-webp"
+    ],
+    "image-rayon": [
+      "gpui/image-rayon"
+    ],
+    "markdown": [
+      "pulldown-cmark"
+    ],
+    "markup5ever_rcdom": [
+      "dep:markup5ever_rcdom"
+    ],
+    "pulldown-cmark": [
+      "dep:pulldown-cmark"
+    ],
+    "qrcode": [
+      "dep:qrcode"
+    ],
+    "reqwest": [
+      "dep:reqwest"
+    ],
+    "rodio": [
+      "dep:rodio"
+    ],
+    "tree-sitter-bash": [
+      "dep:tree-sitter-bash"
+    ],
+    "tree-sitter-c": [
+      "dep:tree-sitter-c"
+    ],
+    "tree-sitter-cpp": [
+      "dep:tree-sitter-cpp"
+    ],
+    "tree-sitter-css": [
+      "dep:tree-sitter-css"
+    ],
+    "tree-sitter-go": [
+      "dep:tree-sitter-go"
+    ],
+    "tree-sitter-html": [
+      "dep:tree-sitter-html"
+    ],
+    "tree-sitter-java": [
+      "dep:tree-sitter-java"
+    ],
+    "tree-sitter-javascript": [
+      "dep:tree-sitter-javascript"
+    ],
+    "tree-sitter-json": [
+      "dep:tree-sitter-json"
+    ],
+    "tree-sitter-lua": [
+      "dep:tree-sitter-lua"
+    ],
+    "tree-sitter-md": [
+      "dep:tree-sitter-md"
+    ],
+    "tree-sitter-ocaml": [
+      "dep:tree-sitter-ocaml"
+    ],
+    "tree-sitter-php": [
+      "dep:tree-sitter-php"
+    ],
+    "tree-sitter-python": [
+      "dep:tree-sitter-python"
+    ],
+    "tree-sitter-ruby": [
+      "dep:tree-sitter-ruby"
+    ],
+    "tree-sitter-rust": [
+      "dep:tree-sitter-rust"
+    ],
+    "tree-sitter-scala": [
+      "dep:tree-sitter-scala"
+    ],
+    "tree-sitter-sequel": [
+      "dep:tree-sitter-sequel"
+    ],
+    "tree-sitter-toml-ng": [
+      "dep:tree-sitter-toml-ng"
+    ],
+    "tree-sitter-typescript": [
+      "dep:tree-sitter-typescript"
+    ],
+    "tree-sitter-yaml": [
+      "dep:tree-sitter-yaml"
+    ],
+    "tree-sitter-zig": [
+      "dep:tree-sitter-zig"
+    ]
+  }
+}
