@@ -53,6 +53,11 @@
 
 extern crate gpui;
 
+mod capabilities;
+
+#[cfg(test)]
+mod init_contract_tests;
+
 pub mod animate;
 pub mod animated_state;
 pub mod animation_coordinator;
@@ -83,8 +88,6 @@ pub mod fonts;
 
 /// Icon configuration for custom asset paths
 pub mod icon_config;
-mod initialization;
-mod text_util;
 
 /// HTTP client for remote image loading
 pub mod http;
@@ -101,29 +104,20 @@ pub use http::{init_http, init_http_with_user_agent};
 /// Registers custom fonts for the component library.
 /// Also initializes HTTP client for remote image loading.
 pub fn init(cx: &mut gpui::App) {
-    if !initialization::begin(cx, "adabraka-ui") {
+    if !capabilities::foundation::initialization::begin(cx, "adabraka-ui") {
         return;
     }
 
-    fonts::register_fonts(cx);
-    http::init_http(cx);
+    capabilities::foundation::init(cx);
 
-    components::input::init(cx);
-    components::textarea::init(cx);
-    components::otp_input::init(cx);
-    components::select::init_select(cx);
-    components::combobox::init_combobox(cx);
-    components::date_picker::init(cx);
-    components::image_viewer::init_image_viewer(cx);
-    components::inline_edit::init(cx);
-    components::mention_input::init_mention_input(cx);
-    components::video_player::init_video_player(cx);
+    // GPUI resolves same-depth keybinding conflicts in reverse registration order.
+    // Keep this historical cross-capability sequence stable for downstream applications.
+    capabilities::controls::init_before_image_viewer(cx);
+    capabilities::media::init_image(cx);
+    capabilities::controls::init_after_image_viewer(cx);
+    capabilities::media::init_video(cx);
     #[cfg(feature = "editor")]
-    components::editor::init(cx);
-    navigation::sidebar::init_sidebar(cx);
-    navigation::tabs::init_tabs(cx);
-    overlays::popover::init(cx);
-    overlays::dialog::init_dialog(cx);
-    overlays::sheet::init_sheet(cx);
-    overlays::alert_dialog::init_alert_dialog(cx);
+    capabilities::editor::init(cx);
+    capabilities::navigation::init(cx);
+    capabilities::overlays::init(cx);
 }

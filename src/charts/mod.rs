@@ -1,13 +1,9 @@
-pub mod area_chart;
-pub mod bar_chart;
-pub mod chart;
-pub mod donut_chart;
-pub mod gauge;
-pub mod heatmap;
-pub mod line_chart;
-pub mod pie_chart;
-pub mod radar_chart;
-pub mod treemap;
+//! Compatibility facade for legacy chart paths.
+
+pub use crate::capabilities::data::{
+    area_chart, bar_chart, chart, donut_chart, gauge, heatmap, line_chart, pie_chart, radar_chart,
+    treemap,
+};
 
 pub use bar_chart::{BarChart, BarChartData, BarChartMode, BarChartOrientation, BarChartSeries};
 pub use chart::{

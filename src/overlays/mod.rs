@@ -1,15 +1,10 @@
-//! Overlay components module.
+//! Compatibility facade for legacy overlay paths.
 
-pub mod alert_dialog;
-pub mod bottom_sheet;
-pub mod command_palette;
-pub mod context_menu;
-pub mod dialog;
-pub mod hover_card;
-pub mod popover;
-pub mod popover_menu;
-pub mod sheet;
-pub mod toast;
+pub use crate::capabilities::navigation::command_palette;
+pub use crate::capabilities::overlays::{
+    alert_dialog, bottom_sheet, context_menu, dialog, hover_card, popover, popover_menu, sheet,
+    toast,
+};
 
 pub use alert_dialog::{init_alert_dialog, AlertDialog};
 pub use bottom_sheet::{BottomSheet, BottomSheetSize};

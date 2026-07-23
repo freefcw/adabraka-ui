@@ -1,12 +1,6 @@
-//! Navigation components module.
+//! Compatibility facade for legacy navigation paths.
 
-pub mod app_menu;
-pub mod breadcrumbs;
-pub mod file_tree;
-pub mod menu;
-pub mod sidebar;
-pub mod status_bar;
-pub mod tabs;
-pub mod toolbar;
-pub mod tree;
-pub mod virtual_list;
+pub use crate::capabilities::navigation::{
+    app_menu, breadcrumbs, file_tree, menu, sidebar, status_bar, tabs, toolbar, tree,
+};
+pub use crate::capabilities::scroll::variable_virtual_list as virtual_list;

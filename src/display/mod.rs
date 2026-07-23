@@ -1,11 +1,5 @@
-//! Display components module.
+//! Compatibility facade for legacy display paths.
 
-pub mod accordion;
-pub mod badge;
-pub mod card;
-pub mod data_grid;
-pub mod data_table;
-pub mod html;
-pub mod markdown;
-pub mod rich_text;
-pub mod table;
+pub use crate::capabilities::content::{accordion, html, markdown, rich_text};
+pub use crate::capabilities::data::{data_grid, data_table, table};
+pub use crate::capabilities::primitives::display::{badge, card};

@@ -1,123 +1,43 @@
-//! UI components module.
+//! Compatibility facade for the legacy component taxonomy.
 
-pub mod alert;
-pub mod audio_player;
-pub mod button;
-pub mod icon;
-pub mod icon_button;
-pub mod icon_source;
-pub mod text;
-
-// Re-export commonly used types
-pub use icon::{IconSize, IconVariant};
-pub use icon_source::IconSource;
-pub mod checkbox;
-pub mod confirm_dialog;
-pub mod drag_drop;
+pub use crate::capabilities::content::code_block;
+pub use crate::capabilities::controls::{
+    avatar_group, calendar, carousel, checkbox, collapsible, color_picker, combobox, copy_button,
+    date_picker, drag_drop, dropdown, form, hotkey_input, inline_edit, input, input_state,
+    mention_input, number_input, otp_input, radio, range_slider, rating, search_input, select,
+    slider, sortable_list, stepper, tag_input, text_field, textarea, textarea_state, time_picker,
+    toggle, toggle_group,
+};
+pub use crate::capabilities::data::{countdown, sparkline, timeline};
 #[cfg(feature = "editor")]
-pub mod editor;
-pub mod input;
-pub mod input_state;
-pub mod keyboard_shortcuts;
-pub mod label;
-pub mod progress;
-pub mod radio;
-pub mod rating;
-pub mod resizable;
-pub mod scrollable;
-pub mod scrollbar;
-pub mod search_input;
-pub mod select;
-pub mod separator;
-pub mod skeleton;
-pub mod slider;
-pub mod text_field;
-pub mod textarea;
-pub mod textarea_state;
-pub mod toggle;
-pub mod toggle_group;
-pub mod tooltip;
-pub use slider::SliderAxis;
-pub mod avatar;
-pub mod avatar_group;
-pub mod calendar;
-pub mod carousel;
-pub mod collapsible;
-pub mod color_picker;
-pub mod combobox;
-pub mod countdown;
-pub mod date_picker;
-pub mod dropdown;
-pub mod empty_state;
-pub mod file_upload;
-pub mod form;
-pub mod hotkey_input;
-pub mod image_viewer;
-pub mod inline_edit;
-pub mod mention_input;
-pub mod navigation_menu;
-pub mod notification_center;
-pub mod number_input;
-pub mod otp_input;
-pub mod pagination;
-pub mod range_slider;
-pub mod ripple;
-pub mod sparkline;
-pub mod spinner;
-pub mod split_pane;
-pub mod stepper;
-pub mod tag_input;
-pub mod time_picker;
-pub mod timeline;
-pub mod video_player;
-
-pub mod animated_collapsible;
-pub mod animated_counter;
-pub mod animated_list;
-pub mod animated_presence;
-pub mod animated_progress;
-pub mod animated_switch;
-pub mod animated_text;
-pub mod code_block;
-pub mod copy_button;
-pub mod dot_pattern;
-pub mod drawer_navigation;
-pub mod expandable_card;
-pub mod floating_action_button;
-pub mod glass_morphism;
-pub mod gradient_border;
-pub mod gradient_text;
-pub mod infinite_scroll;
-pub mod kbd;
-pub mod layout_transition;
-pub mod marquee;
-pub mod number_ticker;
-pub mod pulse_indicator;
-pub mod segmented_nav;
-pub mod shared_element_transition;
-pub mod shimmer;
-pub mod sortable_list;
-pub mod spotlight;
-pub mod text_highlight;
-pub mod text_reveal;
-pub mod type_writer;
-pub mod view_router;
-
-pub mod aurora;
-pub mod crop_area;
-pub mod dock;
-pub mod magnetic_button;
-pub mod meteors;
-pub mod noise;
+pub use crate::capabilities::editor::editor;
+pub use crate::capabilities::effects::{
+    animated_collapsible, animated_counter, animated_list, animated_presence, animated_progress,
+    animated_switch, animated_text, aurora, confetti, dot_pattern, expandable_card, glass_morphism,
+    gradient_border, gradient_text, layout_transition, magnetic_button, marquee, meteors, noise,
+    number_ticker, particle_emitter, pulse_indicator, shared_element_transition, shimmer,
+    skeleton_loader, spotlight, text_highlight, text_reveal, tilt_card, type_writer,
+};
 #[cfg(feature = "qrcode")]
-pub mod qr_code;
-pub mod skeleton_loader;
-pub mod svg_renderer;
-pub mod tilt_card;
+pub use crate::capabilities::media::qr_code;
+pub use crate::capabilities::media::{
+    audio_player, canvas_component, crop_area, file_upload, image_viewer, svg_renderer,
+    video_player, waveform,
+};
+pub use crate::capabilities::navigation::{
+    dock, drawer_navigation, floating_action_button, keyboard_shortcuts, navigation_menu,
+    pagination, segmented_nav, view_router,
+};
+pub use crate::capabilities::overlays::{confirm_dialog, notification_center, tooltip};
+pub use crate::capabilities::primitives::{
+    alert, avatar, button, empty_state, icon, icon_button, icon_source, kbd, label, progress,
+    ripple, separator, skeleton, spinner, text,
+};
+pub use crate::capabilities::scroll::{
+    infinite_scroll, resizable, scrollable, scrollbar, split_pane,
+};
 
-pub mod canvas_component;
-pub mod confetti;
-pub mod particle_emitter;
-pub mod waveform;
-
-pub use crate::display::badge;
+pub use crate::capabilities::controls::slider::SliderAxis;
+pub use crate::capabilities::primitives::display::badge;
+pub use crate::capabilities::primitives::icon::{IconSize, IconVariant};
+pub use crate::capabilities::primitives::icon_source::IconSource;
