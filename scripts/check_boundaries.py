@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """Enforce dependency direction between canonical capability modules."""
 
+from __future__ import annotations
+
 import re
 from pathlib import Path
 from typing import NamedTuple
@@ -58,6 +60,10 @@ LEGACY = {
     "util",
 }
 TOKEN = re.compile(r"[A-Za-z_][A-Za-z0-9_]*|::|[{},;*]")
+TEST_MODULE = re.compile(
+    r"#\s*\[\s*cfg\s*\(\s*(?:test|all\s*\(\s*test\b[^)]*\))\s*\)\s*\]"
+    r"\s*mod\s+tests\s*\{"
+)
 
 
 class Token(NamedTuple):
@@ -68,6 +74,11 @@ class Token(NamedTuple):
 class Segment(NamedTuple):
     value: str
     line: int
+
+
+class Violation(NamedTuple):
+    line: int
+    message: str
 
 
 def _mask_non_code(source: str) -> str:
@@ -131,6 +142,25 @@ def _mask_non_code(source: str) -> str:
     return "".join(chars)
 
 
+def _production_source(source: str) -> str:
+    """Mask test-only ``mod tests`` blocks without hiding later production code."""
+    masked = _mask_non_code(source)
+    chars = list(source)
+    for match in TEST_MODULE.finditer(masked):
+        depth = 0
+        for index in range(match.end() - 1, len(masked)):
+            if masked[index] == "{":
+                depth += 1
+            elif masked[index] == "}":
+                depth -= 1
+                if depth == 0:
+                    for offset in range(match.start(), index + 1):
+                        if chars[offset] != "\n":
+                            chars[offset] = " "
+                    break
+    return "".join(chars)
+
+
 def _tokens(source: str) -> list[Token]:
     masked = _mask_non_code(source)
     return [Token(match.group(), masked.count("\n", 0, match.start()) + 1) for match in TOKEN.finditer(masked)]
@@ -184,22 +214,70 @@ def _crate_paths(source: str) -> list[tuple[Segment, ...]]:
     return paths
 
 
-def check_source(path: Path, owner: str, source: str) -> list[str]:
-    production_source = source.split("\n#[cfg(test)]\nmod tests", 1)[0]
+def _super_path_errors(path: Path, owner: str, source: str) -> list[Violation]:
+    """Reject parent-relative paths in production capability source.
+
+    The boundary rule is deliberately syntactic: production code must use the
+    canonical ``crate::capabilities::...`` route, not ``super::``. This catches
+    imports, type paths, expressions, and macro arguments without trying to
+    reconstruct Rust's nested module tree.
+    """
+    tokens = _tokens(source)
     errors = []
+    for index, token in enumerate(tokens[:-1]):
+        if token.value != "super" or tokens[index + 1].value != "::":
+            continue
+        previous = tokens[index - 1].value if index else ""
+        grandparent = tokens[index - 2].value if index > 1 else ""
+        if previous == "::" and grandparent != "self":
+            continue
+        errors.append(
+            Violation(
+                token.line,
+                f"{path}:{token.line}: {owner} uses a forbidden relative super:: path",
+            )
+        )
+    return errors
+
+
+def _edge_violation(
+    path: Path, owner: str, path_segments: tuple[Segment, ...]
+) -> Violation | None:
+    """Return the boundary violation message for a resolved absolute path.
+
+    A path is resolved to ``crate::<root>[::<target>]``. Legacy facades are
+    flagged when ``<root>`` itself is a legacy module; capability edges are
+    flagged when ``<root>`` is ``capabilities`` and ``<target>`` is neither the
+    owner nor an allowed dependency. Returns ``None`` for compliant paths.
+    """
+    if len(path_segments) < 2:
+        return None
+    root = path_segments[1]
+    if root.value in LEGACY:
+        return Violation(
+            root.line,
+            f"{path}:{root.line}: {owner} imports through a legacy facade",
+        )
+    if root.value != "capabilities" or len(path_segments) < 3:
+        return None
+    target = path_segments[2]
+    if target.value != owner and target.value not in ALLOWED[owner]:
+        return Violation(
+            target.line,
+            f"{path}:{target.line}: rejected edge {owner} -> {target.value}",
+        )
+    return None
+
+
+def check_source(path: Path, owner: str, source: str) -> list[str]:
+    production_source = _production_source(source)
+    violations = _super_path_errors(path, owner, production_source)
     for path_segments in _crate_paths(production_source):
-        if len(path_segments) < 2:
-            continue
-        root = path_segments[1]
-        if root.value in LEGACY:
-            errors.append(f"{path}:{root.line}: {owner} imports through a legacy facade")
-            continue
-        if root.value != "capabilities" or len(path_segments) < 3:
-            continue
-        target = path_segments[2]
-        if target.value != owner and target.value not in ALLOWED[owner]:
-            errors.append(f"{path}:{target.line}: rejected edge {owner} -> {target.value}")
-    return list(dict.fromkeys(errors))
+        violation = _edge_violation(path, owner, path_segments)
+        if violation:
+            violations.append(violation)
+    violations.sort(key=lambda violation: (violation.line, violation.message))
+    return list(dict.fromkeys(violation.message for violation in violations))
 
 
 def main() -> None:

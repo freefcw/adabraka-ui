@@ -1,6 +1,6 @@
 use gpui::*;
 
-use super::tokens::ThemeTokens;
+use crate::capabilities::foundation::theme::tokens::ThemeTokens;
 
 /// Theme variants
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]

@@ -1,6 +1,6 @@
 //! Scrollable component with visible scrollbars.
 
-use super::scrollbar::{Scrollbar, ScrollbarAxis, ScrollbarState};
+use crate::capabilities::scroll::scrollbar::{Scrollbar, ScrollbarAxis, ScrollbarState};
 use gpui::{
     div, relative, AnyElement, App, Bounds, Div, Element, ElementId, GlobalElementId,
     InspectorElementId, InteractiveElement, Interactivity, IntoElement, LayoutId, ParentElement,

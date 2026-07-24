@@ -49,6 +49,8 @@ GitHub Actions uses `gpui/runtime_shaders` on hosted macOS runners because the d
 
 The `Justfile` is the canonical command source for local development and CI targets.
 
+`just verify-capabilities-ci` validates the public API contract both without default features and with all package features enabled.
+
 ## Architecture
 
 This is a GPUI component library (73+ components) inspired by shadcn/ui for building desktop applications in Rust.

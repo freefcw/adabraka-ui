@@ -448,7 +448,14 @@ pub fn spring_animation(duration: Duration) -> Animation {
 
 /// Pre-configured animation presets with optimal settings
 pub mod presets {
-    use super::*;
+    use crate::capabilities::motion::animations::durations;
+    use crate::capabilities::motion::animations::{
+        bounce_animation, bounce_smooth, fade_in, fade_out, pulse_animation, rotate_animation,
+        scale_animation, scale_smooth, shake_animation, slide_animation, spring_animation,
+        spring_slide,
+    };
+    use gpui::Animation;
+    use std::time::Duration;
 
     // Fade animations
     /// Ultra-quick fade in (100ms) - for tooltips

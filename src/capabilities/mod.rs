@@ -20,7 +20,10 @@
 //! | `effects` | Decorative and transition effects | Core component interaction state |
 //!
 //! Canonical modules may import only the capability dependencies allowed by
-//! `scripts/check_boundaries.py`; they must not import through legacy public facades.
+//! `scripts/check_boundaries.py`; they must not import through legacy public
+//! facades. Production capability code must use `crate::capabilities::...`
+//! paths, never `super::...`, so dependency direction has one clear, checked
+//! spelling.
 
 pub mod content;
 pub mod controls;

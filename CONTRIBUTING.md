@@ -281,6 +281,8 @@ Choose ownership by the primary user workflow, not by the old directory name:
 
 For the complete ownership and exclusion table, read `src/capabilities/mod.rs`. When a component spans two workflows, keep its primary state and public API with the user-facing capability, and depend on the other capability through its canonical module. Do not use a legacy facade as an internal import path.
 
+Production capability sources must use absolute `crate::capabilities::...` imports. Do not use `super::...` there, even for a sibling module: it hides the dependency route and can make a capability-boundary violation hard to spot. `super::...` remains fine inside `#[cfg(test)] mod tests` blocks, which the boundary check excludes.
+
 ### Component Checklist
 
 When creating a new component:
