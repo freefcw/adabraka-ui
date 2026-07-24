@@ -71,7 +71,7 @@ jobs:
         with:
           shared-key: ${{ runner.os }}-cargo-capabilities
 
-      - name: Verify capability and feature contracts
+      - name: Verify capability, feature, and public API contracts
         run: just verify-capabilities-ci
 
   agents-md:

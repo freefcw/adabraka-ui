@@ -82,7 +82,7 @@ verify-capabilities-ci:
     {{ cargo }} check --no-default-features --features {{ runtime_shaders_feature }},editor --example editor_scroll_test
     {{ cargo }} check --no-default-features --features {{ runtime_shaders_feature }},editor-languages --example editor_demo
     {{ cargo }} check --no-default-features --features {{ runtime_shaders_feature }},bundled-fonts-inter-minimal,bundled-fonts-mono --lib
-    {{ cargo }} test --all-features --features {{ runtime_shaders_feature }} --lib
+    {{ cargo }} test --all-features --features {{ runtime_shaders_feature }} --lib --test public_api
     {{ cargo }} check --all-features --features {{ runtime_shaders_feature }} --examples
 
 validate-agent-docs:
