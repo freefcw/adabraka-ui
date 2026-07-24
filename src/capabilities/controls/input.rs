@@ -95,6 +95,7 @@ pub struct Input {
     prefix: Option<AnyElement>,
     suffix: Option<AnyElement>,
     initial_value: Option<SharedString>,
+    value: Option<SharedString>,
 
     // Enhanced features
     input_type: Option<InputType>,
@@ -137,6 +138,7 @@ impl Input {
             prefix: None,
             suffix: None,
             initial_value: None,
+            value: None,
 
             // Enhanced features
             input_type: None,
@@ -165,9 +167,23 @@ impl Input {
         }
     }
 
-    /// Set the initial value (will be set when rendering)
-    pub fn value(mut self, value: impl Into<SharedString>) -> Self {
+    /// Set the value applied when this input state is first rendered.
+    ///
+    /// Later renders leave the state unchanged. To replace an existing value,
+    /// update the associated [`InputState`] with [`InputState::set_value`].
+    pub fn initial_value(mut self, value: impl Into<SharedString>) -> Self {
         self.initial_value = Some(value.into());
+        self.value = None;
+        self
+    }
+
+    /// Set a value controlled by the parent view.
+    ///
+    /// The input updates when the supplied value changes. Use [`Input::initial_value`]
+    /// when the value should only be applied once.
+    pub fn value(mut self, value: impl Into<SharedString>) -> Self {
+        self.value = Some(value.into());
+        self.initial_value = None;
         self
     }
 
@@ -596,7 +612,11 @@ impl RenderOnce for Input {
             state.autocomplete = self.autocomplete.clone();
             state.helper_text = self.helper_text.clone();
 
-            if let Some(value) = self.initial_value.clone() {
+            if let Some(value) = self.value.clone() {
+                if state.content != value {
+                    state.set_value(value, window, cx);
+                }
+            } else if let Some(value) = self.initial_value.clone() {
                 state.apply_initial_value(value, window, cx);
             }
         });
@@ -896,16 +916,65 @@ mod tests {
         state: Entity<InputState>,
         callback_calls: Option<Rc<Cell<usize>>>,
         initial_value: Option<SharedString>,
+        value: Option<SharedString>,
     }
 
     impl Render for InputRenderTestView {
         fn render(&mut self, _window: &mut Window, _cx: &mut Context<Self>) -> impl IntoElement {
             Input::new(&self.state)
-                .when_some(self.initial_value.clone(), Input::value)
+                .when_some(self.initial_value.clone(), Input::initial_value)
+                .when_some(self.value.clone(), Input::value)
                 .when_some(self.callback_calls.clone(), |input, calls| {
                     input.on_change(move |_, _| calls.set(calls.get() + 1))
                 })
         }
+    }
+
+    #[gpui::test]
+    fn controlled_value_changes_replace_existing_content() {
+        let mut app = TestApp::new();
+        app.update(|cx| install_theme(cx, Theme::light()));
+        let mut window = app.open_window(|_, cx| InputRenderTestView {
+            state: cx.new(InputState::new),
+            callback_calls: None,
+            initial_value: None,
+            value: Some("first".into()),
+        });
+
+        window.draw();
+        window.update(|view, _, cx| {
+            view.value = Some("replacement".into());
+            cx.notify();
+        });
+        window.draw();
+
+        assert_eq!(
+            window.read(|view, cx| view.state.read(cx).content().to_string()),
+            "replacement"
+        );
+    }
+
+    #[gpui::test]
+    fn unchanged_controlled_value_does_not_emit_change_on_rerender() {
+        let mut app = TestApp::new();
+        app.update(|cx| install_theme(cx, Theme::light()));
+        let calls = Rc::new(Cell::new(0));
+        let mut window = app.open_window(|_, cx| InputRenderTestView {
+            state: cx.new(|cx| {
+                let mut state = InputState::new(cx);
+                state.content = "first".into();
+                state
+            }),
+            callback_calls: Some(calls.clone()),
+            initial_value: None,
+            value: Some("first".into()),
+        });
+
+        window.draw();
+        window.update(|_, _, cx| cx.notify());
+        window.draw();
+
+        assert_eq!(calls.get(), 0);
     }
 
     #[gpui::test]
@@ -918,6 +987,7 @@ mod tests {
             state: cx.new(InputState::new),
             callback_calls: Some(stale_calls.clone()),
             initial_value: None,
+            value: None,
         });
 
         window.draw();
@@ -951,6 +1021,7 @@ mod tests {
             state: cx.new(InputState::new),
             callback_calls: None,
             initial_value: Some("initial".into()),
+            value: None,
         });
 
         window.draw();
@@ -970,6 +1041,30 @@ mod tests {
     }
 
     #[gpui::test]
+    fn builder_initial_value_changes_are_ignored_after_first_render() {
+        let mut app = TestApp::new();
+        app.update(|cx| install_theme(cx, Theme::light()));
+        let mut window = app.open_window(|_, cx| InputRenderTestView {
+            state: cx.new(InputState::new),
+            callback_calls: None,
+            initial_value: Some("initial".into()),
+            value: None,
+        });
+
+        window.draw();
+        window.update(|view, _, cx| {
+            view.initial_value = Some("replacement".into());
+            cx.notify();
+        });
+        window.draw();
+
+        assert_eq!(
+            window.read(|view, cx| view.state.read(cx).content().to_string()),
+            "initial"
+        );
+    }
+
+    #[gpui::test]
     fn set_value_emits_one_change_event() {
         let mut app = TestApp::new();
         app.update(|cx| install_theme(cx, Theme::light()));
@@ -978,6 +1073,7 @@ mod tests {
             state: cx.new(InputState::new),
             callback_calls: Some(calls.clone()),
             initial_value: None,
+            value: None,
         });
 
         window.draw();
@@ -997,6 +1093,7 @@ mod tests {
             state: cx.new(InputState::new),
             callback_calls: None,
             initial_value: Some("initial".into()),
+            value: None,
         });
 
         window.draw();
