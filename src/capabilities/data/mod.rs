@@ -8,6 +8,7 @@ pub mod donut_chart;
 pub mod gauge;
 pub mod heatmap;
 pub mod line_chart;
+pub(crate) mod palette;
 pub mod pie_chart;
 pub mod radar_chart;
 pub mod sparkline;

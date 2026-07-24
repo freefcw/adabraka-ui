@@ -1,13 +1,6 @@
+use crate::capabilities::data::palette::default_color;
 use crate::capabilities::foundation::theme::use_theme;
 use gpui::{prelude::FluentBuilder as _, *};
-
-const CHART_COLORS: [u32; 8] = [
-    0x3b82f6, 0x22c55e, 0xf59e0b, 0xef4444, 0x8b5cf6, 0x06b6d4, 0xf97316, 0xec4899,
-];
-
-fn get_chart_color(index: usize) -> Hsla {
-    rgb(CHART_COLORS[index % CHART_COLORS.len()]).into()
-}
 
 fn pixels_to_f32(p: Pixels) -> f32 {
     p / px(1.0)
@@ -249,7 +242,7 @@ impl BarChart {
                                 } else {
                                     0.0
                                 };
-                                let bar_color = item.color.unwrap_or_else(|| get_chart_color(i));
+                                let bar_color = item.color.unwrap_or_else(|| default_color(i));
                                 let value = item.value;
                                 let bar_height = chart_height * height_percent;
 
@@ -318,7 +311,7 @@ impl BarChart {
                 } else {
                     0.0
                 };
-                let bar_color = item.color.unwrap_or_else(|| get_chart_color(i));
+                let bar_color = item.color.unwrap_or_else(|| default_color(i));
                 let value = item.value;
                 let label = item.label.clone();
 
@@ -451,7 +444,7 @@ impl BarChart {
                                         };
                                         let bar_color = series
                                             .color
-                                            .unwrap_or_else(|| get_chart_color(series_idx));
+                                            .unwrap_or_else(|| default_color(series_idx));
                                         let bar_height = chart_height * height_percent;
 
                                         div()
@@ -504,7 +497,7 @@ impl BarChart {
                         .gap(px(16.0))
                         .justify_center()
                         .children(series_for_legend.iter().enumerate().map(|(i, s)| {
-                            let color = s.color.unwrap_or_else(|| get_chart_color(i));
+                            let color = s.color.unwrap_or_else(|| default_color(i));
                             div()
                                 .flex()
                                 .items_center()
@@ -634,7 +627,7 @@ impl BarChart {
                                                         };
                                                     let bar_color =
                                                         series.color.unwrap_or_else(|| {
-                                                            get_chart_color(series_idx)
+                                                            default_color(series_idx)
                                                         });
 
                                                     div()
@@ -670,7 +663,7 @@ impl BarChart {
                         .gap(px(16.0))
                         .justify_center()
                         .children(series_for_legend.iter().enumerate().map(|(i, s)| {
-                            let color = s.color.unwrap_or_else(|| get_chart_color(i));
+                            let color = s.color.unwrap_or_else(|| default_color(i));
                             div()
                                 .flex()
                                 .items_center()
@@ -765,7 +758,7 @@ impl BarChart {
                                             };
                                             let bar_color = series
                                                 .color
-                                                .unwrap_or_else(|| get_chart_color(series_idx));
+                                                .unwrap_or_else(|| default_color(series_idx));
 
                                             div()
                                                 .flex()
@@ -801,7 +794,7 @@ impl BarChart {
                         .gap(px(16.0))
                         .justify_center()
                         .children(series_for_legend.iter().enumerate().map(|(i, s)| {
-                            let color = s.color.unwrap_or_else(|| get_chart_color(i));
+                            let color = s.color.unwrap_or_else(|| default_color(i));
                             div()
                                 .flex()
                                 .items_center()
@@ -917,7 +910,7 @@ impl BarChart {
                                                         };
                                                     let bar_color =
                                                         series.color.unwrap_or_else(|| {
-                                                            get_chart_color(series_idx)
+                                                            default_color(series_idx)
                                                         });
 
                                                     div()
@@ -947,7 +940,7 @@ impl BarChart {
                         .gap(px(16.0))
                         .justify_center()
                         .children(series_for_legend.iter().enumerate().map(|(i, s)| {
-                            let color = s.color.unwrap_or_else(|| get_chart_color(i));
+                            let color = s.color.unwrap_or_else(|| default_color(i));
                             div()
                                 .flex()
                                 .items_center()

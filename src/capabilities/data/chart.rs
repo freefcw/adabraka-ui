@@ -1,14 +1,7 @@
+use crate::capabilities::data::palette::default_color;
 use crate::capabilities::foundation::theme::use_theme;
 use gpui::{prelude::FluentBuilder as _, *};
 use std::rc::Rc;
-
-const CHART_COLORS: [u32; 8] = [
-    0x3b82f6, 0x22c55e, 0xf59e0b, 0xef4444, 0x8b5cf6, 0x06b6d4, 0xf97316, 0xec4899,
-];
-
-fn default_color(index: usize) -> Hsla {
-    rgb(CHART_COLORS[index % CHART_COLORS.len()]).into()
-}
 
 #[derive(Clone, Debug)]
 pub struct DataPoint {
@@ -33,6 +26,11 @@ impl DataPoint {
             label: Some(label.into()),
         }
     }
+}
+
+/// Whether a data point can safely participate in range and geometry calculations.
+pub(crate) fn is_finite_data_point(x: f64, y: f64) -> bool {
+    x.is_finite() && y.is_finite()
 }
 
 #[derive(Clone, Debug)]
@@ -73,7 +71,9 @@ impl DataRange {
         let (min, max) = if min <= max { (min, max) } else { (max, min) };
         if (max - min).abs() < f64::EPSILON {
             let padding = (min.abs() * 0.01).max(0.5);
-            (min - padding, max + padding)
+            let padded_min = (min - padding).max(f64::MIN);
+            let padded_max = (max + padding).min(f64::MAX);
+            (padded_min, padded_max)
         } else {
             (min, max)
         }
@@ -87,7 +87,7 @@ impl DataRange {
         let mut has_finite_point = false;
 
         for point in points {
-            if !point.x.is_finite() || !point.y.is_finite() {
+            if !is_finite_data_point(point.x, point.y) {
                 continue;
             }
             has_finite_point = true;
@@ -691,6 +691,22 @@ mod tests {
             assert!(range.normalize_y(0.0).is_finite());
             assert!(range.x_min < range.x_max);
             assert!(range.y_min < range.y_max);
+        }
+    }
+
+    #[test]
+    fn extreme_finite_values_produce_finite_ranges() {
+        for value in [f64::MAX, f64::MIN] {
+            for range in [
+                DataRange::new(value, value, 0.0, 1.0),
+                DataRange::from_points(&[DataPoint::new(value, 0.0)]),
+            ] {
+                assert!(range.x_min.is_finite());
+                assert!(range.x_max.is_finite());
+                assert!(range.x_min < range.x_max);
+                assert!(range.x_min <= value && value <= range.x_max);
+                assert!(range.normalize_x(value).is_finite());
+            }
         }
     }
 

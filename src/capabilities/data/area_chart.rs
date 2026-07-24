@@ -1,13 +1,6 @@
+use crate::capabilities::data::{chart::is_finite_data_point, palette::default_color};
 use crate::capabilities::foundation::theme::use_theme;
 use gpui::{prelude::FluentBuilder as _, *};
-
-const CHART_COLORS: [u32; 8] = [
-    0x3b82f6, 0x22c55e, 0xf59e0b, 0xef4444, 0x8b5cf6, 0x06b6d4, 0xf97316, 0xec4899,
-];
-
-fn default_color(index: usize) -> Hsla {
-    rgb(CHART_COLORS[index % CHART_COLORS.len()]).into()
-}
 
 #[derive(Clone, Debug)]
 pub struct AreaChartSeries {
@@ -83,6 +76,9 @@ impl AreaChartRange {
 
         for s in series {
             for &(x, y) in &s.points {
+                if !is_finite_data_point(x, y) {
+                    continue;
+                }
                 x_min = x_min.min(x);
                 x_max = x_max.max(x);
                 if mode == AreaChartMode::Overlaid {
@@ -96,7 +92,9 @@ impl AreaChartRange {
             for i in 0..max_len {
                 let stacked: f64 = series
                     .iter()
-                    .map(|s| s.points.get(i).map(|p| p.1).unwrap_or(0.0))
+                    .filter_map(|series| series.points.get(i))
+                    .filter(|&&(x, y)| is_finite_data_point(x, y))
+                    .map(|&(_, y)| y)
                     .sum();
                 y_max = y_max.max(stacked);
             }
@@ -125,10 +123,16 @@ impl AreaChartRange {
     }
 
     fn normalize_x(&self, x: f64) -> f32 {
+        if !x.is_finite() {
+            return 0.0;
+        }
         ((x - self.x_min) / (self.x_max - self.x_min)) as f32
     }
 
     fn normalize_y(&self, y: f64) -> f32 {
+        if !y.is_finite() {
+            return 0.0;
+        }
         ((y - self.y_min) / (self.y_max - self.y_min)) as f32
     }
 }
@@ -369,6 +373,7 @@ impl RenderOnce for AreaChart {
                                             let screen_pts: Vec<Point<Pixels>> = s
                                                 .points
                                                 .iter()
+                                                .filter(|&&(x, y)| is_finite_data_point(x, y))
                                                 .map(|&(x, y)| {
                                                     let sx = chart_left
                                                         + chart_width * range.normalize_x(x);
@@ -377,6 +382,9 @@ impl RenderOnce for AreaChart {
                                                     point(sx, sy)
                                                 })
                                                 .collect();
+                                            if screen_pts.len() < 2 {
+                                                continue;
+                                            }
 
                                             let mut fill_builder = PathBuilder::fill();
                                             fill_builder
@@ -425,7 +433,9 @@ impl RenderOnce for AreaChart {
                                             .map(|i| {
                                                 data.series
                                                     .iter()
-                                                    .find_map(|s| s.points.get(i).map(|p| p.0))
+                                                    .filter_map(|series| series.points.get(i))
+                                                    .find(|&&(x, y)| is_finite_data_point(x, y))
+                                                    .map(|&(x, _)| x)
                                                     .unwrap_or(i as f64)
                                             })
                                             .collect();
@@ -444,9 +454,9 @@ impl RenderOnce for AreaChart {
                                             let color =
                                                 s.color.unwrap_or_else(|| default_color(idx));
 
-                                            for (i, pt) in s.points.iter().enumerate() {
-                                                if i < max_len {
-                                                    cumulative[i] += pt.1;
+                                            for (i, &(x, y)) in s.points.iter().enumerate() {
+                                                if i < max_len && is_finite_data_point(x, y) {
+                                                    cumulative[i] += y;
                                                 }
                                             }
 
@@ -558,5 +568,36 @@ impl RenderOnce for AreaChart {
                         })),
                 )
             })
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{AreaChartMode, AreaChartRange, AreaChartSeries};
+
+    #[test]
+    fn range_ignores_non_finite_points_in_overlaid_and_stacked_modes() {
+        let series = vec![
+            AreaChartSeries::new("first", vec![(0.0, 1.0), (f64::NAN, 2.0), (2.0, 3.0)]),
+            AreaChartSeries::new("second", vec![(0.0, 2.0), (1.0, f64::INFINITY), (2.0, 4.0)]),
+        ];
+
+        let overlaid = AreaChartRange::from_series(&series, AreaChartMode::Overlaid);
+        assert_eq!(
+            (
+                overlaid.x_min,
+                overlaid.x_max,
+                overlaid.y_min,
+                overlaid.y_max
+            ),
+            (0.0, 2.0, 0.0, 4.0)
+        );
+        assert!(overlaid.normalize_x(f64::NAN).is_finite());
+        assert!(overlaid.normalize_y(f64::INFINITY).is_finite());
+
+        let stacked = AreaChartRange::from_series(&series, AreaChartMode::Stacked);
+        assert!(stacked.x_min.is_finite());
+        assert!(stacked.x_max.is_finite());
+        assert!(stacked.y_max.is_finite());
     }
 }

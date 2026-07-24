@@ -1,13 +1,6 @@
+use crate::capabilities::data::palette::default_color;
 use crate::capabilities::foundation::theme::use_theme;
 use gpui::{prelude::FluentBuilder as _, *};
-
-const CHART_COLORS: [u32; 8] = [
-    0x3b82f6, 0x22c55e, 0xf59e0b, 0xef4444, 0x8b5cf6, 0x06b6d4, 0xf97316, 0xec4899,
-];
-
-fn default_color(index: usize) -> Hsla {
-    rgb(CHART_COLORS[index % CHART_COLORS.len()]).into()
-}
 
 #[derive(Clone)]
 pub struct RadarDataset {

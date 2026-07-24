@@ -1,13 +1,9 @@
+use crate::capabilities::data::{
+    chart::{is_finite_data_point, DataPoint, DataRange},
+    palette::default_color,
+};
 use crate::capabilities::foundation::theme::use_theme;
 use gpui::{prelude::FluentBuilder as _, *};
-
-const CHART_COLORS: [u32; 8] = [
-    0x3b82f6, 0x22c55e, 0xf59e0b, 0xef4444, 0x8b5cf6, 0x06b6d4, 0xf97316, 0xec4899,
-];
-
-fn get_chart_color(index: usize) -> Hsla {
-    rgb(CHART_COLORS[index % CHART_COLORS.len()]).into()
-}
 
 #[derive(Clone, Debug)]
 pub struct LineChartPoint {
@@ -63,68 +59,25 @@ impl LineChartSeries {
     }
 }
 
-struct DataRange {
-    x_min: f64,
-    x_max: f64,
-    y_min: f64,
-    y_max: f64,
-}
+fn range_from_series(
+    series: &[LineChartSeries],
+    y_min_override: Option<f64>,
+    y_max_override: Option<f64>,
+) -> DataRange {
+    let points: Vec<_> = series
+        .iter()
+        .flat_map(|series| series.points.iter())
+        .map(|point| DataPoint::new(point.x, point.y))
+        .collect();
+    let range = DataRange::from_points(&points);
+    let y_min = y_min_override
+        .filter(|value| value.is_finite())
+        .unwrap_or(range.y_min);
+    let y_max = y_max_override
+        .filter(|value| value.is_finite())
+        .unwrap_or(range.y_max);
 
-impl DataRange {
-    fn from_series(
-        series: &[LineChartSeries],
-        y_min_override: Option<f64>,
-        y_max_override: Option<f64>,
-    ) -> Self {
-        let mut x_min = f64::MAX;
-        let mut x_max = f64::MIN;
-        let mut y_min = f64::MAX;
-        let mut y_max = f64::MIN;
-
-        for s in series {
-            for point in &s.points {
-                x_min = x_min.min(point.x);
-                x_max = x_max.max(point.x);
-                y_min = y_min.min(point.y);
-                y_max = y_max.max(point.y);
-            }
-        }
-
-        if x_min == f64::MAX {
-            x_min = 0.0;
-            x_max = 1.0;
-        }
-        if y_min == f64::MAX {
-            y_min = 0.0;
-            y_max = 1.0;
-        }
-
-        if (x_max - x_min).abs() < f64::EPSILON {
-            x_max = x_min + 1.0;
-        }
-        if (y_max - y_min).abs() < f64::EPSILON {
-            y_max = y_min + 1.0;
-        }
-
-        Self {
-            x_min,
-            x_max,
-            y_min: y_min_override.unwrap_or(y_min),
-            y_max: y_max_override.unwrap_or(y_max),
-        }
-    }
-
-    fn normalize_x(&self, x: f64) -> f32 {
-        ((x - self.x_min) / (self.x_max - self.x_min)) as f32
-    }
-
-    fn normalize_y(&self, y: f64) -> f32 {
-        ((y - self.y_min) / (self.y_max - self.y_min)) as f32
-    }
-
-    fn y_value_at(&self, normalized: f64) -> f64 {
-        self.y_min + (self.y_max - self.y_min) * (1.0 - normalized)
-    }
+    DataRange::new(range.x_min, range.x_max, y_min, y_max)
 }
 
 #[derive(IntoElement)]
@@ -251,13 +204,14 @@ impl RenderOnce for LineChart {
 
         let series_for_legend = series.clone();
 
-        let data_range = DataRange::from_series(&series, y_min, y_max);
+        let data_range = range_from_series(&series, y_min, y_max);
 
         let y_labels: Vec<String> = if show_y_axis {
             (0..=5)
                 .map(|i| {
                     let normalized = i as f64 / 5.0;
-                    let value = data_range.y_value_at(normalized);
+                    let value = data_range.y_min
+                        + (data_range.y_max - data_range.y_min) * (1.0 - normalized);
                     format_y_value(value)
                 })
                 .collect()
@@ -300,7 +254,7 @@ impl RenderOnce for LineChart {
                                     return;
                                 }
 
-                                let data_range = DataRange::from_series(
+                                let data_range = range_from_series(
                                     &paint_data.series,
                                     paint_data.y_min,
                                     paint_data.y_max,
@@ -354,11 +308,12 @@ impl RenderOnce for LineChart {
                                     }
 
                                     let color =
-                                        s.color.unwrap_or_else(|| get_chart_color(series_index));
+                                        s.color.unwrap_or_else(|| default_color(series_index));
 
                                     let screen_points: Vec<Point<Pixels>> = s
                                         .points
                                         .iter()
+                                        .filter(|point| is_finite_data_point(point.x, point.y))
                                         .map(|p| {
                                             let norm_x = data_range.normalize_x(p.x);
                                             let norm_y = data_range.normalize_y(p.y);
@@ -472,7 +427,7 @@ impl RenderOnce for LineChart {
                         .px(px(padding_left))
                         .py(px(8.0))
                         .children(series_for_legend.iter().enumerate().map(|(i, s)| {
-                            let color = s.color.unwrap_or_else(|| get_chart_color(i));
+                            let color = s.color.unwrap_or_else(|| default_color(i));
                             div()
                                 .flex()
                                 .items_center()
@@ -482,5 +437,41 @@ impl RenderOnce for LineChart {
                         })),
                 )
             })
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{range_from_series, LineChartPoint, LineChartSeries};
+
+    fn series(points: &[(f64, f64)]) -> Vec<LineChartSeries> {
+        vec![LineChartSeries::new(
+            "series",
+            points
+                .iter()
+                .map(|&(x, y)| LineChartPoint::new(x, y))
+                .collect(),
+        )]
+    }
+
+    #[test]
+    fn range_ignores_non_finite_points_and_overrides() {
+        let range = range_from_series(
+            &series(&[
+                (0.0, 1.0),
+                (f64::NAN, 2.0),
+                (1.0, f64::INFINITY),
+                (2.0, 3.0),
+            ]),
+            Some(f64::NEG_INFINITY),
+            Some(f64::NAN),
+        );
+
+        assert_eq!(
+            (range.x_min, range.x_max, range.y_min, range.y_max),
+            (0.0, 2.0, 1.0, 3.0)
+        );
+        assert!(range.normalize_x(f64::NAN).is_finite());
+        assert!(range.normalize_y(f64::INFINITY).is_finite());
     }
 }
