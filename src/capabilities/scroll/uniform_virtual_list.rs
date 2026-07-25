@@ -1,4 +1,4 @@
-use std::cell::RefCell;
+use std::cell::{Cell, RefCell};
 use std::cmp;
 use std::collections::HashMap;
 use std::ops::Range;
@@ -8,11 +8,103 @@ use crate::capabilities::foundation::util::{AxisExt, PixelsExt};
 use crate::capabilities::scroll::scroll_container::{PhysicsScrollState, ScrollDirection};
 use gpui::{
     div, point, px, size, Along, AnyElement, App, AvailableSpace, Axis, Bounds, Context, Div,
-    Element, ElementId, Entity, GlobalElementId, Hitbox, InteractiveElement, IntoElement,
-    ListSizingBehavior, Pixels, Render, Size, Stateful, StatefulInteractiveElement,
-    StyleRefinement, Styled, Window,
+    Edges, Element, ElementId, Entity, GlobalElementId, Hitbox, InteractiveElement, IntoElement,
+    ListSizingBehavior, Pixels, Point, Render, ScrollStrategy, Size, Stateful,
+    StatefulInteractiveElement, StyleRefinement, Styled, Window,
 };
 use smallvec::SmallVec;
+
+/// A `scroll_to` request recorded during element construction and applied in
+/// `prepaint`, once the viewport size for the frame is known.
+#[derive(Clone, Copy)]
+struct PendingScroll {
+    index: usize,
+    strategy: ScrollStrategy,
+}
+
+/// Largest legal scroll distance, mirroring GPUI's `Interactivity::clamp_scroll_position`.
+///
+/// The list layer must use the same formula as the scroll container it wraps.
+/// If the two disagree, the list paints a frame from an offset GPUI is about to
+/// reject, producing a visible jump on the next frame.
+fn scroll_max(
+    content_size: Size<Pixels>,
+    padding: Edges<Pixels>,
+    bounds_size: Size<Pixels>,
+) -> Size<Pixels> {
+    fn round_to_two_decimals(pixels: Pixels) -> Pixels {
+        const ROUNDING_FACTOR: f32 = 100.0;
+        (pixels * ROUNDING_FACTOR).round() / ROUNDING_FACTOR
+    }
+
+    let padding_size = size(padding.left + padding.right, padding.top + padding.bottom);
+    (content_size + padding_size - bounds_size)
+        .map(round_to_two_decimals)
+        .max(&Size::default())
+}
+
+fn clamp_scroll_offset(offset: Point<Pixels>, scroll_max: Size<Pixels>) -> Point<Pixels> {
+    point(
+        offset.x.clamp(-scroll_max.width, px(0.)),
+        offset.y.clamp(-scroll_max.height, px(0.)),
+    )
+}
+
+/// Resolves a [`ScrollStrategy`] to a scroll distance along the list axis.
+///
+/// All arguments are extents along that axis, in the list's content coordinate
+/// space where `0` is the start of the first item. The result is clamped into
+/// `0..=max_scroll`, so items near either end resolve to the closest legal
+/// position and different strategies may legitimately agree there.
+fn scroll_target_for_strategy(
+    item_start: Pixels,
+    item_extent: Pixels,
+    viewport_extent: Pixels,
+    max_scroll: Pixels,
+    strategy: ScrollStrategy,
+) -> Pixels {
+    let target = match strategy {
+        ScrollStrategy::Top => item_start,
+        ScrollStrategy::Center => item_start + item_extent / 2.0 - viewport_extent / 2.0,
+        ScrollStrategy::Bottom => item_start + item_extent - viewport_extent,
+    };
+    target.max(px(0.)).min(max_scroll.max(px(0.)))
+}
+
+/// Resolve against the last completed layout. Deriving the viewport from the
+/// content and maximum offset preserves the padding already encoded by GPUI.
+fn target_from_laid_out_handle(
+    handle: &gpui::ScrollHandle,
+    axis: Axis,
+    content_extent: Pixels,
+    item_start: Pixels,
+    item_extent: Pixels,
+    strategy: ScrollStrategy,
+) -> Option<Pixels> {
+    if handle.bounds().size.along(axis) <= px(0.) {
+        return None;
+    }
+
+    let content_extent = content_extent.max(px(0.));
+    let max_scroll = handle
+        .max_offset()
+        .along(axis)
+        .max(px(0.))
+        .min(content_extent);
+    let viewport_extent = (content_extent - max_scroll).max(px(0.));
+    Some(scroll_target_for_strategy(
+        item_start,
+        item_extent,
+        viewport_extent,
+        max_scroll,
+        strategy,
+    ))
+}
+
+fn set_scroll_target(handle: &gpui::ScrollHandle, axis: Axis, target: Pixels) {
+    let offset = handle.offset().apply_along(axis, |_| -target);
+    handle.set_offset(offset);
+}
 
 pub struct UniformVirtualList {
     id: ElementId,
@@ -29,6 +121,7 @@ pub struct UniformVirtualList {
     on_visible_range: Option<Box<dyn Fn(Range<usize>, &mut Window, &mut App)>>,
     near_end_threshold: Option<(f32, Rc<RefCell<bool>>, Box<dyn Fn(&mut Window, &mut App)>)>,
     physics_state: Option<PhysicsScrollState>,
+    pending_scroll: Cell<Option<PendingScroll>>,
 }
 
 impl Styled for UniformVirtualList {
@@ -66,6 +159,7 @@ impl UniformVirtualList {
             on_visible_range: None,
             near_end_threshold: None,
             physics_state: None,
+            pending_scroll: Cell::new(None),
         }
     }
 
@@ -106,37 +200,45 @@ impl UniformVirtualList {
         self
     }
 
-    pub fn scroll_to(&self, index: usize, strategy: gpui::ScrollStrategy) {
-        let index = index.min(self.item_count.saturating_sub(1));
-        let extent = self.item_extent;
-        let target_origin = extent * index as f32;
-        let mut offset = self.scroll_handle.offset();
-        match strategy {
-            gpui::ScrollStrategy::Top => {
-                if self.axis.is_vertical() {
-                    offset.y = -target_origin;
-                } else {
-                    offset.x = -target_origin;
-                }
-            }
-            gpui::ScrollStrategy::Center => {
-                if self.axis.is_vertical() {
-                    let viewport: f32 = (-self.scroll_handle.offset().y).into();
-                    let _ = viewport; // not available: need viewport size at call site; fall back to Top
-                    offset.y = -target_origin;
-                } else {
-                    offset.x = -target_origin;
-                }
-            }
-            _ => {
-                if self.axis.is_vertical() {
-                    offset.y = -target_origin;
-                } else {
-                    offset.x = -target_origin;
-                }
-            }
+    /// Scroll `index` into view according to `strategy`.
+    ///
+    /// The item is always aligned to the strategy's position, even when it is
+    /// already visible, and any in-flight animated scroll is cancelled: the
+    /// latest command wins.
+    ///
+    /// When this handle has layout metrics, its offset is updated immediately.
+    /// The request is also resolved during the next `prepaint` so first-layout
+    /// calls and viewport changes use the current frame's exact geometry.
+    pub fn scroll_to(&self, index: usize, strategy: ScrollStrategy) {
+        if let Some(physics) = self.physics_state.as_ref() {
+            physics.stop();
         }
-        self.scroll_handle.set_offset(offset);
+        self.pending_scroll
+            .set(Some(PendingScroll { index, strategy }));
+
+        if let Some(target) = self.immediate_target(index, strategy) {
+            set_scroll_target(&self.scroll_handle, self.axis, target);
+        }
+    }
+
+    /// Best-effort target from the last completed layout's metrics. Returns
+    /// `None` on the first frame for strategies that need the viewport;
+    /// `prepaint` resolves the request with exact geometry in that case.
+    fn immediate_target(&self, index: usize, strategy: ScrollStrategy) -> Option<Pixels> {
+        let index = index.min(self.item_count.saturating_sub(1));
+        let item_start = self.item_extent * index as f32;
+        target_from_laid_out_handle(
+            &self.scroll_handle,
+            self.axis,
+            self.item_extent * self.item_count as f32,
+            item_start,
+            self.item_extent,
+            strategy,
+        )
+        .or_else(|| match strategy {
+            ScrollStrategy::Top => Some(item_start),
+            ScrollStrategy::Center | ScrollStrategy::Bottom => None,
+        })
     }
 
     pub fn with_physics(mut self, state: &PhysicsScrollState) -> Self {
@@ -154,18 +256,44 @@ impl UniformVirtualList {
         self
     }
 
+    /// Scroll to `index` immediately, animating when physics is configured.
     pub fn scroll_to_animated(&self, index: usize, window: &Window) {
-        if let Some(ref physics) = self.physics_state {
-            let target =
-                self.item_extent.as_f32() * index.min(self.item_count.saturating_sub(1)) as f32;
+        // `Top` always resolves, with or without layout metrics.
+        let target = self
+            .immediate_target(index, ScrollStrategy::Top)
+            .expect("ScrollStrategy::Top always resolves");
+
+        if let Some(physics) = self.physics_state.as_ref() {
+            self.pending_scroll.set(None);
             if self.axis.is_vertical() {
-                physics.scroll_to_y_animated(target, &self.scroll_handle, window);
+                physics.scroll_to_y_animated(target.as_f32(), &self.scroll_handle, window);
             } else {
-                physics.scroll_to_x_animated(target, &self.scroll_handle, window);
+                physics.scroll_to_x_animated(target.as_f32(), &self.scroll_handle, window);
             }
         } else {
-            self.scroll_to(index, gpui::ScrollStrategy::Top);
+            self.scroll_to(index, ScrollStrategy::Top);
         }
+    }
+
+    /// Consume a pending `scroll_to` and return the offset the frame should use.
+    fn apply_pending_scroll(
+        &self,
+        offset: Point<Pixels>,
+        viewport_extent: Pixels,
+        max_scroll: Size<Pixels>,
+    ) -> Point<Pixels> {
+        let Some(pending) = self.pending_scroll.take() else {
+            return offset;
+        };
+        let index = pending.index.min(self.item_count.saturating_sub(1));
+        let target = scroll_target_for_strategy(
+            self.item_extent * index as f32,
+            self.item_extent,
+            viewport_extent,
+            max_scroll.along(self.axis),
+            pending.strategy,
+        );
+        offset.apply_along(self.axis, |_| -target)
     }
 }
 
@@ -271,9 +399,24 @@ impl Element for UniformVirtualList {
                 - point(border.right + padding.right, border.bottom + padding.bottom),
         );
 
-        let offset = self.scroll_handle.offset();
         let viewport_len = content_bounds.size.along(self.axis);
         let extent = self.item_extent;
+        let total = px(self.item_count as f32 * extent.as_f32());
+
+        let content_size = if self.axis.is_horizontal() {
+            size(total, content_bounds.size.height)
+        } else {
+            size(content_bounds.size.width, total)
+        };
+        let max_scroll = scroll_max(content_size, padding, bounds.size);
+
+        // Resolve any pending `scroll_to` and clamp before the visible range is
+        // derived, so this frame's range, this frame's item positions and the
+        // offset GPUI will settle on all agree.
+        let offset =
+            self.apply_pending_scroll(self.scroll_handle.offset(), viewport_len, max_scroll);
+        let offset = clamp_scroll_offset(offset, max_scroll);
+        self.scroll_handle.set_offset(offset);
 
         let base = -offset.along(self.axis);
         let first = if extent.as_f32() > 0.0 {
@@ -323,18 +466,7 @@ impl Element for UniformVirtualList {
             global_id,
             inspector_id,
             bounds,
-            Size {
-                width: if self.axis.is_horizontal() {
-                    px(self.item_count as f32 * extent.as_f32())
-                } else {
-                    content_bounds.size.width
-                },
-                height: if self.axis.is_vertical() {
-                    px(self.item_count as f32 * extent.as_f32())
-                } else {
-                    content_bounds.size.height
-                },
-            },
+            content_size,
             window,
             cx,
             |_style, _, hitbox, window, cx| {
@@ -547,6 +679,7 @@ pub struct VariableVirtualList<P: ItemExtentProvider> {
     on_visible_range: Option<Box<dyn Fn(Range<usize>, &mut Window, &mut App)>>,
     near_end_threshold: Option<(f32, Rc<RefCell<bool>>, Box<dyn Fn(&mut Window, &mut App)>)>,
     physics_state: Option<PhysicsScrollState>,
+    pending_scroll: Cell<Option<PendingScroll>>,
 }
 
 impl<P: ItemExtentProvider> Styled for VariableVirtualList<P> {
@@ -586,6 +719,7 @@ impl<P: ItemExtentProvider + 'static> VariableVirtualList<P> {
             on_visible_range: None,
             near_end_threshold: None,
             physics_state: None,
+            pending_scroll: Cell::new(None),
         }
     }
 
@@ -624,27 +758,48 @@ impl<P: ItemExtentProvider + 'static> VariableVirtualList<P> {
         self
     }
 
-    pub fn scroll_to(&mut self, index: usize, strategy: gpui::ScrollStrategy) {
-        let index = index.min(self.engine.item_count.saturating_sub(1));
-        let target = self.engine.item_origin(index);
-        let mut offset = self.scroll_handle.offset();
-        match strategy {
-            gpui::ScrollStrategy::Top => {
-                if self.axis.is_vertical() {
-                    offset.y = -target;
-                } else {
-                    offset.x = -target;
-                }
-            }
-            _ => {
-                if self.axis.is_vertical() {
-                    offset.y = -target;
-                } else {
-                    offset.x = -target;
-                }
-            }
+    /// Scroll `index` into view according to `strategy`.
+    ///
+    /// The item is always aligned to the strategy's position, even when it is
+    /// already visible, and any in-flight animated scroll is cancelled: the
+    /// latest command wins.
+    ///
+    /// When this handle has layout metrics, its offset is updated immediately.
+    /// The request is also resolved during the next `prepaint` so first-layout
+    /// calls and viewport changes use the current frame's exact geometry.
+    pub fn scroll_to(&mut self, index: usize, strategy: ScrollStrategy) {
+        if let Some(physics) = self.physics_state.as_ref() {
+            physics.stop();
         }
-        self.scroll_handle.set_offset(offset);
+        self.pending_scroll
+            .set(Some(PendingScroll { index, strategy }));
+
+        if let Some(target) = self.immediate_target(index, strategy) {
+            set_scroll_target(&self.scroll_handle, self.axis, target);
+        }
+    }
+
+    /// Best-effort target from the last completed layout's metrics. Returns
+    /// `None` for empty lists and, on the first frame, for strategies that
+    /// need the viewport; `prepaint` resolves those with exact geometry.
+    fn immediate_target(&mut self, index: usize, strategy: ScrollStrategy) -> Option<Pixels> {
+        if self.engine.item_count == 0 {
+            return None;
+        }
+        let index = index.min(self.engine.item_count - 1);
+        let item_start = self.engine.item_origin(index);
+        target_from_laid_out_handle(
+            &self.scroll_handle,
+            self.axis,
+            self.engine.total_extent(),
+            item_start,
+            self.engine.item_extents[index],
+            strategy,
+        )
+        .or_else(|| match strategy {
+            ScrollStrategy::Top => Some(item_start),
+            ScrollStrategy::Center | ScrollStrategy::Bottom => None,
+        })
     }
 
     pub fn with_physics(mut self, state: &PhysicsScrollState) -> Self {
@@ -662,20 +817,50 @@ impl<P: ItemExtentProvider + 'static> VariableVirtualList<P> {
         self
     }
 
+    /// Scroll to `index` immediately, animating when physics is configured.
     pub fn scroll_to_animated(&mut self, index: usize, window: &Window) {
-        if let Some(ref physics) = self.physics_state {
-            let target_px = self
-                .engine
-                .item_origin(index.min(self.engine.item_count.saturating_sub(1)));
-            let target = f32::from(target_px);
+        if self.engine.item_count == 0 {
+            return;
+        }
+        // `Top` always resolves, with or without layout metrics.
+        let target = self
+            .immediate_target(index, ScrollStrategy::Top)
+            .expect("ScrollStrategy::Top always resolves");
+
+        if let Some(physics) = self.physics_state.as_ref() {
+            self.pending_scroll.set(None);
             if self.axis.is_vertical() {
-                physics.scroll_to_y_animated(target, &self.scroll_handle, window);
+                physics.scroll_to_y_animated(target.as_f32(), &self.scroll_handle, window);
             } else {
-                physics.scroll_to_x_animated(target, &self.scroll_handle, window);
+                physics.scroll_to_x_animated(target.as_f32(), &self.scroll_handle, window);
             }
         } else {
-            self.scroll_to(index, gpui::ScrollStrategy::Top);
+            self.scroll_to(index, ScrollStrategy::Top);
         }
+    }
+
+    /// Consume a pending `scroll_to` and return the offset the frame should use.
+    fn apply_pending_scroll(
+        &mut self,
+        offset: Point<Pixels>,
+        viewport_extent: Pixels,
+        max_scroll: Size<Pixels>,
+    ) -> Point<Pixels> {
+        let Some(pending) = self.pending_scroll.take() else {
+            return offset;
+        };
+        if self.engine.item_count == 0 {
+            return offset;
+        }
+        let index = pending.index.min(self.engine.item_count - 1);
+        let target = scroll_target_for_strategy(
+            self.engine.item_origin(index),
+            self.engine.item_extents[index],
+            viewport_extent,
+            max_scroll.along(self.axis),
+            pending.strategy,
+        );
+        offset.apply_along(self.axis, |_| -target)
     }
 }
 
@@ -778,23 +963,23 @@ impl<P: ItemExtentProvider + 'static> Element for VariableVirtualList<P> {
                 - point(border.right + padding.right, border.bottom + padding.bottom),
         );
 
-        let mut offset = self.scroll_handle.offset();
         let viewport_len = content_bounds.size.along(self.axis);
-
         let total = self.engine.total_extent();
-        let min_scroll_offset = viewport_len - total;
-        if min_scroll_offset.as_f32() >= 0.0 {
-            offset.x = px(0.);
-            offset.y = px(0.);
-        }
 
-        if self.axis.is_vertical() {
-            if offset.y < min_scroll_offset {
-                offset.y = min_scroll_offset;
-            }
-        } else if offset.x < min_scroll_offset {
-            offset.x = min_scroll_offset;
-        }
+        let content_size = if self.axis.is_horizontal() {
+            size(total, content_bounds.size.height)
+        } else {
+            size(content_bounds.size.width, total)
+        };
+        let max_scroll = scroll_max(content_size, padding, bounds.size);
+
+        // Resolve any pending `scroll_to` and clamp before the visible range is
+        // derived, so this frame's range, this frame's item positions and the
+        // offset GPUI will settle on all agree.
+        let offset =
+            self.apply_pending_scroll(self.scroll_handle.offset(), viewport_len, max_scroll);
+        let offset = clamp_scroll_offset(offset, max_scroll);
+        self.scroll_handle.set_offset(offset);
 
         let start_px = -offset.along(self.axis);
         let end_px = start_px + viewport_len;
@@ -827,18 +1012,6 @@ impl<P: ItemExtentProvider + 'static> Element for VariableVirtualList<P> {
         }
 
         let items = (self.renderer)(visible.clone(), window, cx);
-
-        let content_size = if self.axis.is_horizontal() {
-            Size {
-                width: total,
-                height: content_bounds.size.height,
-            }
-        } else {
-            Size {
-                width: content_bounds.size.width,
-                height: total,
-            }
-        };
 
         self.base.interactivity().prepaint(
             global_id,
@@ -943,8 +1116,8 @@ pub fn hlist_variable<R: IntoElement + 'static, P: ItemExtentProvider + 'static>
 
 #[cfg(test)]
 mod tests {
-    use super::{ChunkedExtents, ItemExtentProvider};
-    use gpui::{px, Pixels};
+    use super::{scroll_target_for_strategy, ChunkedExtents, ItemExtentProvider};
+    use gpui::{px, Pixels, ScrollStrategy};
     use std::{cell::Cell, rc::Rc};
 
     struct CountingProvider {
@@ -978,6 +1151,57 @@ mod tests {
         assert_eq!(
             prefix.as_ref(),
             &vec![px(0.0), px(10.0), px(10.0), px(10.0)]
+        );
+    }
+
+    #[test]
+    fn strategies_resolve_to_distinct_middle_positions() {
+        let item_start = px(200.);
+        let item_extent = px(20.);
+        let viewport_extent = px(100.);
+        let max_scroll = px(300.);
+
+        assert_eq!(
+            scroll_target_for_strategy(
+                item_start,
+                item_extent,
+                viewport_extent,
+                max_scroll,
+                ScrollStrategy::Top,
+            ),
+            px(200.)
+        );
+        assert_eq!(
+            scroll_target_for_strategy(
+                item_start,
+                item_extent,
+                viewport_extent,
+                max_scroll,
+                ScrollStrategy::Center,
+            ),
+            px(160.)
+        );
+        assert_eq!(
+            scroll_target_for_strategy(
+                item_start,
+                item_extent,
+                viewport_extent,
+                max_scroll,
+                ScrollStrategy::Bottom,
+            ),
+            px(120.)
+        );
+    }
+
+    #[test]
+    fn strategy_targets_clamp_at_both_ends() {
+        assert_eq!(
+            scroll_target_for_strategy(px(0.), px(20.), px(100.), px(300.), ScrollStrategy::Bottom,),
+            px(0.)
+        );
+        assert_eq!(
+            scroll_target_for_strategy(px(380.), px(20.), px(100.), px(300.), ScrollStrategy::Top,),
+            px(300.)
         );
     }
 }
