@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Added `HttpSetup` and `try_init_with` so applications can explicitly install the built-in HTTP client, provide a user agent, or preserve GPUI's current client.
+- Added crate-owned `InitError` and `HttpInitError` types for diagnosable initialization failures without exposing the HTTP backend in public signatures.
+
+### Changed
+- `adabraka_ui::init(cx)` now leaves GPUI's application-wide HTTP client unchanged instead of replacing it.
+- The built-in client's default user agent now uses the current crate version.
+
+### Migration Notes
+- Applications that relied on `adabraka_ui::init(cx)` to install the built-in client must use `try_init_with(cx, HttpSetup::Default)` or call `init_http(cx)` explicitly.
+- Use `try_init_with(cx, HttpSetup::UserAgent(...))` for a custom user agent. A second explicit root initialization now returns `InitError::AlreadyInitialized` instead of silently ignoring the requested policy.
+
 ## 0.7.0 - 2026-07-22
 
 ### Changed

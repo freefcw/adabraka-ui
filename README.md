@@ -165,6 +165,39 @@ impl Render for MyApp {
 }
 ```
 
+## HTTP Initialization
+
+`adabraka_ui::init(cx)` initializes the UI library without changing GPUI's application-wide HTTP client. This is the safe default for applications that already configure networking, proxies, authentication, or certificates.
+
+With the default `http` feature, opt into the built-in client when remote images need it. Its user agent is generated from the crate version, for example `adabraka-ui/0.7.0`:
+
+```rust
+adabraka_ui::try_init_with(
+    cx,
+    adabraka_ui::HttpSetup::Default,
+).expect("adabraka-ui initialization should succeed");
+```
+
+A caller can supply its own user agent instead:
+
+```rust
+adabraka_ui::try_init_with(
+    cx,
+    adabraka_ui::HttpSetup::UserAgent(
+        concat!("my-app/", env!("CARGO_PKG_VERSION")).into(),
+    ),
+).expect("HTTP client initialization should succeed");
+```
+
+An application that has already installed its own HTTP client can use the regular initializer:
+
+```rust
+cx.set_http_client(app_http_client);
+adabraka_ui::init(cx);
+```
+
+For an explicit fallible path, pass `HttpSetup::PreserveExisting` to `try_init_with` instead. Root initialization entry points are alternatives: `init` is idempotent, while `try_init_with` returns `InitError::AlreadyInitialized` if an earlier root initialization would cause its HTTP policy to be ignored. The compatibility helpers `init_http` and `init_http_with_user_agent` explicitly replace the current client and report construction failures to standard error; their `try_*` counterparts return `HttpInitError`.
+
 ## 🎨 Component Customization with Styled Trait
 
 **All 54 components implement the `Styled` trait**, giving you complete control over styling!

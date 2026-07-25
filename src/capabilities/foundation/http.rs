@@ -3,7 +3,55 @@ use futures::{future::BoxFuture, AsyncReadExt, FutureExt};
 #[cfg(feature = "http")]
 use gpui::http_client::{AsyncBody, HttpClient, Request, Response};
 #[cfg(feature = "http")]
-use std::sync::Arc;
+use std::{fmt, sync::Arc};
+
+/// User agent used by the built-in HTTP client.
+pub const DEFAULT_USER_AGENT: &str = concat!("adabraka-ui/", env!("CARGO_PKG_VERSION"));
+
+/// Controls how root initialization handles GPUI's application-wide HTTP client.
+#[cfg(feature = "http")]
+#[derive(Clone, Debug, Default, Eq, PartialEq)]
+pub enum HttpSetup {
+    /// Install the built-in client with [`DEFAULT_USER_AGENT`].
+    #[default]
+    Default,
+    /// Install the built-in client with the supplied user agent.
+    UserAgent(String),
+    /// Leave GPUI's current HTTP client unchanged.
+    PreserveExisting,
+}
+
+/// Error returned when the built-in HTTP client cannot be constructed.
+#[cfg(feature = "http")]
+#[derive(Debug)]
+pub struct HttpInitError {
+    source: reqwest::Error,
+}
+
+#[cfg(feature = "http")]
+impl fmt::Display for HttpInitError {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            formatter,
+            "failed to initialize HTTP client: {}",
+            self.source
+        )
+    }
+}
+
+#[cfg(feature = "http")]
+impl std::error::Error for HttpInitError {
+    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+        Some(&self.source)
+    }
+}
+
+#[cfg(feature = "http")]
+impl From<reqwest::Error> for HttpInitError {
+    fn from(source: reqwest::Error) -> Self {
+        Self { source }
+    }
+}
 
 #[cfg(feature = "http")]
 pub struct SimpleHttpClient {
@@ -13,10 +61,11 @@ pub struct SimpleHttpClient {
 
 #[cfg(feature = "http")]
 impl SimpleHttpClient {
-    pub fn new(user_agent: &str) -> Result<Arc<Self>, reqwest::Error> {
+    pub fn new(user_agent: &str) -> Result<Arc<Self>, HttpInitError> {
         let client = reqwest::blocking::Client::builder()
             .user_agent(user_agent)
-            .build()?;
+            .build()
+            .map_err(HttpInitError::from)?;
 
         let user_agent_header = gpui::http_client::http::HeaderValue::from_str(user_agent)
             .unwrap_or_else(|_| gpui::http_client::http::HeaderValue::from_static("adabraka-ui"));
@@ -27,8 +76,8 @@ impl SimpleHttpClient {
         }))
     }
 
-    pub fn with_default_user_agent() -> Result<Arc<Self>, reqwest::Error> {
-        Self::new("adabraka-ui/0.2.3")
+    pub fn with_default_user_agent() -> Result<Arc<Self>, HttpInitError> {
+        Self::new(DEFAULT_USER_AGENT)
     }
 }
 
@@ -116,25 +165,54 @@ impl HttpClient for SimpleHttpClient {
     }
 }
 
+#[cfg(feature = "http")]
+pub(crate) fn try_init_http_with_setup(
+    cx: &mut gpui::App,
+    setup: HttpSetup,
+) -> Result<(), HttpInitError> {
+    let client = match setup {
+        HttpSetup::Default => SimpleHttpClient::with_default_user_agent()?,
+        HttpSetup::UserAgent(user_agent) => SimpleHttpClient::new(&user_agent)?,
+        HttpSetup::PreserveExisting => return Ok(()),
+    };
+
+    cx.set_http_client(client);
+    Ok(())
+}
+
+#[cfg(feature = "http")]
+/// Install the built-in HTTP client with [`DEFAULT_USER_AGENT`].
+pub fn try_init_http(cx: &mut gpui::App) -> Result<(), HttpInitError> {
+    try_init_http_with_setup(cx, HttpSetup::Default)
+}
+
+#[cfg(feature = "http")]
+/// Install the built-in HTTP client with a caller-supplied user agent.
+pub fn try_init_http_with_user_agent(
+    cx: &mut gpui::App,
+    user_agent: &str,
+) -> Result<(), HttpInitError> {
+    try_init_http_with_setup(cx, HttpSetup::UserAgent(user_agent.into()))
+}
+
+#[cfg(feature = "http")]
+fn report_initialization_error(error: &HttpInitError) {
+    eprintln!("adabraka-ui: {error}");
+}
+
 pub fn init_http(cx: &mut gpui::App) {
     #[cfg(feature = "http")]
-    {
-        if let Ok(client) = SimpleHttpClient::with_default_user_agent() {
-            cx.set_http_client(client);
-        }
+    if let Err(error) = try_init_http(cx) {
+        report_initialization_error(&error);
     }
     #[cfg(not(feature = "http"))]
-    {
-        let _ = cx;
-    }
+    let _ = cx;
 }
 
 pub fn init_http_with_user_agent(cx: &mut gpui::App, user_agent: &str) {
     #[cfg(feature = "http")]
-    {
-        if let Ok(client) = SimpleHttpClient::new(user_agent) {
-            cx.set_http_client(client);
-        }
+    if let Err(error) = try_init_http_with_user_agent(cx, user_agent) {
+        report_initialization_error(&error);
     }
     #[cfg(not(feature = "http"))]
     {

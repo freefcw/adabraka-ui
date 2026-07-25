@@ -18,6 +18,31 @@ fn legacy_root_modules_and_functions_remain_public() {
     let _ = std::any::type_name::<prelude::Button>();
 }
 
+#[cfg(feature = "http")]
+#[test]
+fn explicit_http_initialization_api_is_public() {
+    #[allow(unused_imports)]
+    use adabraka_ui::prelude::{
+        try_init_http, try_init_http_with_user_agent, HttpInitError, HttpSetup, InitError,
+        DEFAULT_USER_AGENT,
+    };
+    use std::sync::Arc;
+
+    let try_init: fn(&mut gpui::App, HttpSetup) -> Result<(), InitError> =
+        adabraka_ui::try_init_with;
+    let new_client: fn(&str) -> Result<Arc<adabraka_ui::http::SimpleHttpClient>, HttpInitError> =
+        adabraka_ui::http::SimpleHttpClient::new;
+    let _ = try_init;
+    let _ = new_client;
+    let _ = std::any::type_name_of_val(&try_init_http);
+    let _ = std::any::type_name_of_val(&try_init_http_with_user_agent);
+    let _ = std::any::type_name::<HttpInitError>();
+    assert_eq!(
+        DEFAULT_USER_AGENT,
+        concat!("adabraka-ui/", env!("CARGO_PKG_VERSION"))
+    );
+}
+
 #[test]
 fn every_legacy_component_module_remains_public() {
     #[allow(unused_imports)]

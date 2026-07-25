@@ -242,4 +242,8 @@ pub use crate::components::waveform::Waveform;
 
 pub use crate::charts::treemap::{TreeMap, TreeMapNode};
 
-pub use crate::http::{init_http, init_http_with_user_agent};
+pub use crate::http::{init_http, init_http_with_user_agent, DEFAULT_USER_AGENT};
+#[cfg(feature = "http")]
+pub use crate::http::{try_init_http, try_init_http_with_user_agent, HttpInitError, HttpSetup};
+#[cfg(feature = "http")]
+pub use crate::InitError;

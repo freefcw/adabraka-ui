@@ -96,18 +96,48 @@ pub mod http;
 pub use icon_config::set_icon_base_path;
 
 // Re-export HTTP client functions
-pub use http::{init_http, init_http_with_user_agent};
+pub use http::{init_http, init_http_with_user_agent, DEFAULT_USER_AGENT};
+#[cfg(feature = "http")]
+pub use http::{try_init_http, try_init_http_with_user_agent, HttpInitError, HttpSetup};
 
-/// Initialize the UI library
-///
-/// This registers all necessary keybindings and initializes component systems.
-/// Registers custom fonts for the component library.
-/// Also initializes HTTP client for remote image loading.
-pub fn init(cx: &mut gpui::App) {
-    if !capabilities::foundation::initialization::begin(cx, "adabraka-ui") {
-        return;
+/// Error returned by explicit root initialization.
+#[cfg(feature = "http")]
+#[derive(Debug)]
+pub enum InitError {
+    /// A root initializer has already completed for this application.
+    AlreadyInitialized,
+    /// The requested built-in HTTP client could not be constructed.
+    Http(HttpInitError),
+}
+
+#[cfg(feature = "http")]
+impl std::fmt::Display for InitError {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::AlreadyInitialized => formatter.write_str("adabraka-ui is already initialized"),
+            Self::Http(error) => write!(formatter, "{error}"),
+        }
     }
+}
 
+#[cfg(feature = "http")]
+impl std::error::Error for InitError {
+    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+        match self {
+            Self::AlreadyInitialized => None,
+            Self::Http(error) => Some(error),
+        }
+    }
+}
+
+#[cfg(feature = "http")]
+impl From<HttpInitError> for InitError {
+    fn from(error: HttpInitError) -> Self {
+        Self::Http(error)
+    }
+}
+
+fn init_capabilities(cx: &mut gpui::App) {
     capabilities::foundation::init(cx);
 
     // GPUI resolves same-depth keybinding conflicts in reverse registration order.
@@ -120,4 +150,36 @@ pub fn init(cx: &mut gpui::App) {
     capabilities::editor::init(cx);
     capabilities::navigation::init(cx);
     capabilities::overlays::init(cx);
+}
+
+/// Initialize the UI library without changing GPUI's HTTP client.
+///
+/// This registers all necessary keybindings, fonts, and component systems. Use
+/// [`try_init_with`] when the built-in HTTP client is required for remote images.
+pub fn init(cx: &mut gpui::App) {
+    if !capabilities::foundation::initialization::begin(cx, "adabraka-ui") {
+        return;
+    }
+
+    init_capabilities(cx);
+}
+
+/// Initialize the UI library with an explicit HTTP-client policy.
+///
+/// Unlike [`init`], this reports an error when root initialization has already
+/// completed, so a requested HTTP policy is never silently ignored.
+#[cfg(feature = "http")]
+pub fn try_init_with(cx: &mut gpui::App, http: HttpSetup) -> Result<(), InitError> {
+    if capabilities::foundation::initialization::is_initialized(cx, "adabraka-ui") {
+        return Err(InitError::AlreadyInitialized);
+    }
+
+    http::try_init_http_with_setup(cx, http)?;
+
+    if !capabilities::foundation::initialization::begin(cx, "adabraka-ui") {
+        return Err(InitError::AlreadyInitialized);
+    }
+
+    init_capabilities(cx);
+    Ok(())
 }

@@ -10,5 +10,4 @@ pub mod util;
 
 pub(crate) fn init(cx: &mut gpui::App) {
     fonts::register_fonts(cx);
-    http::init_http(cx);
 }
