@@ -2,7 +2,7 @@ use crate::capabilities::foundation::theme::use_theme;
 use crate::capabilities::primitives::icon::Icon;
 use crate::capabilities::primitives::spinner::{Spinner, SpinnerSize, SpinnerVariant};
 use gpui::{prelude::FluentBuilder as _, *};
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::rc::Rc;
 
 #[derive(Clone, Debug)]
@@ -203,7 +203,7 @@ impl FileTypeFilter {
         Self::new(vec![], "All files")
     }
 
-    fn matches(&self, path: &PathBuf) -> bool {
+    fn matches(&self, path: &Path) -> bool {
         if self.extensions.is_empty() {
             return true;
         }
@@ -217,6 +217,127 @@ impl FileTypeFilter {
             })
             .unwrap_or(false)
     }
+}
+
+type FilesChangedCallback = Rc<dyn Fn(&[SelectedFile], &mut Window, &mut App)>;
+type ErrorCallback = Rc<dyn Fn(&FileUploadError, &mut Window, &mut App)>;
+
+#[derive(Clone)]
+struct FileSelectionHandler {
+    state: Entity<FileUploadState>,
+    max_file_size: Option<u64>,
+    file_types: Option<FileTypeFilter>,
+    on_files_changed: Option<FilesChangedCallback>,
+    on_error: Option<ErrorCallback>,
+}
+
+#[derive(Default)]
+struct FileSelectionOutcome {
+    accepted: Vec<SelectedFile>,
+    rejected: Vec<FileUploadError>,
+}
+
+impl FileSelectionOutcome {
+    fn from_paths(
+        paths: Vec<PathBuf>,
+        file_types: Option<&FileTypeFilter>,
+        max_file_size: Option<u64>,
+    ) -> Self {
+        let mut outcome = Self::default();
+
+        for path in paths {
+            match validate_file(path, file_types, max_file_size) {
+                Ok(file) => outcome.accepted.push(file),
+                Err(error) => outcome.rejected.push(error),
+            }
+        }
+
+        outcome
+    }
+}
+
+impl FileSelectionHandler {
+    fn add_paths(&self, paths: Vec<PathBuf>, window: &mut Window, cx: &mut App) {
+        let outcome =
+            FileSelectionOutcome::from_paths(paths, self.file_types.as_ref(), self.max_file_size);
+        if outcome.accepted.is_empty() && outcome.rejected.is_empty() {
+            return;
+        }
+
+        let files_changed = !outcome.accepted.is_empty();
+        let reported_errors = outcome.rejected.clone();
+        let committed_files = self.state.update(cx, |state, state_cx| {
+            state.files.extend(outcome.accepted);
+            state.errors.extend(outcome.rejected);
+            state_cx.notify();
+
+            files_changed.then(|| state.files.clone())
+        });
+
+        if let Some(handler) = &self.on_error {
+            for error in &reported_errors {
+                handler(error, window, cx);
+            }
+        }
+
+        if let (Some(handler), Some(files)) = (&self.on_files_changed, committed_files) {
+            handler(&files, window, cx);
+        }
+    }
+
+    fn remove_file(&self, index: usize, window: &mut Window, cx: &mut App) {
+        let committed_files = self.state.update(cx, |state, state_cx| {
+            if index >= state.files.len() {
+                return None;
+            }
+
+            state.remove_file(index);
+            state_cx.notify();
+            Some(state.files.clone())
+        });
+
+        if let (Some(handler), Some(files)) = (&self.on_files_changed, committed_files) {
+            handler(&files, window, cx);
+        }
+    }
+}
+
+fn validate_file(
+    path: PathBuf,
+    file_types: Option<&FileTypeFilter>,
+    max_file_size: Option<u64>,
+) -> Result<SelectedFile, FileUploadError> {
+    let file_name = path
+        .file_name()
+        .map(|name| name.to_string_lossy().to_string())
+        .unwrap_or_default();
+
+    if let Some(filter) = file_types {
+        if !filter.matches(&path) {
+            return Err(FileUploadError {
+                file_name,
+                message: format!(
+                    "File type not allowed. Accepted: {}",
+                    filter.extensions.join(", ")
+                ),
+            });
+        }
+    }
+
+    if let Some(max_size) = max_file_size {
+        let file_size = std::fs::metadata(&path)
+            .map(|metadata| metadata.len())
+            .unwrap_or(0);
+        if file_size > max_size {
+            let max_mb = max_size as f64 / (1024.0 * 1024.0);
+            return Err(FileUploadError {
+                file_name,
+                message: format!("File exceeds maximum size of {:.1} MB", max_mb),
+            });
+        }
+    }
+
+    Ok(SelectedFile::new(path))
 }
 
 #[derive(IntoElement)]
@@ -233,8 +354,8 @@ pub struct FileUpload {
     show_previews: bool,
     placeholder_text: Option<SharedString>,
     placeholder_icon: Option<SharedString>,
-    on_files_changed: Option<Rc<dyn Fn(&[SelectedFile], &mut Window, &mut App)>>,
-    on_error: Option<Rc<dyn Fn(&FileUploadError, &mut Window, &mut App)>>,
+    on_files_changed: Option<FilesChangedCallback>,
+    on_error: Option<ErrorCallback>,
     style: StyleRefinement,
 }
 
@@ -334,27 +455,14 @@ impl FileUpload {
         self
     }
 
-    fn _validate_file(&self, path: &PathBuf) -> Result<(), String> {
-        if let Some(ref filter) = self.file_types {
-            if !filter.matches(path) {
-                let allowed = if filter.extensions.is_empty() {
-                    "all files".to_string()
-                } else {
-                    filter.extensions.join(", ")
-                };
-                return Err(format!("File type not allowed. Accepted: {}", allowed));
-            }
+    fn selection_handler(&self) -> FileSelectionHandler {
+        FileSelectionHandler {
+            state: self.state.clone(),
+            max_file_size: self.max_file_size,
+            file_types: self.file_types.clone(),
+            on_files_changed: self.on_files_changed.clone(),
+            on_error: self.on_error.clone(),
         }
-
-        if let Some(max_size) = self.max_file_size {
-            let file_size = std::fs::metadata(path).map(|m| m.len()).unwrap_or(0);
-            if file_size > max_size {
-                let max_mb = max_size as f64 / (1024.0 * 1024.0);
-                return Err(format!("File exceeds maximum size of {:.1} MB", max_mb));
-            }
-        }
-
-        Ok(())
     }
 }
 
@@ -366,6 +474,7 @@ impl Styled for FileUpload {
 
 impl RenderOnce for FileUpload {
     fn render(self, _window: &mut Window, cx: &mut App) -> impl IntoElement {
+        let selection_handler = self.selection_handler();
         let theme = use_theme(cx);
         let state = self.state.read(cx);
         let is_dragging = state.is_dragging;
@@ -401,12 +510,9 @@ impl RenderOnce for FileUpload {
             .placeholder_icon
             .unwrap_or_else(|| "cloud-upload".into());
 
-        let state_entity = self.state.clone();
         let multiple = self.multiple;
         let max_file_size = self.max_file_size;
         let file_types = self.file_types.clone();
-        let on_files_changed = self.on_files_changed.clone();
-        let _on_error = self.on_error.clone();
 
         let show_file_list = self.show_file_list;
         let show_previews = self.show_previews;
@@ -521,9 +627,7 @@ impl RenderOnce for FileUpload {
                         )
                     })
                     .on_click({
-                        let state_entity = state_entity.clone();
-                        let file_types = file_types.clone();
-                        let max_file_size = max_file_size;
+                        let selection_handler = selection_handler.clone();
                         move |_, window, cx| {
                             if disabled {
                                 return;
@@ -536,72 +640,14 @@ impl RenderOnce for FileUpload {
                                 prompt: Some("Select files".into()),
                             });
 
-                            let state_entity = state_entity.clone();
-                            let file_types = file_types.clone();
-
+                            let selection_handler = selection_handler.clone();
                             window
                                 .spawn(cx, async move |cx| {
                                     if let Ok(Ok(Some(paths))) = receiver.await {
-                                        for path in paths {
-                                            let file_name = path
-                                                .file_name()
-                                                .map(|n| n.to_string_lossy().to_string())
-                                                .unwrap_or_default();
-
-                                            if let Some(ref filter) = file_types {
-                                                if !filter.matches(&path) {
-                                                    let error = FileUploadError {
-                                                        file_name: file_name.clone(),
-                                                        message: format!(
-                                                            "File type not allowed. Accepted: {}",
-                                                            filter.extensions.join(", ")
-                                                        ),
-                                                    };
-                                                    let state_entity = state_entity.clone();
-                                                    cx.update(|_, cx| {
-                                                        state_entity.update(cx, |state, _| {
-                                                            state.add_error(error);
-                                                        });
-                                                    })
-                                                    .ok();
-                                                    continue;
-                                                }
-                                            }
-
-                                            if let Some(max_size) = max_file_size {
-                                                let file_size = std::fs::metadata(&path)
-                                                    .map(|m| m.len())
-                                                    .unwrap_or(0);
-                                                if file_size > max_size {
-                                                    let max_mb =
-                                                        max_size as f64 / (1024.0 * 1024.0);
-                                                    let error = FileUploadError {
-                                                        file_name: file_name.clone(),
-                                                        message: format!(
-                                                            "File exceeds maximum size of {:.1} MB",
-                                                            max_mb
-                                                        ),
-                                                    };
-                                                    let state_entity = state_entity.clone();
-                                                    cx.update(|_, cx| {
-                                                        state_entity.update(cx, |state, _| {
-                                                            state.add_error(error);
-                                                        });
-                                                    })
-                                                    .ok();
-                                                    continue;
-                                                }
-                                            }
-
-                                            let selected_file = SelectedFile::new(path);
-                                            let state_entity = state_entity.clone();
-                                            cx.update(|_, cx| {
-                                                state_entity.update(cx, |state, _| {
-                                                    state.add_file(selected_file);
-                                                });
-                                            })
-                                            .ok();
-                                        }
+                                        cx.update(|window, cx| {
+                                            selection_handler.add_paths(paths, window, cx);
+                                        })
+                                        .ok();
                                     }
                                 })
                                 .detach();
@@ -653,13 +699,11 @@ impl RenderOnce for FileUpload {
                 )
             })
             .when(show_file_list && has_files, |this| {
-                let state_entity = state_entity.clone();
-                let on_files_changed = on_files_changed.clone();
+                let selection_handler = selection_handler.clone();
 
                 this.child(div().flex().flex_col().gap(px(8.0)).children(
                     files.iter().enumerate().map(|(index, file)| {
-                        let state_entity = state_entity.clone();
-                        let on_files_changed = on_files_changed.clone();
+                        let selection_handler = selection_handler.clone();
                         let file_name = file.name.clone();
                         let file_size = file.formatted_size();
                         let is_image = file.is_image;
@@ -756,18 +800,240 @@ impl RenderOnce for FileUpload {
                                                 .color(theme.tokens.muted_foreground),
                                         )
                                         .on_click(move |_, window, cx| {
-                                            state_entity.update(cx, |state, _| {
-                                                state.remove_file(index);
-                                            });
-                                            if let Some(ref handler) = on_files_changed {
-                                                let files = state_entity.read(cx).files.clone();
-                                                handler(&files, window, cx);
-                                            }
+                                            selection_handler.remove_file(index, window, cx);
                                         }),
                                 )
                             })
                     }),
                 ))
             })
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::capabilities::foundation::theme::{install_theme, Theme};
+    use std::{cell::RefCell, rc::Rc};
+
+    struct EmptyTestView;
+
+    impl Render for EmptyTestView {
+        fn render(&mut self, _window: &mut Window, _cx: &mut Context<Self>) -> impl IntoElement {
+            div()
+        }
+    }
+
+    struct FileUploadRenderTestView {
+        state: Entity<FileUploadState>,
+        render_count: Rc<RefCell<usize>>,
+    }
+
+    impl Render for FileUploadRenderTestView {
+        fn render(&mut self, _window: &mut Window, _cx: &mut Context<Self>) -> impl IntoElement {
+            *self.render_count.borrow_mut() += 1;
+            FileUpload::new("file-upload-test", self.state.clone())
+        }
+    }
+
+    fn test_path(name: &str) -> PathBuf {
+        std::env::temp_dir().join(name)
+    }
+
+    fn file_names(files: &[SelectedFile]) -> Vec<String> {
+        files.iter().map(|file| file.name.clone()).collect()
+    }
+
+    #[gpui::test]
+    fn accepted_selection_notifies_once_with_the_committed_collection() {
+        let mut app = TestApp::new();
+        let state = app.update(|cx| cx.new(|_| FileUploadState::new()));
+        let changed_snapshots = Rc::new(RefCell::new(Vec::new()));
+        let state_for_callback = state.clone();
+        let snapshots_for_callback = changed_snapshots.clone();
+        let upload =
+            FileUpload::new("upload", state.clone()).on_files_changed(move |files, _, cx| {
+                let callback_names = file_names(files);
+                assert_eq!(
+                    callback_names,
+                    file_names(&state_for_callback.read(cx).files)
+                );
+                snapshots_for_callback.borrow_mut().push(callback_names);
+            });
+        let selection_handler = upload.selection_handler();
+        let mut window = app.open_window(|_, _| EmptyTestView);
+
+        window.update(|_, window, cx| {
+            selection_handler.add_paths(
+                vec![test_path("first.txt"), test_path("second.txt")],
+                window,
+                cx,
+            );
+        });
+
+        assert_eq!(
+            changed_snapshots.borrow().as_slice(),
+            &[vec!["first.txt".to_string(), "second.txt".to_string()]]
+        );
+        assert_eq!(
+            window.read(|_, cx| file_names(&state.read(cx).files)),
+            vec!["first.txt", "second.txt"]
+        );
+    }
+
+    #[gpui::test]
+    fn mixed_selection_reports_errors_and_notifies_one_final_collection() {
+        let mut app = TestApp::new();
+        let state = app.update(|cx| cx.new(|_| FileUploadState::new()));
+        let changed_snapshots = Rc::new(RefCell::new(Vec::new()));
+        let reported_errors = Rc::new(RefCell::new(Vec::new()));
+        let callback_order = Rc::new(RefCell::new(Vec::new()));
+        let snapshots_for_callback = changed_snapshots.clone();
+        let errors_for_callback = reported_errors.clone();
+        let order_for_change = callback_order.clone();
+        let order_for_error = callback_order.clone();
+        let state_for_error = state.clone();
+        let upload = FileUpload::new("upload", state.clone())
+            .file_types(FileTypeFilter::new(vec!["txt"], "Text"))
+            .on_files_changed(move |files, _, _| {
+                snapshots_for_callback.borrow_mut().push(file_names(files));
+                order_for_change.borrow_mut().push("changed".to_string());
+            })
+            .on_error(move |error, _, cx| {
+                assert_eq!(state_for_error.read(cx).files.len(), 2);
+                assert_eq!(state_for_error.read(cx).errors.len(), 2);
+                errors_for_callback
+                    .borrow_mut()
+                    .push(error.file_name.clone());
+                order_for_error
+                    .borrow_mut()
+                    .push(format!("error:{}", error.file_name));
+            });
+        let selection_handler = upload.selection_handler();
+        let mut window = app.open_window(|_, _| EmptyTestView);
+
+        window.update(|_, window, cx| {
+            selection_handler.add_paths(
+                vec![
+                    test_path("accepted.txt"),
+                    test_path("rejected.png"),
+                    test_path("also-accepted.txt"),
+                    test_path("also-rejected.pdf"),
+                ],
+                window,
+                cx,
+            );
+        });
+
+        assert_eq!(
+            reported_errors.borrow().as_slice(),
+            &["rejected.png", "also-rejected.pdf"]
+        );
+        assert_eq!(
+            changed_snapshots.borrow().as_slice(),
+            &[vec![
+                "accepted.txt".to_string(),
+                "also-accepted.txt".to_string(),
+            ]]
+        );
+        assert_eq!(
+            callback_order.borrow().as_slice(),
+            &["error:rejected.png", "error:also-rejected.pdf", "changed",]
+        );
+        assert_eq!(window.read(|_, cx| state.read(cx).errors.len()), 2);
+    }
+
+    #[gpui::test]
+    fn rejected_selection_does_not_report_a_collection_change() {
+        let mut app = TestApp::new();
+        let state = app.update(|cx| cx.new(|_| FileUploadState::new()));
+        let changed_calls = Rc::new(RefCell::new(0));
+        let error_calls = Rc::new(RefCell::new(0));
+        let changed_calls_for_callback = changed_calls.clone();
+        let error_calls_for_callback = error_calls.clone();
+        let upload = FileUpload::new("upload", state.clone())
+            .max_file_size(1)
+            .on_files_changed(move |_, _, _| {
+                *changed_calls_for_callback.borrow_mut() += 1;
+            })
+            .on_error(move |_, _, _| {
+                *error_calls_for_callback.borrow_mut() += 1;
+            });
+        let selection_handler = upload.selection_handler();
+        let manifest_path = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("Cargo.toml");
+        let mut window = app.open_window(|_, _| EmptyTestView);
+
+        window.update(|_, window, cx| {
+            selection_handler.add_paths(vec![manifest_path], window, cx);
+        });
+
+        assert_eq!(*changed_calls.borrow(), 0);
+        assert_eq!(*error_calls.borrow(), 1);
+        assert!(window.read(|_, cx| state.read(cx).files.is_empty()));
+        assert_eq!(window.read(|_, cx| state.read(cx).errors.len()), 1);
+    }
+
+    #[gpui::test]
+    fn removing_a_file_notifies_with_the_remaining_collection() {
+        let mut app = TestApp::new();
+        let state = app.update(|cx| {
+            cx.new(|_| {
+                let mut state = FileUploadState::new();
+                state.add_file(SelectedFile::new(test_path("first.txt")));
+                state.add_file(SelectedFile::new(test_path("second.txt")));
+                state
+            })
+        });
+        let changed_snapshots = Rc::new(RefCell::new(Vec::new()));
+        let snapshots_for_callback = changed_snapshots.clone();
+        let state_for_callback = state.clone();
+        let upload =
+            FileUpload::new("upload", state.clone()).on_files_changed(move |files, _, cx| {
+                assert_eq!(
+                    file_names(files),
+                    file_names(&state_for_callback.read(cx).files)
+                );
+                snapshots_for_callback.borrow_mut().push(file_names(files));
+            });
+        let selection_handler = upload.selection_handler();
+        let mut window = app.open_window(|_, _| EmptyTestView);
+
+        window.update(|_, window, cx| {
+            selection_handler.remove_file(0, window, cx);
+        });
+
+        assert_eq!(
+            changed_snapshots.borrow().as_slice(),
+            &[vec!["second.txt".to_string()]]
+        );
+        assert_eq!(
+            window.read(|_, cx| file_names(&state.read(cx).files)),
+            vec!["second.txt"]
+        );
+    }
+
+    #[gpui::test]
+    fn selecting_a_file_invalidates_the_rendered_component() {
+        let mut app = TestApp::new();
+        app.update(|cx| install_theme(cx, Theme::light()));
+        let render_count = Rc::new(RefCell::new(0));
+        let mut window = app.open_window(|_, cx| FileUploadRenderTestView {
+            state: cx.new(|_| FileUploadState::new()),
+            render_count: render_count.clone(),
+        });
+        window.draw();
+        let initial_render_count = *render_count.borrow();
+
+        window.update(|view, window, cx| {
+            FileUpload::new("selection-handler", view.state.clone())
+                .selection_handler()
+                .add_paths(vec![test_path("selected.txt")], window, cx);
+        });
+        window.draw();
+
+        assert!(
+            *render_count.borrow() > initial_render_count,
+            "selecting a file should invalidate the rendered component"
+        );
     }
 }
