@@ -1,13 +1,8 @@
+use crate::capabilities::data::pie_geometry::{
+    color_at_angle, positive_finite_total, render_legend, segment_geometry,
+};
 use crate::capabilities::foundation::theme::use_theme;
 use gpui::{prelude::FluentBuilder as _, *};
-
-const CHART_COLORS: [u32; 8] = [
-    0x3b82f6, 0x22c55e, 0xf59e0b, 0xef4444, 0x8b5cf6, 0x06b6d4, 0xf97316, 0xec4899,
-];
-
-fn default_color(index: usize) -> Hsla {
-    rgb(CHART_COLORS[index % CHART_COLORS.len()]).into()
-}
 
 fn pixels_to_f32(p: Pixels) -> f32 {
     p / px(1.0)
@@ -152,7 +147,7 @@ impl RenderOnce for PieChart {
         let show_percentages = self.show_percentages;
         let user_style = self.style;
 
-        let total: f64 = self.segments.iter().map(|s| s.value).sum();
+        let total = positive_finite_total(&self.segments);
 
         let chart = if total == 0.0 || self.segments.is_empty() {
             render_empty_chart(chart_size, cx)
@@ -169,7 +164,12 @@ impl RenderOnce for PieChart {
         };
 
         let legend = if show_legend {
-            Some(render_legend(&self.segments, total, show_percentages, cx))
+            Some(render_legend(
+                &self.segments,
+                total,
+                show_percentages,
+                &use_theme(cx),
+            ))
         } else {
             None
         };
@@ -207,24 +207,12 @@ fn render_pie_chart(
         0.0
     };
 
-    let mut segment_data: Vec<(f32, f32, Hsla)> = Vec::new();
-    let mut current_angle: f32 = -std::f32::consts::FRAC_PI_2;
-
-    for (idx, segment) in segments.iter().enumerate() {
-        if segment.value <= 0.0 {
-            continue;
-        }
-        let fraction = (segment.value / total) as f32;
-        let sweep_angle = fraction * std::f32::consts::TAU;
-        let color = segment.color.unwrap_or_else(|| default_color(idx));
-        segment_data.push((current_angle, sweep_angle, color));
-        current_angle += sweep_angle;
-    }
+    let segment_data = segment_geometry(segments, total);
 
     if segment_data.len() == 1 {
         return render_single_segment(
             chart_size,
-            segment_data[0].2,
+            segment_data[0].color,
             inner_radius,
             variant,
             center_label,
@@ -249,7 +237,7 @@ fn render_pie_chart(
         for i in 0..dots_in_ring {
             let angle = -std::f32::consts::FRAC_PI_2
                 + (i as f32 / dots_in_ring as f32) * std::f32::consts::TAU;
-            let color = get_color_at_angle(angle, &segment_data);
+            let color = color_at_angle(angle, &segment_data);
             let x = center + ring_radius * angle.cos() - 2.0;
             let y = center + ring_radius * angle.sin() - 2.0;
 
@@ -293,26 +281,6 @@ fn render_pie_chart(
     }
 
     container
-}
-
-fn get_color_at_angle(angle: f32, segment_data: &[(f32, f32, Hsla)]) -> Hsla {
-    let normalized_angle = if angle < -std::f32::consts::FRAC_PI_2 {
-        angle + std::f32::consts::TAU
-    } else {
-        angle
-    };
-
-    for &(start_angle, sweep_angle, color) in segment_data {
-        let end_angle = start_angle + sweep_angle;
-        if normalized_angle >= start_angle && normalized_angle < end_angle {
-            return color;
-        }
-    }
-
-    segment_data
-        .last()
-        .map(|&(_, _, c)| c)
-        .unwrap_or(hsla(0.0, 0.0, 0.5, 1.0))
 }
 
 fn render_single_segment(
@@ -379,60 +347,4 @@ fn render_empty_chart(chart_size: Pixels, cx: &App) -> Div {
                 .text_color(theme.tokens.muted_foreground)
                 .child("No data"),
         )
-}
-
-fn render_legend(
-    segments: &[PieChartSegment],
-    total: f64,
-    show_percentages: bool,
-    cx: &App,
-) -> Div {
-    let theme = use_theme(cx);
-
-    div()
-        .flex()
-        .flex_col()
-        .gap(px(8.0))
-        .children(segments.iter().enumerate().filter_map(|(idx, segment)| {
-            if segment.value <= 0.0 {
-                return None;
-            }
-
-            let color = segment.color.unwrap_or_else(|| default_color(idx));
-            let percentage = if total > 0.0 {
-                (segment.value / total * 100.0) as u32
-            } else {
-                0
-            };
-
-            Some(
-                div()
-                    .flex()
-                    .items_center()
-                    .gap(px(8.0))
-                    .child(div().size(px(12.0)).rounded(px(2.0)).bg(color))
-                    .child(
-                        div()
-                            .flex()
-                            .flex_1()
-                            .items_center()
-                            .justify_between()
-                            .gap(px(12.0))
-                            .child(
-                                div()
-                                    .text_sm()
-                                    .text_color(theme.tokens.foreground)
-                                    .child(segment.label.clone()),
-                            )
-                            .when(show_percentages, |this| {
-                                this.child(
-                                    div()
-                                        .text_sm()
-                                        .text_color(theme.tokens.muted_foreground)
-                                        .child(format!("{}%", percentage)),
-                                )
-                            }),
-                    ),
-            )
-        }))
 }

@@ -10,6 +10,7 @@ pub mod heatmap;
 pub mod line_chart;
 pub(crate) mod palette;
 pub mod pie_chart;
+pub(crate) mod pie_geometry;
 pub mod radar_chart;
 pub mod sparkline;
 pub mod table;
