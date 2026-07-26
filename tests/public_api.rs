@@ -44,6 +44,74 @@ fn explicit_http_initialization_api_is_public() {
 }
 
 #[test]
+fn representative_builders_traits_and_generic_apis_remain_public() {
+    fn assert_styled<T: gpui::Styled>() {}
+
+    assert_styled::<prelude::LineChart>();
+    assert_styled::<prelude::AreaChart>();
+    assert_styled::<prelude::PieChart>();
+    assert_styled::<prelude::DonutChart>();
+
+    let line: prelude::LineChart = prelude::LineChart::new(vec![prelude::LineChartSeries::new(
+        "revenue",
+        vec![prelude::LineChartPoint::new(0.0, 1.0)],
+    )])
+    .show_grid(false)
+    .show_x_axis(false)
+    .show_y_axis(false)
+    .y_range(0.0, 2.0)
+    .x_labels(vec!["January"])
+    .show_legend(false);
+    let _ = line;
+
+    let area: prelude::AreaChart = prelude::AreaChart::new()
+        .series(prelude::AreaChartSeries::new("revenue", vec![(0.0, 1.0)]))
+        .mode(prelude::AreaChartMode::Stacked)
+        .size(prelude::AreaChartSize::Sm)
+        .show_grid(false)
+        .show_x_axis(false)
+        .show_y_axis(false)
+        .show_legend(false)
+        .x_labels(vec!["January"])
+        .y_label_count(3)
+        .fill_opacity(0.5);
+    let _ = area;
+
+    let segment = prelude::PieChartSegment::new("revenue", 1.0);
+    let pie: prelude::PieChart = prelude::PieChart::donut(vec![segment.clone()])
+        .size(prelude::PieChartSize::Sm)
+        .show_percentages(true)
+        .center_label("Total")
+        .donut_thickness(0.4)
+        .label_position(prelude::PieChartLabelPosition::Legend);
+    let _ = pie;
+
+    let donut: prelude::DonutChart = prelude::DonutChart::new()
+        .segment(segment)
+        .inner_radius(0.5)
+        .center_label("Total")
+        .center_value("1")
+        .size(prelude::DonutChartSize::Sm)
+        .show_legend(true)
+        .show_percentages(true);
+    let _ = donut;
+
+    struct FixedExtent;
+
+    impl virtual_list::ItemExtentProvider for FixedExtent {
+        fn extent(&self, _index: usize) -> gpui::Pixels {
+            gpui::px(20.0)
+        }
+    }
+
+    let variable_list = virtual_list::vlist_variable("api-contract", 2, FixedExtent, |_, _, _| {
+        Vec::<gpui::Div>::new()
+    })
+    .overscan(2);
+    let _ = variable_list;
+}
+
+#[test]
 fn every_legacy_component_module_remains_public() {
     #[allow(unused_imports)]
     use components::{
