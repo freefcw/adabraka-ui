@@ -13,7 +13,8 @@ use crate::capabilities::foundation::theme::use_theme;
 use gpui::{prelude::*, *};
 use std::ops::Range;
 use std::sync::{Arc, LazyLock};
-use unicode_segmentation::*;
+
+use crate::capabilities::controls::text_util;
 
 static EMAIL_REGEX: LazyLock<regex::Regex> = LazyLock::new(|| {
     regex::Regex::new(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$")
@@ -1034,113 +1035,23 @@ impl InputState {
     }
 
     fn clamp_offset(&self, offset: usize) -> usize {
-        offset.min(self.content.len())
-    }
-
-    fn grapheme_is_whitespace(&self, start: usize, end: usize) -> bool {
-        start < end
-            && self.content[start..end]
-                .chars()
-                .all(|ch| ch.is_whitespace())
-    }
-
-    fn grapheme_is_word(&self, start: usize, end: usize) -> bool {
-        start < end
-            && self.content[start..end]
-                .chars()
-                .all(|ch| ch.is_alphanumeric() || ch == '_')
+        text_util::clamp_offset(&self.content, offset)
     }
 
     fn previous_boundary(&self, offset: usize) -> usize {
-        self.content
-            .grapheme_indices(true)
-            .rev()
-            .find_map(|(idx, _)| (idx < offset).then_some(idx))
-            .unwrap_or(0)
+        text_util::previous_grapheme_boundary(&self.content, offset)
     }
 
     fn next_boundary(&self, offset: usize) -> usize {
-        self.content
-            .grapheme_indices(true)
-            .find_map(|(idx, _)| (idx > offset).then_some(idx))
-            .unwrap_or(self.content.len())
+        text_util::next_grapheme_boundary(&self.content, offset)
     }
 
     fn previous_word_boundary(&self, offset: usize) -> usize {
-        let mut current = self.clamp_offset(offset);
-
-        while current > 0 {
-            let previous = self.previous_boundary(current);
-            if !self.grapheme_is_whitespace(previous, current) {
-                break;
-            }
-            current = previous;
-        }
-
-        if current == 0 {
-            return 0;
-        }
-
-        let previous = self.previous_boundary(current);
-        let is_word = self.grapheme_is_word(previous, current);
-
-        while current > 0 {
-            let previous = self.previous_boundary(current);
-            if self.grapheme_is_whitespace(previous, current)
-                || self.grapheme_is_word(previous, current) != is_word
-            {
-                break;
-            }
-            current = previous;
-        }
-
-        current
+        text_util::previous_word_boundary(&self.content, offset)
     }
 
     fn next_word_boundary(&self, offset: usize) -> usize {
-        let mut current = self.clamp_offset(offset);
-        let len = self.content.len();
-
-        if current >= len {
-            return len;
-        }
-
-        let next = self.next_boundary(current);
-
-        if self.grapheme_is_word(current, next) {
-            while current < len {
-                let next = self.next_boundary(current);
-                if next == current || !self.grapheme_is_word(current, next) {
-                    break;
-                }
-                current = next;
-            }
-        } else if !self.grapheme_is_whitespace(current, next) {
-            while current < len {
-                let next = self.next_boundary(current);
-                if next == current
-                    || self.grapheme_is_whitespace(current, next)
-                    || self.grapheme_is_word(current, next)
-                {
-                    break;
-                }
-                current = next;
-            }
-        }
-
-        while current < len {
-            let next = self.next_boundary(current);
-            if next == current || !self.grapheme_is_whitespace(current, next) {
-                break;
-            }
-            current = next;
-        }
-
-        if current == offset {
-            self.next_boundary(current)
-        } else {
-            current
-        }
+        text_util::next_word_boundary(&self.content, offset)
     }
 
     fn start_blink(&mut self, cx: &mut Context<Self>) {
@@ -1643,3 +1554,88 @@ impl Focusable for InputState {
 }
 
 use regex;
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::capabilities::foundation::theme::{install_theme, Theme};
+
+    struct TestView {
+        state: Entity<InputState>,
+    }
+
+    impl Render for TestView {
+        fn render(&mut self, _window: &mut Window, _cx: &mut Context<Self>) -> impl IntoElement {
+            div()
+        }
+    }
+
+    #[gpui::test]
+    fn word_left_moves_cursor_to_previous_word_boundary() {
+        let mut app = TestApp::new();
+        app.update(|cx| install_theme(cx, Theme::light()));
+        let state = app.update(|cx| cx.new(|cx| InputState::new(cx)));
+        let mut window = app.open_window(|_, _| TestView {
+            state: state.clone(),
+        });
+
+        let text = "foo bar baz";
+        window.update(|view, window, cx| {
+            view.state.update(cx, |state, cx| {
+                state.set_value(text, window, cx);
+                state.selected_range = text.len()..text.len();
+                state.word_left(&WordLeft, window, cx);
+                assert_eq!(state.selected_range, 8..8, "should stop before baz");
+                state.word_left(&WordLeft, window, cx);
+                assert_eq!(state.selected_range, 4..4, "should stop before bar");
+                state.word_left(&WordLeft, window, cx);
+                assert_eq!(state.selected_range, 0..0, "should reach start");
+            });
+        });
+    }
+
+    #[gpui::test]
+    fn word_right_moves_cursor_to_next_word_boundary() {
+        let mut app = TestApp::new();
+        app.update(|cx| install_theme(cx, Theme::light()));
+        let state = app.update(|cx| cx.new(|cx| InputState::new(cx)));
+        let mut window = app.open_window(|_, _| TestView {
+            state: state.clone(),
+        });
+
+        window.update(|view, window, cx| {
+            view.state.update(cx, |state, cx| {
+                state.set_value("foo bar baz", window, cx);
+                state.selected_range = 0..0;
+                state.word_right(&WordRight, window, cx);
+                assert_eq!(state.selected_range, 4..4, "should stop at bar start");
+                state.word_right(&WordRight, window, cx);
+                assert_eq!(state.selected_range, 8..8, "should stop at baz start");
+                state.word_right(&WordRight, window, cx);
+                assert_eq!(state.selected_range, 11..11, "should reach end");
+            });
+        });
+    }
+
+    #[gpui::test]
+    fn word_movement_handles_unicode() {
+        let mut app = TestApp::new();
+        app.update(|cx| install_theme(cx, Theme::light()));
+        let state = app.update(|cx| cx.new(|cx| InputState::new(cx)));
+        let mut window = app.open_window(|_, _| TestView {
+            state: state.clone(),
+        });
+
+        let text = "中文 test";
+        window.update(|view, window, cx| {
+            view.state.update(cx, |state, cx| {
+                state.set_value(text, window, cx);
+                state.selected_range = text.len()..text.len();
+                state.word_left(&WordLeft, window, cx);
+                assert_eq!(state.selected_range, 7..7, "should stop before test");
+                state.word_left(&WordLeft, window, cx);
+                assert_eq!(state.selected_range, 0..0, "should reach start");
+            });
+        });
+    }
+}

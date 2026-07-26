@@ -1,3 +1,4 @@
+use crate::capabilities::controls::text_util;
 use crate::capabilities::foundation::theme::use_theme;
 use gpui::{prelude::FluentBuilder as _, *};
 use std::ops::Range;
@@ -155,20 +156,11 @@ impl InlineEditState {
     }
 
     fn previous_boundary(&self, offset: usize) -> usize {
-        use unicode_segmentation::UnicodeSegmentation;
-        self.edit_value
-            .grapheme_indices(true)
-            .rev()
-            .find_map(|(idx, _)| (idx < offset).then_some(idx))
-            .unwrap_or(0)
+        text_util::previous_grapheme_boundary(&self.edit_value, offset)
     }
 
     fn next_boundary(&self, offset: usize) -> usize {
-        use unicode_segmentation::UnicodeSegmentation;
-        self.edit_value
-            .grapheme_indices(true)
-            .find_map(|(idx, _)| (idx > offset).then_some(idx))
-            .unwrap_or(self.edit_value.len())
+        text_util::next_grapheme_boundary(&self.edit_value, offset)
     }
 
     fn offset_to_utf16(&self, offset: usize) -> usize {

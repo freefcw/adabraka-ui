@@ -1,10 +1,10 @@
+use crate::capabilities::controls::text_util;
 use crate::capabilities::foundation::theme::use_theme;
 use crate::capabilities::primitives::avatar::{Avatar, AvatarSize};
 use crate::capabilities::scroll::scrollable::scrollable_vertical;
 use gpui::{prelude::*, *};
 use std::ops::Range;
 use std::rc::Rc;
-use unicode_segmentation::*;
 
 actions!(
     mention_input,
@@ -218,18 +218,11 @@ impl MentionInputState {
     }
 
     fn previous_boundary(&self, offset: usize) -> usize {
-        self.content
-            .grapheme_indices(true)
-            .rev()
-            .find_map(|(idx, _)| (idx < offset).then_some(idx))
-            .unwrap_or(0)
+        text_util::previous_grapheme_boundary(&self.content, offset)
     }
 
     fn next_boundary(&self, offset: usize) -> usize {
-        self.content
-            .grapheme_indices(true)
-            .find_map(|(idx, _)| (idx > offset).then_some(idx))
-            .unwrap_or(self.content.len())
+        text_util::next_grapheme_boundary(&self.content, offset)
     }
 
     fn offset_to_utf16(&self, offset: usize) -> usize {
