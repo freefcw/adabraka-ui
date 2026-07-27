@@ -119,6 +119,13 @@ impl Render for AvatarStyledDemo {
                             .items_center()
                             .child(
                                 Avatar::new()
+                                    .src("assets/images/exif-orientation-rotate-180.jpg")
+                                    .size(AvatarSize::Lg)
+                                    .border_4()
+                                    .border_color(rgb(0x3b82f6))
+                            )
+                            .child(
+                                Avatar::new()
                                     .name("Alice Johnson")
                                     .size(AvatarSize::Lg)
                             )

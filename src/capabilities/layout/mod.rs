@@ -851,3 +851,63 @@ impl IntoElement for MasonryGrid {
         self.base
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::{HStack, VStack};
+    use gpui::{div, prelude::*, px, size, Context, Render, TestAppContext, Window};
+
+    #[derive(Clone, Copy)]
+    enum RootDirection {
+        Vertical,
+        Horizontal,
+    }
+
+    struct AutoSizedRootView {
+        direction: RootDirection,
+    }
+
+    impl Render for AutoSizedRootView {
+        fn render(&mut self, _window: &mut Window, _cx: &mut Context<Self>) -> impl IntoElement {
+            match self.direction {
+                RootDirection::Vertical => VStack::new()
+                    .debug_selector(|| "auto-sized-stack-root".into())
+                    .child(div().size_full())
+                    .into_any_element(),
+                RootDirection::Horizontal => HStack::new()
+                    .debug_selector(|| "auto-sized-stack-root".into())
+                    .child(div().size_full())
+                    .into_any_element(),
+            }
+        }
+    }
+
+    fn assert_auto_sized_root_fills_viewport(direction: RootDirection, cx: &mut TestAppContext) {
+        let (_, cx) = cx.add_window_view(move |_, _| AutoSizedRootView { direction });
+
+        cx.update(|window, cx| window.draw(cx).clear());
+        let initial_viewport = cx.update(|window, _| window.viewport_size());
+        let initial_root = cx
+            .debug_bounds("auto-sized-stack-root")
+            .expect("the stack root should expose its bounds");
+        assert_eq!(initial_root.size, initial_viewport);
+
+        let resized_viewport = size(px(640.0), px(360.0));
+        cx.simulate_resize(resized_viewport);
+        cx.update(|window, cx| window.draw(cx).clear());
+        let resized_root = cx
+            .debug_bounds("auto-sized-stack-root")
+            .expect("the resized stack root should expose its bounds");
+        assert_eq!(resized_root.size, resized_viewport);
+    }
+
+    #[gpui::test]
+    fn vstack_direct_window_root_fills_the_viewport(cx: &mut TestAppContext) {
+        assert_auto_sized_root_fills_viewport(RootDirection::Vertical, cx);
+    }
+
+    #[gpui::test]
+    fn hstack_direct_window_root_fills_the_viewport(cx: &mut TestAppContext) {
+        assert_auto_sized_root_fills_viewport(RootDirection::Horizontal, cx);
+    }
+}

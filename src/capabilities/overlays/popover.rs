@@ -419,3 +419,134 @@ impl Element for Popover {
         );
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::{Popover, PopoverContent};
+    use crate::capabilities::controls::{
+        combobox::{Combobox, ComboboxState},
+        select::{Select, SelectOption},
+    };
+    use gpui::{
+        div, point, prelude::*, px, AppContext, Context, Modifiers, MouseButton, Render,
+        TestAppContext, VisualTestContext, Window,
+    };
+
+    #[derive(Clone, Copy)]
+    enum NestedControl {
+        Select,
+        Combobox,
+    }
+
+    struct NestedPopoverView {
+        control: NestedControl,
+    }
+
+    impl Render for NestedPopoverView {
+        fn render(&mut self, _window: &mut Window, _cx: &mut Context<Self>) -> impl IntoElement {
+            let control = self.control;
+
+            div().size_full().p(px(24.0)).child(
+                Popover::new("nested-control-popover")
+                    .trigger(
+                        div()
+                            .debug_selector(|| "nested-popover-trigger".into())
+                            .w(px(120.0))
+                            .h(px(40.0)),
+                    )
+                    .content(move |window, cx| match control {
+                        NestedControl::Select => {
+                            let select = cx.new(|cx| {
+                                Select::new(cx)
+                                    .options(vec![SelectOption::new("one", "One")])
+                                    .placeholder("Choose")
+                            });
+                            cx.new(|cx| {
+                                PopoverContent::new(window, cx, move |_, _| {
+                                    div().w(px(240.0)).child(select.clone()).into_any_element()
+                                })
+                            })
+                        }
+                        NestedControl::Combobox => {
+                            let state = cx.new(|_| ComboboxState::new());
+                            let combobox = cx.new(|cx| {
+                                Combobox::new(vec!["One"], &state, cx)
+                                    .render_item(|item| (*item).into())
+                            });
+                            cx.new(|cx| {
+                                PopoverContent::new(window, cx, move |_, _| {
+                                    div()
+                                        .w(px(240.0))
+                                        .child(combobox.clone())
+                                        .into_any_element()
+                                })
+                            })
+                        }
+                    }),
+            )
+        }
+    }
+
+    fn draw(cx: &mut VisualTestContext) {
+        cx.update(|window, cx| window.draw(cx).clear());
+    }
+
+    fn click(selector: &'static str, cx: &mut VisualTestContext) {
+        draw(cx);
+        let bounds = cx
+            .debug_bounds(selector)
+            .unwrap_or_else(|| panic!("missing bounds for {selector}"));
+        let position = point(
+            bounds.origin.x + bounds.size.width / 2.0,
+            bounds.origin.y + bounds.size.height / 2.0,
+        );
+        cx.simulate_mouse_move(position, None, Modifiers::none());
+        cx.simulate_mouse_down(position, MouseButton::Left, Modifiers::none());
+        cx.simulate_mouse_up(position, MouseButton::Left, Modifiers::none());
+        draw(cx);
+    }
+
+    fn assert_nested_dropdown_survives_redraws(
+        control: NestedControl,
+        trigger_selector: &'static str,
+        dropdown_selector: &'static str,
+        cx: &mut TestAppContext,
+    ) {
+        let (_, cx) = cx.add_window_view(move |_, _| NestedPopoverView { control });
+
+        click("nested-popover-trigger", cx);
+        click(trigger_selector, cx);
+
+        for _ in 0..3 {
+            draw(cx);
+            let bounds = cx
+                .debug_bounds(dropdown_selector)
+                .unwrap_or_else(|| panic!("missing bounds for {dropdown_selector}"));
+            assert!(bounds.size.width > px(0.0));
+            assert!(bounds.size.height > px(0.0));
+        }
+
+        let artifact = cx.update(|window, _| window.visual_render_artifact());
+        assert!(artifact.is_nonblank());
+    }
+
+    #[gpui::test]
+    fn select_inside_popover_survives_repeated_redraws(cx: &mut TestAppContext) {
+        assert_nested_dropdown_survives_redraws(
+            NestedControl::Select,
+            "nested-select-trigger",
+            "nested-select-dropdown",
+            cx,
+        );
+    }
+
+    #[gpui::test]
+    fn combobox_inside_popover_survives_repeated_redraws(cx: &mut TestAppContext) {
+        assert_nested_dropdown_survives_redraws(
+            NestedControl::Combobox,
+            "nested-combobox-trigger",
+            "nested-combobox-dropdown",
+            cx,
+        );
+    }
+}

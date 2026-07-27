@@ -79,7 +79,7 @@ markup5ever_rcdom = { version = "0.38", optional = true }
 rodio = { version = "0.19", optional = true }
 
 [dev-dependencies]
-gpui = { package = "adabraka-gpui", git = "https://github.com/freefcw/adabraka-gpui", rev = "1164c0f", default-features = false, features = ["test-support"] }
+gpui = { package = "adabraka-gpui", git = "https://github.com/freefcw/adabraka-gpui", rev = "1164c0f", default-features = false, features = ["image-format-jpeg", "test-support"] }
 
 [features]
 default = ["http", "bundled-fonts"]

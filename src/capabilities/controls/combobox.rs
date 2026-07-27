@@ -26,6 +26,16 @@ actions!(
 
 const DROPDOWN_MARGIN: Pixels = px(4.0);
 
+#[cfg(test)]
+fn with_test_selector<E: InteractiveElement>(element: E, selector: &'static str) -> E {
+    element.debug_selector(move || selector.into())
+}
+
+#[cfg(not(test))]
+fn with_test_selector<E>(element: E, _selector: &'static str) -> E {
+    element
+}
+
 /// Events emitted by the Combobox
 #[derive(Clone, Debug)]
 pub enum ComboboxEvent {
@@ -507,6 +517,7 @@ impl<T: Clone + PartialEq + 'static> Render for Combobox<T> {
                 .absolute()
                 .size_full()
             });
+        let trigger = with_test_selector(trigger, "nested-combobox-trigger");
 
         div()
             .relative()
@@ -574,8 +585,10 @@ impl<T: Clone + PartialEq + 'static> Render for Combobox<T> {
                                             .child({
                                                 let filtered = self.filtered_items(cx);
 
-                                                div()
-                                                    .id("combobox-dropdown-list")
+                                                with_test_selector(
+                                                    div().id("combobox-dropdown-list"),
+                                                    "nested-combobox-dropdown",
+                                                )
                                                     .max_h(self.max_height)
                                                     .overflow_y_scroll()
                                                     .py(px(4.0))

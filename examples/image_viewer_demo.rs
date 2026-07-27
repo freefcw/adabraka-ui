@@ -36,6 +36,8 @@ struct ImageViewerDemoApp {
 impl ImageViewerDemoApp {
     fn new(cx: &mut Context<Self>) -> Self {
         let images = vec![
+            ImageItem::new("assets/images/exif-orientation-rotate-180.jpg")
+                .alt("Vertical black-and-white study"),
             ImageItem::new("assets/images/carousel_1.jpg"),
             ImageItem::new("assets/images/carousel_2.jpg"),
             ImageItem::new("assets/images/carousel_3.jpg"),

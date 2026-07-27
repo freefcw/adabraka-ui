@@ -10,6 +10,16 @@ actions!(select, [SelectUp, SelectDown, SelectConfirm, SelectCancel]);
 
 const DROPDOWN_MARGIN: Pixels = px(4.0);
 
+#[cfg(test)]
+fn with_test_selector<E: InteractiveElement>(element: E, selector: &'static str) -> E {
+    element.debug_selector(move || selector.into())
+}
+
+#[cfg(not(test))]
+fn with_test_selector<E>(element: E, _selector: &'static str) -> E {
+    element
+}
+
 #[derive(Clone, Debug)]
 pub enum SelectEvent {
     Change,
@@ -405,6 +415,7 @@ impl<T: Clone + 'static> Render for Select<T> {
                 .absolute()
                 .size_full()
             });
+        let trigger = with_test_selector(trigger, "nested-select-trigger");
 
         let searchable = self.searchable;
         let search_query: SharedString = self.search_query.clone().into();
@@ -462,7 +473,10 @@ impl<T: Clone + 'static> Render for Select<T> {
                                             .shadow_xl()
                                             .overflow_hidden()
                                             .child(
-                                                div()
+                                                with_test_selector(
+                                                    div(),
+                                                    "nested-select-dropdown",
+                                                )
                                                     .flex()
                                                     .flex_col()
                                                     .when(searchable, |this| {

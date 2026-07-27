@@ -1105,6 +1105,13 @@ impl<T: Clone + 'static> Render for DataTable<T> {
                                         .overflow_hidden()
                                         .text_ellipsis();
 
+                                    #[cfg(test)]
+                                    if row_idx == 0 && col_idx == 0 {
+                                        cell_div = cell_div.debug_selector(|| {
+                                            "data-table-test-cell".into()
+                                        });
+                                    }
+
                                     if is_editable && !is_editing {
                                         let cell_value_for_closure = cell_value.clone();
                                         let column_id = column.id.clone();
@@ -1530,5 +1537,71 @@ impl<T: Clone + 'static> DataTable<T> {
                         })),
                 ),
         )
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{ColumnDef, DataTable};
+    use gpui::{px, SharedString, TestAppContext, VisualRenderArtifact};
+
+    #[derive(Clone)]
+    struct Row {
+        value: SharedString,
+    }
+
+    fn draw_artifact(cx: &mut gpui::VisualTestContext) -> VisualRenderArtifact {
+        cx.update(|window, cx| {
+            window.draw(cx).clear();
+            window.visual_render_artifact()
+        })
+    }
+
+    #[gpui::test]
+    fn column_width_and_render_structure_recover_after_resizing(cx: &mut TestAppContext) {
+        let long_text: SharedString =
+            "A very long customer-facing value that exercises the cell during column resizing"
+                .into();
+        let columns = vec![
+            ColumnDef::new("value", "Value", |row: &Row| row.value.clone())
+                .width(px(96.0))
+                .min_width(px(48.0))
+                .resizable(false),
+        ];
+        let (table, cx) = cx.add_window_view(|_, cx| {
+            DataTable::new(vec![Row { value: long_text }], columns, cx)
+                .show_search(false)
+                .show_selection(false)
+        });
+
+        let first_narrow = draw_artifact(cx);
+        let first_bounds = cx
+            .debug_bounds("data-table-test-cell")
+            .expect("the narrow DataTable cell should be rendered");
+
+        table.update(cx, |table, cx| {
+            table.state.resize_column(0, px(720.0));
+            cx.notify();
+        });
+        let wide = draw_artifact(cx);
+        let wide_bounds = cx
+            .debug_bounds("data-table-test-cell")
+            .expect("the wide DataTable cell should be rendered");
+
+        table.update(cx, |table, cx| {
+            table.state.resize_column(0, px(96.0));
+            cx.notify();
+        });
+        let second_narrow = draw_artifact(cx);
+        let second_bounds = cx
+            .debug_bounds("data-table-test-cell")
+            .expect("the second narrow DataTable cell should be rendered");
+
+        assert_eq!(first_bounds.size.width, px(96.0));
+        assert_eq!(wide_bounds.size.width, px(720.0));
+        assert_eq!(second_bounds.size.width, px(96.0));
+        assert!(first_narrow.is_nonblank());
+        assert!(wide.is_nonblank());
+        assert_eq!(second_narrow, first_narrow);
     }
 }
