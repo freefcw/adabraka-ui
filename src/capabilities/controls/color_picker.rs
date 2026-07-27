@@ -128,66 +128,42 @@ impl ColorPicker {
         self
     }
 
-    /// Convert HSLA color to HEX string
-    fn hsla_to_hex(color: Hsla) -> String {
-        let h = color.h;
-        let s = color.s;
-        let l = color.l;
-
+    /// Convert HSL hue/saturation/lightness to linear RGB channels in [0, 1].
+    fn hsl_to_rgb_f32(h: f32, s: f32, l: f32) -> (f32, f32, f32) {
         let c = (1.0 - (2.0 * l - 1.0).abs()) * s;
         let x = c * (1.0 - ((h / 60.0) % 2.0 - 1.0).abs());
         let m = l - c / 2.0;
 
-        let (r, g, b) = if h < 60.0 {
-            (c, x, 0.0)
+        if h < 60.0 {
+            (c + m, x + m, m)
         } else if h < 120.0 {
-            (x, c, 0.0)
+            (x + m, c + m, m)
         } else if h < 180.0 {
-            (0.0, c, x)
+            (m, c + m, x + m)
         } else if h < 240.0 {
-            (0.0, x, c)
+            (m, x + m, c + m)
         } else if h < 300.0 {
-            (x, 0.0, c)
+            (x + m, m, c + m)
         } else {
-            (c, 0.0, x)
-        };
+            (c + m, m, x + m)
+        }
+    }
 
-        let r_byte = ((r + m) * 255.0) as u8;
-        let g_byte = ((g + m) * 255.0) as u8;
-        let b_byte = ((b + m) * 255.0) as u8;
-
-        format!("#{:02X}{:02X}{:02X}", r_byte, g_byte, b_byte)
+    /// Convert HSLA color to HEX string
+    fn hsla_to_hex(color: Hsla) -> String {
+        let (r, g, b) = Self::hsl_to_rgb_f32(color.h, color.s, color.l);
+        format!(
+            "#{:02X}{:02X}{:02X}",
+            (r * 255.0) as u8,
+            (g * 255.0) as u8,
+            (b * 255.0) as u8
+        )
     }
 
     /// Convert HSLA color to RGB values (0-255)
     fn hsla_to_rgb(color: Hsla) -> (u8, u8, u8) {
-        let h = color.h;
-        let s = color.s;
-        let l = color.l;
-
-        let c = (1.0 - (2.0 * l - 1.0).abs()) * s;
-        let x = c * (1.0 - ((h / 60.0) % 2.0 - 1.0).abs());
-        let m = l - c / 2.0;
-
-        let (r, g, b) = if h < 60.0 {
-            (c, x, 0.0)
-        } else if h < 120.0 {
-            (x, c, 0.0)
-        } else if h < 180.0 {
-            (0.0, c, x)
-        } else if h < 240.0 {
-            (0.0, x, c)
-        } else if h < 300.0 {
-            (x, 0.0, c)
-        } else {
-            (c, 0.0, x)
-        };
-
-        (
-            ((r + m) * 255.0) as u8,
-            ((g + m) * 255.0) as u8,
-            ((b + m) * 255.0) as u8,
-        )
+        let (r, g, b) = Self::hsl_to_rgb_f32(color.h, color.s, color.l);
+        ((r * 255.0) as u8, (g * 255.0) as u8, (b * 255.0) as u8)
     }
 }
 
@@ -591,4 +567,49 @@ fn default_swatches() -> Vec<Hsla> {
         hsla(0.0, 0.0, 0.8, 1.0),
         hsla(0.0, 0.0, 0.95, 1.0),
     ]
+}
+
+#[cfg(test)]
+mod tests {
+    use super::ColorPicker;
+    use gpui::hsla;
+
+    #[gpui::test]
+    fn hex_and_rgb_agree_across_hue_sectors() {
+        for h in [
+            0.0_f32, 59.0, 60.0, 119.0, 120.0, 179.0, 180.0, 239.0, 240.0, 299.0, 300.0, 359.0,
+        ] {
+            let color = hsla(h, 0.8, 0.5, 1.0);
+            let (r, g, b) = ColorPicker::hsla_to_rgb(color);
+            let hex = ColorPicker::hsla_to_hex(color);
+            assert_eq!(hex, format!("#{:02X}{:02X}{:02X}", r, g, b), "h={h}");
+        }
+    }
+
+    #[gpui::test]
+    fn grayscale_has_equal_channels() {
+        let (r, g, b) = ColorPicker::hsla_to_rgb(hsla(0.0, 0.0, 0.4, 1.0));
+        assert_eq!(r, g);
+        assert_eq!(g, b);
+    }
+
+    #[gpui::test]
+    fn black_and_white_bounds() {
+        let (r, g, b) = ColorPicker::hsla_to_rgb(hsla(0.0, 1.0, 0.0, 1.0));
+        assert_eq!((r, g, b), (0, 0, 0));
+        let (r, g, b) = ColorPicker::hsla_to_rgb(hsla(0.0, 1.0, 1.0, 1.0));
+        assert_eq!((r, g, b), (255, 255, 255));
+    }
+
+    #[gpui::test]
+    fn hex_is_uppercase_zero_padded() {
+        assert_eq!(
+            ColorPicker::hsla_to_hex(hsla(0.0, 1.0, 0.0, 1.0)),
+            "#000000"
+        );
+        assert_eq!(
+            ColorPicker::hsla_to_hex(hsla(0.0, 1.0, 1.0, 1.0)),
+            "#FFFFFF"
+        );
+    }
 }
