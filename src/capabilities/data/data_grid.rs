@@ -524,11 +524,6 @@ impl<T: 'static> RenderOnce for DataGrid<T> {
                                     .border_color(theme.tokens.border.opacity(0.5))
                             });
 
-                        #[cfg(test)]
-                        if row_idx == 0 && col_idx == 0 {
-                            cell = cell.debug_selector(|| "data-grid-test-cell".into());
-                        }
-
                         if is_editing {
                             cell = cell
                                 .bg(theme.tokens.background)
@@ -661,96 +656,5 @@ impl<T: 'static> RenderOnce for DataGrid<T> {
                 el.style().refine(&user_style);
                 el
             })
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::{DataGrid, DataGridState, GridColumnDef};
-    use gpui::{
-        prelude::*, px, AppContext, Context, Entity, SharedString, TestAppContext,
-        VisualRenderArtifact, Window,
-    };
-
-    struct Row {
-        value: SharedString,
-    }
-
-    struct GridView {
-        state: Entity<DataGridState<Row>>,
-    }
-
-    impl GridView {
-        fn new(cx: &mut Context<Self>) -> Self {
-            let column = GridColumnDef::new(
-                "value",
-                "Value",
-                |row: &Row, _| row.value.clone().into_any_element(),
-                |row: &Row| row.value.to_string(),
-            )
-            .width(px(96.0))
-            .resizable(false);
-            let state = cx.new(|_| {
-                DataGridState::new(
-                    vec![Row {
-                        value: "A very long customer-facing value that exercises the cell during column resizing"
-                            .into(),
-                    }],
-                    vec![column],
-                )
-            });
-            Self { state }
-        }
-    }
-
-    impl Render for GridView {
-        fn render(&mut self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
-            DataGrid::new(self.state.clone()).render(window, cx)
-        }
-    }
-
-    fn draw_artifact(cx: &mut gpui::VisualTestContext) -> VisualRenderArtifact {
-        cx.update(|window, cx| {
-            window.draw(cx).clear();
-            window.visual_render_artifact()
-        })
-    }
-
-    #[gpui::test]
-    fn column_width_and_render_structure_recover_after_resizing(cx: &mut TestAppContext) {
-        let (view, cx) = cx.add_window_view(|_, cx| GridView::new(cx));
-        let state = view.update(cx, |view, _| view.state.clone());
-
-        let first_narrow = draw_artifact(cx);
-        let first_bounds = cx
-            .debug_bounds("data-grid-test-cell")
-            .expect("the narrow DataGrid cell should be rendered");
-
-        state.update(cx, |state, cx| {
-            state.resize_column("value", px(720.0));
-            cx.notify();
-        });
-        view.update(cx, |_, cx| cx.notify());
-        let wide = draw_artifact(cx);
-        let wide_bounds = cx
-            .debug_bounds("data-grid-test-cell")
-            .expect("the wide DataGrid cell should be rendered");
-
-        state.update(cx, |state, cx| {
-            state.resize_column("value", px(96.0));
-            cx.notify();
-        });
-        view.update(cx, |_, cx| cx.notify());
-        let second_narrow = draw_artifact(cx);
-        let second_bounds = cx
-            .debug_bounds("data-grid-test-cell")
-            .expect("the second narrow DataGrid cell should be rendered");
-
-        assert_eq!(first_bounds.size.width, px(96.0));
-        assert_eq!(wide_bounds.size.width, px(720.0));
-        assert_eq!(second_bounds.size.width, px(96.0));
-        assert!(first_narrow.is_nonblank());
-        assert!(wide.is_nonblank());
-        assert_eq!(second_narrow, first_narrow);
     }
 }

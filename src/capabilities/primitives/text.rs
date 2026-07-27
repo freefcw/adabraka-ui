@@ -365,3 +365,49 @@ pub fn muted<S: Into<SharedString>>(content: S) -> Text {
 pub fn muted_small<S: Into<SharedString>>(content: S) -> Text {
     Text::new(content).variant(TextVariant::BodySmall).muted()
 }
+
+#[cfg(test)]
+mod tests {
+    use super::Text;
+    use gpui::{div, point, px, size, AvailableSpace, IntoElement, TestAppContext};
+
+    const LONG_TEXT: &str =
+        "A long customer-facing label whose natural width must survive truncation";
+
+    #[gpui::test]
+    fn truncated_text_recomputes_its_natural_width_after_a_constrained_measurement(
+        cx: &mut TestAppContext,
+    ) {
+        let cx = cx.add_empty_window();
+        let mut measurements = None;
+        cx.draw(
+            point(px(0.0), px(0.0)),
+            size(px(800.0), px(600.0)),
+            |window, cx| {
+                let mut text = Text::new(LONG_TEXT).truncate().into_any_element();
+                let constrained = text.layout_as_root(
+                    size(
+                        AvailableSpace::Definite(px(96.0)),
+                        AvailableSpace::MaxContent,
+                    ),
+                    window,
+                    cx,
+                );
+                let unconstrained = text.layout_as_root(
+                    size(AvailableSpace::MaxContent, AvailableSpace::MaxContent),
+                    window,
+                    cx,
+                );
+                measurements = Some((constrained, unconstrained));
+                div()
+            },
+        );
+        let (constrained, unconstrained) =
+            measurements.expect("both text measurements should complete");
+
+        assert!(
+            unconstrained.width > constrained.width,
+            "an unconstrained measurement must not reuse the truncated width"
+        );
+    }
+}

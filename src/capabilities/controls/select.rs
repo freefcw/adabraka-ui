@@ -415,7 +415,7 @@ impl<T: Clone + 'static> Render for Select<T> {
                 .absolute()
                 .size_full()
             });
-        let trigger = with_test_selector(trigger, "nested-select-trigger");
+        let trigger = with_test_selector(trigger, "select-trigger");
 
         let searchable = self.searchable;
         let search_query: SharedString = self.search_query.clone().into();
@@ -475,7 +475,7 @@ impl<T: Clone + 'static> Render for Select<T> {
                                             .child(
                                                 with_test_selector(
                                                     div(),
-                                                    "nested-select-dropdown",
+                                                    "select-dropdown",
                                                 )
                                                     .flex()
                                                     .flex_col()

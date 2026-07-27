@@ -517,7 +517,7 @@ impl<T: Clone + PartialEq + 'static> Render for Combobox<T> {
                 .absolute()
                 .size_full()
             });
-        let trigger = with_test_selector(trigger, "nested-combobox-trigger");
+        let trigger = with_test_selector(trigger, "combobox-trigger");
 
         div()
             .relative()
@@ -587,7 +587,7 @@ impl<T: Clone + PartialEq + 'static> Render for Combobox<T> {
 
                                                 with_test_selector(
                                                     div().id("combobox-dropdown-list"),
-                                                    "nested-combobox-dropdown",
+                                                    "combobox-dropdown",
                                                 )
                                                     .max_h(self.max_height)
                                                     .overflow_y_scroll()

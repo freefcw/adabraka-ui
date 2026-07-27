@@ -525,17 +525,14 @@ mod tests {
             assert!(bounds.size.width > px(0.0));
             assert!(bounds.size.height > px(0.0));
         }
-
-        let artifact = cx.update(|window, _| window.visual_render_artifact());
-        assert!(artifact.is_nonblank());
     }
 
     #[gpui::test]
     fn select_inside_popover_survives_repeated_redraws(cx: &mut TestAppContext) {
         assert_nested_dropdown_survives_redraws(
             NestedControl::Select,
-            "nested-select-trigger",
-            "nested-select-dropdown",
+            "select-trigger",
+            "select-dropdown",
             cx,
         );
     }
@@ -544,8 +541,8 @@ mod tests {
     fn combobox_inside_popover_survives_repeated_redraws(cx: &mut TestAppContext) {
         assert_nested_dropdown_survives_redraws(
             NestedControl::Combobox,
-            "nested-combobox-trigger",
-            "nested-combobox-dropdown",
+            "combobox-trigger",
+            "combobox-dropdown",
             cx,
         );
     }

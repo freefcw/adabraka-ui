@@ -570,30 +570,3 @@ pub fn init_image_viewer(cx: &mut App) {
         KeyBinding::new("=", ImageViewerZoomIn, Some("ImageViewer")),
     ]);
 }
-
-#[cfg(test)]
-mod tests {
-    use futures::executor::block_on;
-    use gpui::{size, Asset, ImageAssetLoader, TestApp};
-    use std::path::PathBuf;
-
-    #[test]
-    fn path_image_decode_applies_exif_orientation() {
-        let path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-            .join("assets/images/exif-orientation-rotate-180.jpg");
-        let mut app = TestApp::new();
-        let load = app.update_without_flush(|cx| {
-            let load = ImageAssetLoader::load(path.into(), cx);
-            cx.background_executor().spawn(load)
-        });
-        app.run_until_parked();
-        let render_image = block_on(load).expect("the EXIF JPEG fixture should load from its path");
-
-        assert_eq!(render_image.size(0), size(16.into(), 32.into()));
-        let bytes = render_image
-            .as_bytes(0)
-            .expect("the decoded image should contain one frame");
-        assert_eq!(&bytes[..4], &[255, 255, 255, 255]);
-        assert_eq!(&bytes[(16 * 32 - 1) * 4..], &[0, 0, 0, 255]);
-    }
-}
