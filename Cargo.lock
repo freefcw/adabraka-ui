@@ -3,64 +3,57 @@
 version = 4
 
 [[package]]
-name = "adabraka-gpui"
-version = "0.6.2"
-source = "git+https://github.com/freefcw/adabraka-gpui?rev=cb783cd#cb783cd22976cfae02cd1fcbf9c6bd35fbf24c98"
+name = "accesskit"
+version = "0.24.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d3b7f7f85a7e5f68090000ed7622545829afd484d210358702ae4cb97dd0c320"
 dependencies = [
+ "uuid",
+]
+
+[[package]]
+name = "adabraka-gpui"
+version = "0.7.0"
+source = "git+https://github.com/freefcw/adabraka-gpui?rev=1164c0f#1164c0f50c0399f3dfc60ed4efbe20843d57323a"
+dependencies = [
+ "adabraka-gpui-core",
+ "adabraka-gpui-platform",
+ "log",
+]
+
+[[package]]
+name = "adabraka-gpui-core"
+version = "0.7.0"
+source = "git+https://github.com/freefcw/adabraka-gpui?rev=1164c0f#1164c0f50c0399f3dfc60ed4efbe20843d57323a"
+dependencies = [
+ "accesskit",
  "adabraka-gpui-macros",
  "adabraka_collections",
  "adabraka_http_client",
- "adabraka_media",
  "adabraka_refineable",
  "adabraka_semantic_version",
  "adabraka_sum_tree",
  "adabraka_util",
  "adabraka_util_macros",
  "anyhow",
- "as-raw-xcb-connection",
- "ashpd 0.11.1",
+ "async-channel 2.5.0",
  "async-task",
  "backtrace",
- "bindgen 0.71.1",
  "bitflags 2.11.1",
- "block",
- "bytemuck",
- "calloop",
- "calloop-wayland-source",
- "cbindgen",
- "core-foundation 0.10.1",
- "core-foundation-sys",
- "core-graphics 0.24.0",
- "core-text",
  "core-video",
- "cosmic-text",
  "ctor 0.3.6",
  "derive_more",
- "embed-resource",
  "etagere",
- "filedescriptor",
- "flume",
- "foreign-types",
  "futures",
  "image",
  "inventory",
  "itertools 0.14.0",
- "ksni",
  "libc",
  "log",
  "lyon",
- "metal",
- "notify-rust",
  "num_cpus",
- "objc",
- "objc2",
- "objc2-app-kit",
- "objc2-foundation",
- "oo7",
- "open",
  "parking",
  "parking_lot",
- "pathfinder_geometry",
  "postage",
  "profiling",
  "rand 0.9.4",
@@ -80,38 +73,182 @@ dependencies = [
  "taffy",
  "thiserror 2.0.18",
  "ttf-parser",
- "unicode-segmentation",
  "usvg",
  "uuid",
  "waker-fn",
+ "windows 0.62.2",
+ "zed-scap",
+]
+
+[[package]]
+name = "adabraka-gpui-linux"
+version = "0.7.0"
+source = "git+https://github.com/freefcw/adabraka-gpui?rev=1164c0f#1164c0f50c0399f3dfc60ed4efbe20843d57323a"
+dependencies = [
+ "adabraka-gpui-core",
+ "adabraka-gpui-wgpu",
+ "adabraka_collections",
+ "adabraka_http_client",
+ "adabraka_util",
+ "anyhow",
+ "as-raw-xcb-connection",
+ "ashpd 0.11.1",
+ "async-task",
+ "bytemuck",
+ "calloop",
+ "calloop-wayland-source",
+ "cosmic-text",
+ "filedescriptor",
+ "flume",
+ "futures",
+ "image",
+ "itertools 0.14.0",
+ "ksni",
+ "libc",
+ "log",
+ "notify-rust",
+ "oo7",
+ "open",
+ "parking",
+ "parking_lot",
+ "pathfinder_geometry",
+ "profiling",
+ "raw-window-handle",
+ "smallvec",
+ "smol",
+ "strum",
+ "unicode-segmentation",
+ "uuid",
  "wayland-backend",
  "wayland-client",
  "wayland-cursor",
  "wayland-protocols",
  "wayland-protocols-plasma",
+ "wayland-protocols-wlr",
  "wayland-scanner",
- "wgpu",
- "windows 0.62.2",
- "windows-core 0.62.2",
- "windows-numerics 0.3.1",
- "windows-registry 0.5.3",
  "x11-clipboard",
  "x11rb",
  "xkbcommon",
  "zed-font-kit",
- "zed-scap",
  "zed-xim",
 ]
 
 [[package]]
+name = "adabraka-gpui-macos"
+version = "0.7.0"
+source = "git+https://github.com/freefcw/adabraka-gpui?rev=1164c0f#1164c0f50c0399f3dfc60ed4efbe20843d57323a"
+dependencies = [
+ "adabraka-gpui-core",
+ "adabraka_collections",
+ "adabraka_media",
+ "adabraka_util",
+ "anyhow",
+ "async-task",
+ "bindgen 0.71.1",
+ "block",
+ "cbindgen",
+ "core-foundation 0.10.1",
+ "core-foundation-sys",
+ "core-graphics 0.24.0",
+ "core-text",
+ "core-video",
+ "ctor 0.3.6",
+ "derive_more",
+ "dispatch2",
+ "etagere",
+ "foreign-types",
+ "futures",
+ "image",
+ "itertools 0.14.0",
+ "libc",
+ "log",
+ "metal",
+ "objc",
+ "objc2",
+ "objc2-app-kit",
+ "objc2-foundation",
+ "parking",
+ "parking_lot",
+ "pathfinder_geometry",
+ "raw-window-handle",
+ "smallvec",
+ "smol",
+ "strum",
+ "uuid",
+ "zed-font-kit",
+]
+
+[[package]]
 name = "adabraka-gpui-macros"
-version = "0.5.1"
-source = "git+https://github.com/freefcw/adabraka-gpui?rev=cb783cd#cb783cd22976cfae02cd1fcbf9c6bd35fbf24c98"
+version = "0.7.0"
+source = "git+https://github.com/freefcw/adabraka-gpui?rev=1164c0f#1164c0f50c0399f3dfc60ed4efbe20843d57323a"
 dependencies = [
  "heck 0.5.0",
+ "proc-macro-crate",
  "proc-macro2",
  "quote",
  "syn",
+ "toml_edit 0.25.11+spec-1.1.0",
+]
+
+[[package]]
+name = "adabraka-gpui-platform"
+version = "0.7.0"
+source = "git+https://github.com/freefcw/adabraka-gpui?rev=1164c0f#1164c0f50c0399f3dfc60ed4efbe20843d57323a"
+dependencies = [
+ "adabraka-gpui-core",
+ "adabraka-gpui-linux",
+ "adabraka-gpui-macos",
+ "adabraka-gpui-windows",
+]
+
+[[package]]
+name = "adabraka-gpui-wgpu"
+version = "0.7.0"
+source = "git+https://github.com/freefcw/adabraka-gpui?rev=1164c0f#1164c0f50c0399f3dfc60ed4efbe20843d57323a"
+dependencies = [
+ "adabraka-gpui-core",
+ "adabraka_collections",
+ "adabraka_util",
+ "anyhow",
+ "bytemuck",
+ "etagere",
+ "image",
+ "log",
+ "parking_lot",
+ "profiling",
+ "raw-window-handle",
+ "smol",
+ "wgpu",
+]
+
+[[package]]
+name = "adabraka-gpui-windows"
+version = "0.7.0"
+source = "git+https://github.com/freefcw/adabraka-gpui?rev=1164c0f#1164c0f50c0399f3dfc60ed4efbe20843d57323a"
+dependencies = [
+ "adabraka-gpui-core",
+ "adabraka_collections",
+ "adabraka_util",
+ "anyhow",
+ "async-task",
+ "embed-resource",
+ "etagere",
+ "flume",
+ "futures",
+ "image",
+ "itertools 0.14.0",
+ "log",
+ "parking",
+ "parking_lot",
+ "rand 0.9.4",
+ "raw-window-handle",
+ "smallvec",
+ "uuid",
+ "windows 0.62.2",
+ "windows-core 0.62.2",
+ "windows-numerics 0.3.1",
+ "windows-registry 0.5.3",
 ]
 
 [[package]]
@@ -160,7 +297,7 @@ dependencies = [
 [[package]]
 name = "adabraka_collections"
 version = "0.5.1"
-source = "git+https://github.com/freefcw/adabraka-gpui?rev=cb783cd#cb783cd22976cfae02cd1fcbf9c6bd35fbf24c98"
+source = "git+https://github.com/freefcw/adabraka-gpui?rev=1164c0f#1164c0f50c0399f3dfc60ed4efbe20843d57323a"
 dependencies = [
  "indexmap",
  "rustc-hash 2.1.2",
@@ -169,7 +306,7 @@ dependencies = [
 [[package]]
 name = "adabraka_derive_refineable"
 version = "0.5.1"
-source = "git+https://github.com/freefcw/adabraka-gpui?rev=cb783cd#cb783cd22976cfae02cd1fcbf9c6bd35fbf24c98"
+source = "git+https://github.com/freefcw/adabraka-gpui?rev=1164c0f#1164c0f50c0399f3dfc60ed4efbe20843d57323a"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -179,7 +316,7 @@ dependencies = [
 [[package]]
 name = "adabraka_http_client"
 version = "0.5.1"
-source = "git+https://github.com/freefcw/adabraka-gpui?rev=cb783cd#cb783cd22976cfae02cd1fcbf9c6bd35fbf24c98"
+source = "git+https://github.com/freefcw/adabraka-gpui?rev=1164c0f#1164c0f50c0399f3dfc60ed4efbe20843d57323a"
 dependencies = [
  "adabraka_util",
  "anyhow",
@@ -204,7 +341,7 @@ dependencies = [
 [[package]]
 name = "adabraka_media"
 version = "0.5.1"
-source = "git+https://github.com/freefcw/adabraka-gpui?rev=cb783cd#cb783cd22976cfae02cd1fcbf9c6bd35fbf24c98"
+source = "git+https://github.com/freefcw/adabraka-gpui?rev=1164c0f#1164c0f50c0399f3dfc60ed4efbe20843d57323a"
 dependencies = [
  "anyhow",
  "bindgen 0.71.1",
@@ -219,7 +356,7 @@ dependencies = [
 [[package]]
 name = "adabraka_refineable"
 version = "0.5.1"
-source = "git+https://github.com/freefcw/adabraka-gpui?rev=cb783cd#cb783cd22976cfae02cd1fcbf9c6bd35fbf24c98"
+source = "git+https://github.com/freefcw/adabraka-gpui?rev=1164c0f#1164c0f50c0399f3dfc60ed4efbe20843d57323a"
 dependencies = [
  "adabraka_derive_refineable",
 ]
@@ -227,7 +364,7 @@ dependencies = [
 [[package]]
 name = "adabraka_semantic_version"
 version = "0.5.1"
-source = "git+https://github.com/freefcw/adabraka-gpui?rev=cb783cd#cb783cd22976cfae02cd1fcbf9c6bd35fbf24c98"
+source = "git+https://github.com/freefcw/adabraka-gpui?rev=1164c0f#1164c0f50c0399f3dfc60ed4efbe20843d57323a"
 dependencies = [
  "anyhow",
  "serde",
@@ -236,7 +373,7 @@ dependencies = [
 [[package]]
 name = "adabraka_sum_tree"
 version = "0.5.1"
-source = "git+https://github.com/freefcw/adabraka-gpui?rev=cb783cd#cb783cd22976cfae02cd1fcbf9c6bd35fbf24c98"
+source = "git+https://github.com/freefcw/adabraka-gpui?rev=1164c0f#1164c0f50c0399f3dfc60ed4efbe20843d57323a"
 dependencies = [
  "arrayvec",
  "log",
@@ -246,7 +383,7 @@ dependencies = [
 [[package]]
 name = "adabraka_util"
 version = "0.5.1"
-source = "git+https://github.com/freefcw/adabraka-gpui?rev=cb783cd#cb783cd22976cfae02cd1fcbf9c6bd35fbf24c98"
+source = "git+https://github.com/freefcw/adabraka-gpui?rev=1164c0f#1164c0f50c0399f3dfc60ed4efbe20843d57323a"
 dependencies = [
  "adabraka_collections",
  "adabraka_util_macros",
@@ -284,7 +421,7 @@ dependencies = [
 [[package]]
 name = "adabraka_util_macros"
 version = "0.5.1"
-source = "git+https://github.com/freefcw/adabraka-gpui?rev=cb783cd#cb783cd22976cfae02cd1fcbf9c6bd35fbf24c98"
+source = "git+https://github.com/freefcw/adabraka-gpui?rev=1164c0f#1164c0f50c0399f3dfc60ed4efbe20843d57323a"
 dependencies = [
  "quote",
  "syn",
@@ -2359,7 +2496,7 @@ dependencies = [
  "log",
  "presser",
  "thiserror 2.0.18",
- "windows 0.54.0",
+ "windows 0.62.2",
 ]
 
 [[package]]
@@ -5763,9 +5900,9 @@ dependencies = [
 
 [[package]]
 name = "taffy"
-version = "0.10.1"
+version = "0.12.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "aea22054047c16c3f34d3ac473a2170be1424b1115b2a3adcf28cfb067c88859"
+checksum = "340a09581f29809fc0df82a3955501dc7f2a21f887e5d1c13dbe288fe1c0bef4"
 dependencies = [
  "arrayvec",
  "grid",
@@ -6885,6 +7022,19 @@ name = "wayland-protocols-plasma"
 version = "0.3.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2b6d8cf1eb2c1c31ed1f5643c88a6e53538129d4af80030c8cabd1f9fa884d91"
+dependencies = [
+ "bitflags 2.11.1",
+ "wayland-backend",
+ "wayland-client",
+ "wayland-protocols",
+ "wayland-scanner",
+]
+
+[[package]]
+name = "wayland-protocols-wlr"
+version = "0.3.12"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "eb04e52f7836d7c7976c78ca0250d61e33873c34156a2a1fc9474828ec268234"
 dependencies = [
  "bitflags 2.11.1",
  "wayland-backend",
