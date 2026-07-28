@@ -21,6 +21,8 @@ just fmt
 just build-ci
 just test-ci
 just clippy-ci
+just check-platform-ci
+just visual-smoke-ci
 just fmt-check
 
 # Future strict clippy gate
@@ -45,7 +47,7 @@ just run-example demo          # Comprehensive demo
 just run-example slider_styled_demo  # Slider component demo
 ```
 
-GitHub Actions uses `gpui/runtime_shaders` on hosted macOS runners because the default GPUI Metal shader compilation path can fail when the Metal Toolchain is unavailable. `just clippy-strict` exists as the future hard gate, but CI currently uses `just clippy-ci` while the existing clippy debt is being paid down.
+GitHub Actions uses `gpui/runtime_shaders` on hosted macOS runners because the default GPUI Metal shader compilation path can fail when the Metal Toolchain is unavailable. CI Cargo targets use `--locked`, and `just check-platform-ci` verifies the accessibility-enabled library on Linux and Windows. `just clippy-strict` exists as the future hard gate, but CI currently uses `just clippy-ci` while the existing clippy debt is being paid down.
 
 The `Justfile` is the canonical command source for local development and CI targets.
 

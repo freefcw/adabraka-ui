@@ -19,13 +19,15 @@ adabraka-ui is a Rust GPUI component library with reusable UI primitives, demos,
 - `just build-ci`
 - `just test-ci`
 - `just clippy-ci`
+- `just check-platform-ci`
+- `just visual-smoke-ci`
 - `just fmt-check`
 - `just clippy-strict` (future hard gate, not currently wired into CI)
 - `just check-boundaries`
 - `just check-cargo-contract`
 - `just verify-capabilities-ci`
 
-GitHub Actions uses `gpui/runtime_shaders` on hosted macOS runners because the default GPUI Metal shader compilation path can fail when the Metal Toolchain is unavailable.
+GitHub Actions uses `gpui/runtime_shaders` on hosted macOS runners because the default GPUI Metal shader compilation path can fail when the Metal Toolchain is unavailable. CI Cargo targets use `--locked`, and `just check-platform-ci` verifies the accessibility-enabled library on Linux and Windows.
 
 The `Justfile` is the canonical command source for local development and CI targets.
 

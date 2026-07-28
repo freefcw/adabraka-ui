@@ -9,7 +9,14 @@ from typing import Dict, Iterable, List, Optional, Sequence
 ROOT = Path(__file__).resolve().parents[1]
 
 LOCAL_COMMANDS = ("build", "test", "clippy", "fmt")
-CI_COMMANDS = ("build-ci", "test-ci", "clippy-ci", "fmt-check")
+CI_COMMANDS = (
+    "build-ci",
+    "test-ci",
+    "clippy-ci",
+    "check-platform-ci",
+    "visual-smoke-ci",
+    "fmt-check",
+)
 CAPABILITY_COMMANDS = (
     "check-boundaries",
     "check-cargo-contract",

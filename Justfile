@@ -46,18 +46,18 @@ list-examples:
       | sort
 
 build-ci:
-    {{ cargo }} build --features {{ runtime_shaders_feature }}
+    {{ cargo }} build --locked --features {{ runtime_shaders_feature }}
 
 test-ci:
-    {{ cargo }} test --features {{ runtime_shaders_feature }}
+    {{ cargo }} test --locked --features {{ runtime_shaders_feature }}
 
 clippy-ci:
-    {{ cargo }} clippy --all-targets --features {{ runtime_shaders_feature }}
+    {{ cargo }} clippy --locked --all-targets --features {{ runtime_shaders_feature }}
 
 # Strict clippy exists as the future hard gate, but CI uses clippy-ci while
 # historical warnings are being paid down.
 clippy-strict:
-    {{ cargo }} clippy --all-targets --features {{ runtime_shaders_feature }} -- -D warnings
+    {{ cargo }} clippy --locked --all-targets --features {{ runtime_shaders_feature }} -- -D warnings
 
 fmt-check:
     {{ cargo }} fmt --all --check
@@ -73,17 +73,23 @@ check-cargo-contract:
 update-cargo-contract:
     python3 scripts/check_cargo_contract.py --update
 
+check-platform-ci:
+    {{ cargo }} check --locked --lib --no-default-features --features accessibility
+
+visual-smoke-ci:
+    {{ cargo }} test --locked --test real_visual_smoke --features {{ runtime_shaders_feature }} -- --ignored
+
 verify-capabilities-ci:
-    {{ cargo }} test --no-default-features --features {{ runtime_shaders_feature }} --test public_api
-    {{ cargo }} check --no-default-features --features {{ runtime_shaders_feature }},markdown --example markdown_demo
-    {{ cargo }} check --no-default-features --features {{ runtime_shaders_feature }},html-render --example html_demo
-    {{ cargo }} check --no-default-features --features {{ runtime_shaders_feature }},audio --example audio_player_demo
-    {{ cargo }} check --no-default-features --features {{ runtime_shaders_feature }},qrcode --example components_showcase
-    {{ cargo }} check --no-default-features --features {{ runtime_shaders_feature }},editor --example editor_scroll_test
-    {{ cargo }} check --no-default-features --features {{ runtime_shaders_feature }},editor-languages --example editor_demo
-    {{ cargo }} check --no-default-features --features {{ runtime_shaders_feature }},bundled-fonts-inter-minimal,bundled-fonts-mono --lib
-    {{ cargo }} test --all-features --features {{ runtime_shaders_feature }} --lib --test public_api
-    {{ cargo }} check --all-features --features {{ runtime_shaders_feature }} --examples
+    {{ cargo }} test --locked --no-default-features --features {{ runtime_shaders_feature }} --test public_api
+    {{ cargo }} check --locked --no-default-features --features {{ runtime_shaders_feature }},markdown --example markdown_demo
+    {{ cargo }} check --locked --no-default-features --features {{ runtime_shaders_feature }},html-render --example html_demo
+    {{ cargo }} check --locked --no-default-features --features {{ runtime_shaders_feature }},audio --example audio_player_demo
+    {{ cargo }} check --locked --no-default-features --features {{ runtime_shaders_feature }},qrcode --example components_showcase
+    {{ cargo }} check --locked --no-default-features --features {{ runtime_shaders_feature }},editor --example editor_scroll_test
+    {{ cargo }} check --locked --no-default-features --features {{ runtime_shaders_feature }},editor-languages --example editor_demo
+    {{ cargo }} check --locked --no-default-features --features {{ runtime_shaders_feature }},bundled-fonts-inter-minimal,bundled-fonts-mono --lib
+    {{ cargo }} test --locked --all-features --features {{ runtime_shaders_feature }} --lib --test public_api
+    {{ cargo }} check --locked --all-features --features {{ runtime_shaders_feature }} --examples
 
 validate-agent-docs:
     python3 -m unittest discover -s scripts/tests -p 'test_validate_agent_docs.py'

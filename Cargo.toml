@@ -80,6 +80,8 @@ rodio = { version = "0.19", optional = true }
 
 [dev-dependencies]
 gpui = { package = "adabraka-gpui", git = "https://github.com/freefcw/adabraka-gpui", rev = "63fb8d8", default-features = false, features = ["image-format-jpeg", "test-support"] }
+anyhow = "1.0"
+image = { version = "0.25", default-features = false }
 serde_json = "1.0"
 
 [features]
@@ -149,6 +151,11 @@ font-inter-semibold = []
 font-inter-bold = []
 font-mono-regular = []
 font-mono-bold = []
+
+[[test]]
+name = "real_visual_smoke"
+path = "tests/real_visual_smoke.rs"
+harness = false
 
 [[test]]
 name = "accessibility"
