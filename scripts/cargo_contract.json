@@ -160,6 +160,9 @@
     "virtual_list_demo": []
   },
   "features": {
+    "accessibility": [
+      "gpui/accessibility"
+    ],
     "audio": [
       "rodio"
     ],
@@ -185,6 +188,7 @@
       "font-mono-bold"
     ],
     "default": [
+      "accessibility",
       "http",
       "bundled-fonts"
     ],

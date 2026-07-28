@@ -20,7 +20,7 @@ rustdoc-args = ["--cfg", "docsrs"]
 
 [dependencies]
 # Core Framework
-gpui = { package = "adabraka-gpui", git = "https://github.com/freefcw/adabraka-gpui", rev = "1164c0f", default-features = false, features = ["font-kit", "wayland", "x11", "windows-manifest"] }
+gpui = { package = "adabraka-gpui", git = "https://github.com/freefcw/adabraka-gpui", rev = "63fb8d8", default-features = false, features = ["font-kit", "wayland", "x11", "windows-manifest"] }
 smallvec = "1.13.2"
 
 # Text Processing
@@ -79,10 +79,11 @@ markup5ever_rcdom = { version = "0.38", optional = true }
 rodio = { version = "0.19", optional = true }
 
 [dev-dependencies]
-gpui = { package = "adabraka-gpui", git = "https://github.com/freefcw/adabraka-gpui", rev = "1164c0f", default-features = false, features = ["image-format-jpeg", "test-support"] }
+gpui = { package = "adabraka-gpui", git = "https://github.com/freefcw/adabraka-gpui", rev = "63fb8d8", default-features = false, features = ["image-format-jpeg", "test-support"] }
 
 [features]
-default = ["http", "bundled-fonts"]
+default = ["accessibility", "http", "bundled-fonts"]
+accessibility = ["gpui/accessibility"]
 http = ["reqwest"]
 markdown = ["pulldown-cmark"]
 html-render = ["html5ever", "markup5ever_rcdom"]
