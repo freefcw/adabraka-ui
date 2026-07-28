@@ -172,3 +172,8 @@ required-features = ["editor", "editor-languages"]
 name = "editor_scroll_test"
 path = "examples/editor_scroll_test.rs"
 required-features = ["editor"]
+
+[[example]]
+name = "editor_styled_demo"
+path = "examples/editor_styled_demo.rs"
+required-features = ["editor"]

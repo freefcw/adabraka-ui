@@ -53,7 +53,9 @@
     "editor_scroll_test": [
       "editor"
     ],
-    "editor_styled_demo": [],
+    "editor_styled_demo": [
+      "editor"
+    ],
     "empty_state_demo": [],
     "file_tree_demo": [],
     "file_upload_demo": [],
