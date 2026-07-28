@@ -7,17 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.0] - 2026-07-28
+
 ### Added
 - Added `HttpSetup` and `try_init_with` so applications can explicitly install the built-in HTTP client, provide a user agent, or preserve GPUI's current client.
 - Added crate-owned `InitError` and `HttpInitError` types for diagnosable initialization failures without exposing the HTTP backend in public signatures.
+- Added the default `accessibility` Cargo feature and integration-tested AccessKit semantics for Button, Checkbox, Select, Input, and Dialog.
+- Added explicit Select expand/collapse/select accessibility actions, list/option semantics, and readable labels for icon-only dialog controls.
+- Added macOS and Windows real-renderer smoke coverage for a core form and a Popover containing Select.
 
 ### Changed
 - `adabraka_ui::init(cx)` now leaves GPUI's application-wide HTTP client unchanged instead of replacing it.
 - The built-in client's default user agent now uses the current crate version.
+- Updated the dependency baseline to the official `adabraka-gpui` v0.8.1 release.
+- The default feature set now includes `accessibility`; use `default-features = false` to opt out of native accessibility adapters.
 - `Dialog::header`, `child`, `children`, and `footer` now take render builders so their elements are recreated on every redraw.
 
 ### Fixed
-- Dialog header, body, and footer content now remain rendered after focus or animation redraws.
+- Password inputs now enable masking when they first transition to the password type, while preserving later user-driven visibility toggles.
+- Loading buttons are now reported as unavailable to assistive technology.
+- Unselected Select controls now expose placeholder text without reporting it as a selected value.
+- Dedicated visual-smoke CI jobs now fail instead of silently skipping when a real renderer is unavailable.
+- Dialog close handlers now run exactly once after dismissal, even across later redraws.
+- Dialog header, body, and footer content now remain rendered and accessible after focus or animation redraws.
 
 ### Migration Notes
 - Applications that relied on `adabraka_ui::init(cx)` to install the built-in client must use `try_init_with(cx, HttpSetup::Default)` or call `init_http(cx)` explicitly.
@@ -408,7 +420,11 @@ Created comprehensive styled demonstration examples for every component showing 
 - Platform-aware UI elements
 - Responsive layout utilities (VStack, HStack, Grid)
 
-[Unreleased]: https://github.com/Augani/adabraka-ui/compare/v0.3.4...HEAD
+[Unreleased]: https://github.com/Augani/adabraka-ui/compare/v0.8.0...HEAD
+[0.8.0]: https://github.com/Augani/adabraka-ui/compare/v0.7.0...v0.8.0
+[0.7.0]: https://github.com/Augani/adabraka-ui/compare/v0.6.0...v0.7.0
+[0.6.0]: https://github.com/Augani/adabraka-ui/compare/v0.5.0...v0.6.0
+[0.5.0]: https://github.com/Augani/adabraka-ui/compare/v0.3.4...v0.5.0
 [0.3.4]: https://github.com/Augani/adabraka-ui/compare/v0.3.3...v0.3.4
 [0.3.3]: https://github.com/Augani/adabraka-ui/compare/v0.3.2...v0.3.3
 [0.3.2]: https://github.com/Augani/adabraka-ui/compare/v0.3.1...v0.3.2

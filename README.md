@@ -7,7 +7,7 @@
 [![Rust](https://img.shields.io/badge/rust-1.85%2B-orange.svg)](https://www.rust-lang.org/)
 [![GitHub Stars](https://img.shields.io/github/stars/Augani/adabraka-ui?style=social)](https://github.com/Augani/adabraka-ui)
 
-A comprehensive, professional UI component library for [GPUI](https://github.com/zed-industries/zed), the GPU-accelerated UI framework powering the Zed editor. Inspired by [shadcn/ui](https://ui.shadcn.com/), adabraka-ui provides 85+ polished, accessible components for building beautiful desktop applications in Rust.
+A comprehensive, professional UI component library for [GPUI](https://github.com/zed-industries/zed), the GPU-accelerated UI framework powering the Zed editor. Inspired by [shadcn/ui](https://ui.shadcn.com/), adabraka-ui provides 85+ polished components for building beautiful desktop applications in Rust.
 
 **[📖 Documentation](https://augani.github.io/adabraka-ui/)** · **[🚀 Getting Started](#installation)** · **[📦 Components](#components)** · **[💡 Examples](#examples)**
 
@@ -19,7 +19,7 @@ A comprehensive, professional UI component library for [GPUI](https://github.com
 - 🎭 **Professional Animations** - Smooth transitions with cubic-bezier easing and spring physics
 - ✍️ **Typography System** - Built-in Text component with semantic variants
 - 💻 **Code Editor** - Multi-line editor with syntax highlighting and full keyboard support
-- ♿ **Accessibility** - Full keyboard navigation, ARIA labels, and screen reader support
+- ♿ **Accessibility** - Keyboard support across controls, with tested AccessKit semantics for core form components
 - 🎯 **Type-Safe** - Leverages Rust's type system for compile-time guarantees
 - 🚀 **High Performance** - Optimized for GPUI's retained-mode rendering with virtual scrolling
 - 📚 **Well Documented** - Extensive examples and comprehensive API documentation
@@ -60,6 +60,21 @@ adabraka-ui = { git = "https://github.com/Augani/adabraka-ui", features = ["edit
 - `editor`: enables the editor component and pulls in `ropey` plus core `tree-sitter`
 - `editor-languages`: adds the bundled tree-sitter grammars for syntax highlighting
 - `qrcode`: enables `QRCodeComponent`
+- `accessibility`: enables GPUI's native AccessKit adapters; enabled by default
+
+### Accessibility Status
+
+The accessibility feature is enabled by default. The following components currently have integration-tested AccessKit semantics:
+
+| Component | Verified semantics |
+| --- | --- |
+| Button | Role, accessible label, disabled and loading states |
+| Checkbox | Role, label, checked, mixed, disabled states |
+| Select | Role, label, selected value or placeholder, expanded state, list/option hierarchy, disabled state, expand/collapse/select actions |
+| Input | Text/password roles, label, description, value, placeholder, required, invalid, disabled states |
+| Dialog | Modal role, title, description, readable close-button label, content and footer preserved across redraws |
+
+Other components may provide keyboard interaction but do not yet carry the same screen-reader support guarantee. Coverage is being expanded component by component.
 
 For local co-development, point `gpui` at your checked-out fork instead:
 
@@ -67,7 +82,16 @@ For local co-development, point `gpui` at your checked-out fork instead:
 gpui = { package = "adabraka-gpui", path = "../adabraka-gpui/crates/gpui" }
 ```
 
-## What's New in v0.7.0
+## What's New in v0.8.0
+
+### v0.8.0 - Tested Accessibility & Renderer Gates
+- Accessibility is enabled by default, with integration-tested AccessKit semantics for Button, Checkbox, Select, Input, and Dialog
+- Select supports assistive expand, collapse, and option-selection actions through a complete settings-dialog flow
+- Dialog slots now use render builders so header, body, and footer content survive redraws; migrate `.child(...)` and `.footer(...)` calls to closures
+- macOS and Windows real-renderer smoke jobs verify nonblank form and Popover/Select scenes
+- The GPUI dependency now targets the official `adabraka-gpui` v0.8.1 release
+
+See [CHANGELOG.md](CHANGELOG.md#080---2026-07-28) for migration notes.
 
 ### v0.7.0 - App-Scoped State & Reliability
 - Themes are now stored per GPUI `App`; call `use_theme(cx)` from render code
@@ -169,7 +193,7 @@ impl Render for MyApp {
 
 `adabraka_ui::init(cx)` initializes the UI library without changing GPUI's application-wide HTTP client. This is the safe default for applications that already configure networking, proxies, authentication, or certificates.
 
-With the default `http` feature, opt into the built-in client when remote images need it. Its user agent is generated from the crate version, for example `adabraka-ui/0.7.0`:
+With the default `http` feature, opt into the built-in client when remote images need it. Its user agent is generated from the crate version, for example `adabraka-ui/0.8.0`:
 
 ```rust
 adabraka_ui::try_init_with(

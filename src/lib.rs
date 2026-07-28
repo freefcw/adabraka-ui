@@ -4,7 +4,8 @@
 //!
 //! A comprehensive, themeable component library inspired by shadcn/ui, designed specifically
 //! for building polished desktop applications using GPUI. Provides a complete set of
-//! reusable components with consistent styling, smooth animations, and accessibility support.
+//! reusable components with consistent styling, smooth animations, and progressively tested
+//! accessibility support.
 //! ## Architecture Overview
 //!
 //! The library is organized into several key modules:
@@ -18,7 +19,8 @@
 //! ## Key Features
 //!
 //! - **Theme System**: Comprehensive design tokens with automatic light/dark mode support
-//! - **Accessibility**: Full keyboard navigation, ARIA labels, and screen reader support
+//! - **Accessibility**: Keyboard support across controls, with tested AccessKit semantics for
+//!   Button, Checkbox, Select, Input, and Dialog
 //! - **Performance**: Optimized rendering with virtual scrolling for large datasets
 //! - **Animation**: Smooth, professional animations using spring physics and easing curves
 //! - **Type Safety**: Strong typing throughout with compile-time guarantees
