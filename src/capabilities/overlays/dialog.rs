@@ -38,14 +38,24 @@ impl DialogSize {
     }
 }
 
+type DialogElementBuilder = Rc<dyn Fn(&mut Window, &mut App) -> AnyElement>;
+
+fn dialog_element_builder<E, F>(builder: F) -> DialogElementBuilder
+where
+    E: IntoElement + 'static,
+    F: Fn(&mut Window, &mut App) -> E + 'static,
+{
+    Rc::new(move |window, cx| builder(window, cx).into_any_element())
+}
+
 pub struct Dialog {
     focus_handle: FocusHandle,
-    header: Option<AnyElement>,
+    header: Option<DialogElementBuilder>,
     title: Option<SharedString>,
     description: Option<SharedString>,
     size: DialogSize,
-    children: Vec<AnyElement>,
-    footer: Option<AnyElement>,
+    children: Vec<DialogElementBuilder>,
+    footer: Option<DialogElementBuilder>,
     show_close_button: bool,
     close_on_backdrop_click: bool,
     close_on_escape: bool,
@@ -77,8 +87,12 @@ impl Dialog {
         }
     }
 
-    pub fn header(mut self, header: impl IntoElement) -> Self {
-        self.header = Some(header.into_any_element());
+    pub fn header<E, F>(mut self, header: F) -> Self
+    where
+        E: IntoElement + 'static,
+        F: Fn(&mut Window, &mut App) -> E + 'static,
+    {
+        self.header = Some(dialog_element_builder(header));
         self
     }
 
@@ -97,23 +111,31 @@ impl Dialog {
         self
     }
 
-    pub fn child(mut self, child: impl IntoElement) -> Self {
-        self.children.push(child.into_any_element());
-        self
-    }
-
-    pub fn children<I>(mut self, children: impl IntoIterator<Item = I>) -> Self
+    pub fn child<E, F>(mut self, child: F) -> Self
     where
-        I: IntoElement,
+        E: IntoElement + 'static,
+        F: Fn(&mut Window, &mut App) -> E + 'static,
     {
-        for child in children {
-            self.children.push(child.into_any_element());
-        }
+        self.children.push(dialog_element_builder(child));
         self
     }
 
-    pub fn footer(mut self, footer: impl IntoElement) -> Self {
-        self.footer = Some(footer.into_any_element());
+    pub fn children<E, F>(mut self, children: impl IntoIterator<Item = F>) -> Self
+    where
+        E: IntoElement + 'static,
+        F: Fn(&mut Window, &mut App) -> E + 'static,
+    {
+        self.children
+            .extend(children.into_iter().map(dialog_element_builder));
+        self
+    }
+
+    pub fn footer<E, F>(mut self, footer: F) -> Self
+    where
+        E: IntoElement + 'static,
+        F: Fn(&mut Window, &mut App) -> E + 'static,
+    {
+        self.footer = Some(dialog_element_builder(footer));
         self
     }
 
@@ -171,11 +193,19 @@ impl Render for Dialog {
         }
 
         let theme = use_theme(cx);
-        let has_slot_header = self.header.is_some();
+        let header = self.header.as_ref().map(|header| header(window, cx));
+        let children = self
+            .children
+            .iter()
+            .map(|child| child(window, cx))
+            .collect::<Vec<_>>();
+        let footer = self.footer.as_ref().map(|footer| footer(window, cx));
+        let has_slot_header = header.is_some();
         let has_header = has_slot_header
             || self.title.is_some()
             || self.description.is_some()
             || self.show_close_button;
+        let has_children = !children.is_empty();
 
         let dialog_entity = cx.entity().clone();
         let user_style = self.style.clone();
@@ -222,8 +252,7 @@ impl Render for Dialog {
                     .overflow_hidden()
                     .when(has_header, |this| {
                         if has_slot_header {
-                            let header = self.header.take().unwrap();
-                            this.child(header)
+                            this.child(header.unwrap())
                         } else {
                             this.child(
                                 div()
@@ -233,10 +262,9 @@ impl Render for Dialog {
                                     .px(px(24.0))
                                     .pt(px(24.0))
                                     .pb(px(16.0))
-                                    .when(
-                                        self.footer.is_none() && self.children.is_empty(),
-                                        |this| this.pb(px(24.0)),
-                                    )
+                                    .when(footer.is_none() && !has_children, |this| {
+                                        this.pb(px(24.0))
+                                    })
                                     .child(
                                         div()
                                             .flex()
@@ -292,6 +320,7 @@ impl Render for Dialog {
                                                 let dialog_entity = dialog_entity.clone();
                                                 this.child(
                                                     Button::new("dialog-close-btn", "×")
+                                                        .aria_label("Close dialog")
                                                         .variant(ButtonVariant::Ghost)
                                                         .size(ButtonSize::Icon)
                                                         .on_click(move |_, window, cx| {
@@ -308,8 +337,7 @@ impl Render for Dialog {
                             )
                         }
                     })
-                    .when(!self.children.is_empty(), |this| {
-                        let children = std::mem::take(&mut self.children);
+                    .when(has_children, |this| {
                         this.child(
                             div()
                                 .flex()
@@ -326,7 +354,7 @@ impl Render for Dialog {
                         div.style().refine(&user_style);
                         div
                     })
-                    .when_some(self.footer.take(), |this, footer| {
+                    .when_some(footer, |this, footer| {
                         this.child(
                             div()
                                 .flex()

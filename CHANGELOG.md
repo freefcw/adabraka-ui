@@ -14,10 +14,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - `adabraka_ui::init(cx)` now leaves GPUI's application-wide HTTP client unchanged instead of replacing it.
 - The built-in client's default user agent now uses the current crate version.
+- `Dialog::header`, `child`, `children`, and `footer` now take render builders so their elements are recreated on every redraw.
+
+### Fixed
+- Dialog header, body, and footer content now remain rendered after focus or animation redraws.
 
 ### Migration Notes
 - Applications that relied on `adabraka_ui::init(cx)` to install the built-in client must use `try_init_with(cx, HttpSetup::Default)` or call `init_http(cx)` explicitly.
 - Use `try_init_with(cx, HttpSetup::UserAgent(...))` for a custom user agent. A second explicit root initialization now returns `InitError::AlreadyInitialized` instead of silently ignoring the requested policy.
+- Wrap Dialog slot content in a render builder, for example `.child(|_, _| div().child("Content"))` and `.footer(|_, _| Button::new("save", "Save"))`.
 
 ## 0.7.0 - 2026-07-22
 
