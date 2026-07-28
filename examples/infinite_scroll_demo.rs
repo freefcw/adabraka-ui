@@ -1,4 +1,5 @@
 use adabraka_ui::prelude::*;
+use gpui::WeakEntity;
 
 fn main() {
     Application::new().run(|cx| {
@@ -15,7 +16,12 @@ fn main() {
                 ))),
                 ..Default::default()
             },
-            |window, cx| cx.new(|cx| InfiniteScrollApp::new(window, cx)),
+            |window, cx| {
+                cx.new(|cx| {
+                    let app_entity = cx.entity().downgrade();
+                    InfiniteScrollApp::new(window, cx, app_entity)
+                })
+            },
         )
         .unwrap();
     });
@@ -37,8 +43,20 @@ struct InfiniteScrollApp {
     total_loaded: usize,
 }
 
+fn request_load_more(
+    app_entity: WeakEntity<InfiniteScrollApp>,
+    table_cx: &mut Context<DataTable<User>>,
+) {
+    println!("[Infinite Scroll] on_load_more triggered!");
+    table_cx.defer(move |cx| {
+        if let Some(app) = app_entity.upgrade() {
+            app.update(cx, |app, cx| app.load_more_data(cx));
+        }
+    });
+}
+
 impl InfiniteScrollApp {
-    fn new(_window: &mut Window, cx: &mut App) -> Self {
+    fn new(_window: &mut Window, cx: &mut App, app_entity: WeakEntity<InfiniteScrollApp>) -> Self {
         let theme = Theme::dark();
         install_theme(cx, theme.clone());
 
@@ -48,10 +66,7 @@ impl InfiniteScrollApp {
 
         let table = cx.new(|cx| {
             DataTable::new(initial_data, columns, cx)
-                .on_load_more(|_window, cx| {
-                    println!("[Infinite Scroll] on_load_more triggered!");
-                    cx.notify();
-                })
+                .on_load_more(move |_window, cx| request_load_more(app_entity.clone(), cx))
                 .load_more_threshold(0.7) // Trigger at 70%
         });
 
@@ -276,5 +291,29 @@ impl Render for InfiniteScrollApp {
                         )
                     )
             )
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use gpui::TestAppContext;
+
+    #[gpui::test]
+    fn load_more_request_appends_one_batch_after_table_update(cx: &mut TestAppContext) {
+        cx.update(adabraka_ui::init);
+        let (app, cx) = cx.add_window_view(|window, cx| {
+            let app_entity = cx.entity().downgrade();
+            InfiniteScrollApp::new(window, cx, app_entity)
+        });
+        let table = cx.read(|cx| app.read(cx).table.clone());
+
+        table.update(cx, |_table, table_cx| {
+            request_load_more(app.downgrade(), table_cx);
+        });
+        cx.run_until_parked();
+
+        assert_eq!(cx.read(|cx| app.read(cx).total_loaded), 150);
+        assert_eq!(cx.read(|cx| table.read(cx).data_count()), 150);
     }
 }
