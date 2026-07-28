@@ -1,5 +1,4 @@
 use adabraka_ui::prelude::*;
-use std::sync::{Arc, Mutex};
 
 fn main() {
     Application::new().run(|cx| {
@@ -28,22 +27,18 @@ fn main() {
 }
 
 struct SimpleButtonApp {
-    click_count: Arc<Mutex<usize>>,
+    click_count: usize,
 }
 
 impl SimpleButtonApp {
     fn new(_window: &mut Window, _cx: &mut App) -> Self {
-        Self {
-            click_count: Arc::new(Mutex::new(0)),
-        }
+        Self { click_count: 0 }
     }
 }
 
 impl Render for SimpleButtonApp {
     fn render(&mut self, _window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
         let theme = use_theme(cx);
-        let count = *self.click_count.lock().unwrap();
-        let click_count = Arc::clone(&self.click_count);
 
         div()
             .bg(theme.tokens.background)
@@ -57,16 +52,19 @@ impl Render for SimpleButtonApp {
                 div()
                     .text_size(px(24.0))
                     .text_color(theme.tokens.foreground)
-                    .child(format!("Clicked {} times", count)),
+                    .child(format!("Clicked {} times", self.click_count)),
             )
             .child(
-                // Using Button with a regular closure (gc pattern)
-                Button::new("click-btn", "Click Me!").on_click(move |_event, _window, _cx| {
-                    let mut count = click_count.lock().unwrap();
-                    *count += 1;
-                    println!("Button clicked! Count: {}", *count);
-                    // Can't call cx.notify() here because we don't have view access
-                }),
+                // State lives on the root view (per the demo.rs note) so the
+                // click handler can use `cx.listener` and call `cx.notify()`
+                // to re-render.
+                Button::new("click-btn", "Click Me!").on_click(cx.listener(
+                    |this, _event, _window, cx| {
+                        this.click_count += 1;
+                        println!("Button clicked! Count: {}", this.click_count);
+                        cx.notify();
+                    },
+                )),
             )
     }
 }

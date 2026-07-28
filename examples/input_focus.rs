@@ -57,10 +57,12 @@ impl FocusTestApp {
                             let next_index = (current_index + 1) % inputs_clone.len();
                             let next_input = inputs_clone[next_index].clone();
                             cx.defer(move |cx| {
-                                cx.update_window(cx.active_window().unwrap(), |_, window, cx| {
-                                    window.focus(&next_input.read(cx).focus_handle(cx));
-                                })
-                                .ok();
+                                if let Some(window) = cx.active_window() {
+                                    cx.update_window(window, |_, window, cx| {
+                                        window.focus(&next_input.read(cx).focus_handle(cx));
+                                    })
+                                    .ok();
+                                }
                             });
                         }
                         InputEvent::ShiftTab => {
@@ -72,10 +74,12 @@ impl FocusTestApp {
                             };
                             let prev_input = inputs_clone[prev_index].clone();
                             cx.defer(move |cx| {
-                                cx.update_window(cx.active_window().unwrap(), |_, window, cx| {
-                                    window.focus(&prev_input.read(cx).focus_handle(cx));
-                                })
-                                .ok();
+                                if let Some(window) = cx.active_window() {
+                                    cx.update_window(window, |_, window, cx| {
+                                        window.focus(&prev_input.read(cx).focus_handle(cx));
+                                    })
+                                    .ok();
+                                }
                             });
                         }
                         _ => {}
