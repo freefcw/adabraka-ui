@@ -22,7 +22,7 @@ fn render_icon(icon_src: IconSource, size: Pixels, color: Hsla) -> impl IntoElem
 fn render_loading_spinner(size: Pixels, color: Hsla) -> impl IntoElement {
     div().size(size).child(
         svg()
-            .path("assets/icons/loader.svg")
+            .path(resolve_icon_path("loader"))
             .size(size)
             .text_color(color),
     )
@@ -50,6 +50,7 @@ pub struct Button {
     id: ElementId,
     base: Stateful<Div>,
     label: SharedString,
+    aria_label: Option<SharedString>,
     variant: ButtonVariant,
     size: ButtonSize,
     disabled: bool,
@@ -84,6 +85,7 @@ impl Button {
             id: id.clone(),
             base: div().flex_shrink_0().id(id),
             label,
+            aria_label: None,
             variant: ButtonVariant::Default,
             size: ButtonSize::Md,
             disabled: false,
@@ -97,6 +99,12 @@ impl Button {
 
             style: StyleRefinement::default(),
         }
+    }
+
+    /// Override the visible label with a clearer name for assistive technology.
+    pub fn aria_label(mut self, label: impl Into<SharedString>) -> Self {
+        self.aria_label = Some(label.into());
+        self
     }
 
     pub fn variant(mut self, variant: ButtonVariant) -> Self {
@@ -250,6 +258,10 @@ impl RenderOnce for Button {
             .weight(FontWeight::MEDIUM)
             .font(theme.tokens.font_family.clone())
             .color(fg);
+        let aria_label = self
+            .aria_label
+            .clone()
+            .unwrap_or_else(|| self.label.clone());
 
         let icon_size = text_size * 1.2;
         let icon = self.icon.clone();
@@ -259,6 +271,9 @@ impl RenderOnce for Button {
         let user_style = self.style;
 
         self.base
+            .role(Role::Button)
+            .aria_label(aria_label)
+            .aria_disabled(self.disabled || is_loading)
             .when(!self.disabled && !is_loading, |this| {
                 this.track_focus(&focus_handle.tab_index(0).tab_stop(true))
             })

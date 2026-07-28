@@ -361,6 +361,7 @@ dependencies = [
  "regex",
  "rodio",
  "ropey",
+ "serde_json",
  "smallvec",
  "smol",
  "tree-sitter",

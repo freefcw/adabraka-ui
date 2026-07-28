@@ -80,6 +80,7 @@ rodio = { version = "0.19", optional = true }
 
 [dev-dependencies]
 gpui = { package = "adabraka-gpui", git = "https://github.com/freefcw/adabraka-gpui", rev = "63fb8d8", default-features = false, features = ["image-format-jpeg", "test-support"] }
+serde_json = "1.0"
 
 [features]
 default = ["accessibility", "http", "bundled-fonts"]
@@ -148,6 +149,11 @@ font-inter-semibold = []
 font-inter-bold = []
 font-mono-regular = []
 font-mono-bold = []
+
+[[test]]
+name = "accessibility"
+path = "tests/accessibility.rs"
+required-features = ["accessibility"]
 
 [[example]]
 name = "markdown_demo"

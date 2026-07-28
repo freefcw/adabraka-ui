@@ -167,7 +167,9 @@ impl Dialog {
         cx.notify();
 
         cx.spawn_in(window, async move |this, cx| {
-            smol::Timer::after(Duration::from_millis(200)).await;
+            cx.background_executor()
+                .timer(Duration::from_millis(200))
+                .await;
             let _ = this.update(cx, |dialog, cx| {
                 dialog.dismiss_complete = true;
                 cx.notify();
@@ -186,7 +188,7 @@ impl Styled for Dialog {
 impl Render for Dialog {
     fn render(&mut self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
         if self.dismiss_complete {
-            if let Some(handler) = &self.on_close {
+            if let Some(handler) = self.on_close.take() {
                 (handler)(window, cx);
             }
             return div().into_any_element();
@@ -227,6 +229,12 @@ impl Render for Dialog {
             .child(
                 div()
                     .id("dialog-content")
+                    .role(Role::Dialog)
+                    .when_some(self.title.clone(), |this, title| this.aria_label(title))
+                    .when_some(self.description.clone(), |this, description| {
+                        this.aria_description(description)
+                    })
+                    .aria_modal(true)
                     .occlude()
                     .key_context("Dialog")
                     .track_focus(&self.focus_handle)

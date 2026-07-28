@@ -537,14 +537,19 @@ impl RenderOnce for Input {
                 }
             }
 
-            // If password flag is enabled, ensure password input type is set.
-            // Do not force `masked` here so user interactions can toggle it.
-            if self.password {
+            // Enable masking when this builder first transitions the state to a password input.
+            // Later renders preserve user-driven visibility toggles.
+            if self.password && state.input_type != InputType::Password {
                 state.input_type = InputType::Password;
+                state.masked = true;
             }
 
             if let Some(input_type) = self.input_type {
+                let input_type_changed = state.input_type != input_type;
                 state.input_type = input_type;
+                if input_type_changed && input_type == InputType::Password {
+                    state.masked = true;
+                }
                 match input_type {
                     InputType::Tel => state.input_mask = InputMask::Phone,
                     InputType::CreditCard => state.input_mask = InputMask::CreditCard,
@@ -679,6 +684,21 @@ impl RenderOnce for Input {
         let max_length = input_state.validation_rules.max_length;
         let is_focused = input_state.focus_handle(cx).is_focused(window);
         let is_masked = input_state.masked;
+        let aria_role = if input_state.input_type == InputType::Password {
+            Role::PasswordInput
+        } else {
+            Role::TextInput
+        };
+        let aria_label = input_state.aria_label.clone();
+        let aria_description = input_state.aria_description.clone();
+        let aria_placeholder = input_state.placeholder.clone();
+        let aria_value: SharedString = if is_masked {
+            "•".repeat(input_state.content.chars().count()).into()
+        } else {
+            input_state.content.clone()
+        };
+        let aria_required = input_state.validation_rules.required;
+        let aria_invalid = self.error || validation_error.is_some();
         let shake_triggered = input_state.shake_triggered;
 
         if shake_triggered {
@@ -710,6 +730,18 @@ impl RenderOnce for Input {
             .child({
                 let input_container = div()
                     .id(("input", self.state.entity_id()))
+                    .role(aria_role)
+                    .when_some(aria_label, |this, label| this.aria_label(label))
+                    .when_some(aria_description, |this, description| {
+                        this.aria_description(description)
+                    })
+                    .aria_value(aria_value)
+                    .aria_placeholder(aria_placeholder)
+                    .aria_disabled(self.disabled)
+                    .aria_required(aria_required)
+                    .when(aria_invalid, |this| {
+                        this.aria_invalid(gpui::accesskit::Invalid::True)
+                    })
                     .key_context("Input")
                     .track_focus(
                         &self

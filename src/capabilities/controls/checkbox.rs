@@ -114,6 +114,12 @@ impl RenderOnce for Checkbox {
         let border_radius = theme.tokens.radius_sm;
         let checked = self.checked;
         let indeterminate = self.indeterminate;
+        let aria_label = self.label.clone();
+        let aria_toggled = if indeterminate {
+            Toggled::Mixed
+        } else {
+            checked.into()
+        };
 
         let (bg, border, fg) = if self.disabled {
             (
@@ -143,6 +149,10 @@ impl RenderOnce for Checkbox {
         let user_style = self.style;
 
         self.base
+            .role(Role::CheckBox)
+            .when_some(aria_label, |this, label| this.aria_label(label))
+            .aria_toggled(aria_toggled)
+            .aria_disabled(self.disabled)
             .when(!self.disabled, |this| {
                 this.track_focus(&focus_handle.tab_index(0).tab_stop(true))
             })

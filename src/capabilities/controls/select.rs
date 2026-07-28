@@ -69,6 +69,7 @@ pub struct Select<T: Clone + 'static> {
     on_change: Option<Box<dyn Fn(&T, &mut Window, &mut App) + Send + Sync + 'static>>,
     bounds: Bounds<Pixels>,
     leading_icon: Option<IconSource>,
+    aria_label: Option<SharedString>,
     style: StyleRefinement,
 }
 
@@ -89,6 +90,7 @@ impl<T: Clone + 'static> Select<T> {
             on_change: None,
             bounds: Bounds::default(),
             leading_icon: None,
+            aria_label: None,
             style: StyleRefinement::default(),
         }
     }
@@ -139,6 +141,12 @@ impl<T: Clone + 'static> Select<T> {
 
     pub fn leading_icon(mut self, icon: impl Into<IconSource>) -> Self {
         self.leading_icon = Some(icon.into());
+        self
+    }
+
+    /// Set the field name announced by assistive technology.
+    pub fn aria_label(mut self, label: impl Into<SharedString>) -> Self {
+        self.aria_label = Some(label.into());
         self
     }
 
@@ -286,24 +294,38 @@ impl<T: Clone + 'static> Render for Select<T> {
         let theme = use_theme(cx);
         let user_style = self.style.clone();
 
-        let display_text = self
-            .selected_label()
-            .cloned()
-            .or_else(|| self.placeholder.clone())
+        let selected_label = self.selected_label().cloned();
+        let placeholder = self
+            .placeholder
+            .clone()
             .unwrap_or_else(|| "Select...".into());
+        let display_text = selected_label
+            .clone()
+            .unwrap_or_else(|| placeholder.clone());
 
         let open = self.open;
         let highlighted_idx = self.highlighted_index;
         let bounds = self.bounds;
+        let aria_label = self.aria_label.clone();
+        let focus_handle = self.focus_handle.clone().tab_index(0).tab_stop(true);
 
         let maybe_selected_icon: Option<IconSource> = self
             .selected_index
             .and_then(|i| self.options.get(i))
             .and_then(|opt| opt.icon.clone());
         let leading_icon = self.leading_icon.clone().or(maybe_selected_icon);
+        let entity_for_a11y_expand = cx.entity().clone();
+        let entity_for_a11y_collapse = cx.entity().clone();
 
         let trigger = div()
             .id("select-trigger")
+            .role(Role::ComboBox)
+            .when_some(aria_label, |this, label| this.aria_label(label))
+            .when_some(selected_label, |this, value| this.aria_value(value))
+            .aria_placeholder(placeholder)
+            .aria_expanded(open)
+            .aria_disabled(self.disabled)
+            .when(!self.disabled, |this| this.track_focus(&focus_handle))
             .relative()
             .flex()
             .items_center()
@@ -342,6 +364,20 @@ impl<T: Clone + 'static> Render for Select<T> {
                     this.toggle_dropdown(window, cx);
                 }),
             )
+            .on_a11y_action(AccessibleAction::Expand, move |_, window, cx| {
+                entity_for_a11y_expand.update(cx, |select, cx| {
+                    if !select.open {
+                        select.toggle_dropdown(window, cx);
+                    }
+                });
+            })
+            .on_a11y_action(AccessibleAction::Collapse, move |_, _, cx| {
+                entity_for_a11y_collapse.update(cx, |select, cx| {
+                    if select.open {
+                        select.close_dropdown(cx);
+                    }
+                });
+            })
             .child(
                 div()
                     .flex()
@@ -424,7 +460,6 @@ impl<T: Clone + 'static> Render for Select<T> {
             .relative()
             .w_full()
             .key_context("Select")
-            .track_focus(&self.focus_handle)
             .when(open && !self.disabled, |this: Div| {
                 this.on_action(cx.listener(Select::select_up))
                     .on_action(cx.listener(Select::select_down))
@@ -474,7 +509,7 @@ impl<T: Clone + 'static> Render for Select<T> {
                                             .overflow_hidden()
                                             .child(
                                                 with_test_selector(
-                                                    div(),
+                                                    div().id("select-listbox").role(Role::ListBox),
                                                     "select-dropdown",
                                                 )
                                                     .flex()
@@ -585,9 +620,14 @@ impl<T: Clone + 'static> Render for Select<T> {
                                                                             let is_selected = self.selected_index == Some(*index);
                                                                             let is_highlighted = highlighted_idx == Some(*index);
                                                                             let index = *index;
+                                                                            let option_for_a11y = cx.entity().clone();
 
                                                                             elements.push(
                                                                                 div()
+                                                                                    .id(("select-option", index))
+                                                                                    .role(Role::ListBoxOption)
+                                                                                    .aria_label(option.label.clone())
+                                                                                    .aria_selected(is_selected)
                                                                                     .px(px(12.0))
                                                                                     .py(px(8.0))
                                                                                     .text_color(if is_selected {
@@ -610,6 +650,11 @@ impl<T: Clone + 'static> Render for Select<T> {
                                                                                     .on_mouse_down(MouseButton::Left, cx.listener(move |this, _, window, cx| {
                                                                                         this.select_option(index, window, cx);
                                                                                     }))
+                                                                                    .on_a11y_action(AccessibleAction::Click, move |_, window, cx| {
+                                                                                        option_for_a11y.update(cx, |select, cx| {
+                                                                                            select.select_option(index, window, cx);
+                                                                                        });
+                                                                                    })
                                                                                     .child(
                                                                                         div()
                                                                                             .flex()
