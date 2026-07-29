@@ -237,7 +237,7 @@ For an explicit fallible path, pass `HttpSetup::PreserveExisting` to `try_init_w
 
 ## 🎨 Component Customization with Styled Trait
 
-**All 54 components implement the `Styled` trait**, giving you complete control over styling!
+**All 49 styled demos implement the `Styled` trait**, giving you complete control over styling!
 
 ### Full Customization Support
 
@@ -245,7 +245,7 @@ Every component can be customized using GPUI's powerful styling API. Apply any s
 
 ```rust
 Button::new("custom-btn", "Click Me")
-    .variant(ButtonVariant::Primary)  // Use built-in variant
+    .variant(ButtonVariant::Default)  // Use built-in variant
     .bg(rgb(0x8b5cf6))                 // Custom background
     .p_8()                              // Custom padding
     .rounded_xl()                       // Custom border radius
@@ -299,7 +299,7 @@ Every component now has a `*_styled_demo.rs` example showing full customization 
 just run-example button_styled_demo
 just run-example input_styled_demo
 just run-example data_table_styled_demo
-# ... and 51 more!
+# ... and 46 more!
 ```
 
 ## Theme System
@@ -490,23 +490,23 @@ IconButton::new(IconSource::Named("search".to_string()))
 // Basic text input
 let input_state = cx.new(|cx| InputState::new(cx));
 
-Input::new(input_state.clone(), cx)
+Input::new(&input_state)
     .placeholder("Enter text...")
     .variant(InputVariant::Default)
     .size(InputSize::Md)
 
 // Variants
-Input::new(input_state, cx)
+Input::new(&input_state)
     .variant(InputVariant::Outline)
     .variant(InputVariant::Ghost)
 
-// Password input with eye icon toggle (fixed in v0.2.2!)
-Input::new(password_input, cx)
+// Password input with eye icon toggle
+Input::new(&input_state)
     .password(true)  // Enables eye icon toggle for show/hide
     .placeholder("Enter password")
 
 // With prefix/suffix
-Input::new(input, cx)
+Input::new(&input_state)
     .prefix(div().child("🔍"))
     .suffix(Button::new("clear", "Clear").size(ButtonSize::Sm))
 ```
@@ -1021,14 +1021,13 @@ High-performance table for large datasets:
 
 ```rust
 let columns = vec![
-    DataTableColumn::new("id", "ID").width(px(80.0)),
-    DataTableColumn::new("name", "Name").width(px(200.0)),
-    DataTableColumn::new("email", "Email").width(px(250.0)),
+    ColumnDef::new("id", "ID", |u: &User| u.id.clone().into()).width(px(80.0)),
+    ColumnDef::new("name", "Name", |u: &User| u.name.clone().into()).width(px(200.0)),
+    ColumnDef::new("email", "Email", |u: &User| u.email.clone().into()).width(px(250.0)),
 ];
 
 DataTable::new(data, columns, cx)
-    .sortable(true)
-    .on_row_select(|item, _window, _cx| {
+    .on_row_click(|_idx, item, _window, _cx| {
         println!("Selected: {:?}", item);
     })
 ```
@@ -1089,7 +1088,7 @@ let panels = vec![
     TabPanel::new("tab2", div().child("Settings content")),
 ];
 
-Tabs::new(cx)
+Tabs::new()
     .tabs(tabs)
     .panels(panels)
     .selected_index(0)
@@ -1157,10 +1156,10 @@ let file_menu = vec![
         .on_click(|_window, _cx| println!("Save")),
 ];
 
-MenuBar::new(cx, vec![
-    MenuBarItem::new("File", file_menu),
-    MenuBarItem::new("Edit", edit_menu),
-    MenuBarItem::new("View", view_menu),
+MenuBar::new(vec![
+    MenuBarItem::new("file", "File").with_items(file_menu),
+    MenuBarItem::new("edit", "Edit").with_items(edit_menu),
+    MenuBarItem::new("view", "View").with_items(view_menu),
 ])
 
 // MenuItem types
@@ -1170,7 +1169,7 @@ MenuItem::new("parent", "Submenu").with_children(vec![...])  // Submenu
 MenuItem::separator()  // Visual divider
 
 // Standalone Menu
-Menu::new(cx, vec![
+Menu::new(vec![
     MenuItem::new("copy", "Copy")
         .with_icon(IconSource::Named("copy".into()))
         .with_shortcut("Cmd+C"),
@@ -1179,7 +1178,7 @@ Menu::new(cx, vec![
 ])
 
 // ContextMenu - Right-click context menu
-ContextMenu::new(cx, menu_items, position)
+ContextMenu::new(menu_items, position)
     .on_close(|_window, _cx| {
         // Handle close
     })
@@ -1449,17 +1448,20 @@ div()
 #### Popover
 
 ```rust
-Popover::new(cx)
-    .trigger(Button::new("open-popover", "Open Popover"))
-    .content(
+let popover_content = cx.new(|_cx| {
+    PopoverContent::new().child(
         VStack::new()
             .p(px(16.0))
             .gap(px(8.0))
             .child(div().child("Popover content"))
             .child(Button::new("action", "Action"))
     )
-    .position(PopoverPosition::Bottom)
-    .alignment(PopoverAlignment::Start)
+});
+
+Popover::new("popover-id")
+    .trigger(Button::new("open-popover", "Open Popover"))
+    .content(move |_, _| popover_content.clone())
+    .anchor(Corner::TopLeft)
 ```
 
 #### Toast Notifications
@@ -1694,8 +1696,8 @@ IconSource::Named("home".to_string())
 IconSource::Named("settings".to_string())
 
 // Use in components
-Button::new("Search")
-    .prefix(IconSource::Named("search".to_string()))
+Button::new("btn-search", "Search")
+    .icon(IconSource::Named("search".to_string()))
 
 SidebarItem::new("dashboard", "Dashboard")
     .with_icon(IconSource::Named("home".to_string()))
@@ -1759,7 +1761,7 @@ By not bundling icons, adabraka-ui keeps its package size small (saves ~3,274 ic
 - ✓ Update icons independently from the library
 - ✓ Keep your application bundle optimized
 
-### Icon Customization (New in v0.1.2)
+### Icon Customization
 
 The Icon component now supports advanced styling and transformations:
 
@@ -1848,7 +1850,7 @@ let input_state = cx.new(|cx| InputState::new(cx)
         pattern: Some(regex!("^[a-zA-Z0-9]+$")),
     }));
 
-Input::new(input_state, cx)
+Input::new(&input_state)
     .placeholder("Username")
     .on_blur(|_input, _window, cx| {
         // Trigger validation on blur
@@ -1877,7 +1879,7 @@ DropZone::new("drop-zone")
 
 ## Examples
 
-The library includes 50+ example applications demonstrating all components and features.
+The library includes 140+ example applications demonstrating all components and features.
 
 ### Featured Examples
 

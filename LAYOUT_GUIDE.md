@@ -233,9 +233,7 @@ Fixed-column grid with automatic row wrapping.
 Grid::new()
     .columns(3)
     .gap(16.0)
-    .children(
-        items.iter().map(|item| GridItem::new(item))
-    )
+    .children(items)
 ```
 
 ### Utilities

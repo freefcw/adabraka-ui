@@ -61,8 +61,8 @@ We love pull requests! Here's how to contribute:
 
 ### Prerequisites
 
-- Rust 1.70 or higher
-- GPUI 0.2.0 or higher
+- Rust 1.85 or higher
+- GPUI 0.8.1 or higher
 - just
 - Git
 
@@ -94,10 +94,9 @@ We love pull requests! Here's how to contribute:
 ```
 adabraka-ui/
 ├── src/
-│   ├── components/     # UI components
-│   ├── theme/          # Theme system
-│   ├── animations/     # Animation utilities
-│   ├── layout/         # Layout utilities
+│   ├── capabilities/   # Canonical implementations (foundation, layout, controls, scroll, ...)
+│   ├── components/     # Compatibility facades
+│   ├── theme/          # Theme facade
 │   └── lib.rs          # Library entry point
 ├── examples/           # Example applications
 ├── docs/               # GitHub Pages site
@@ -215,12 +214,13 @@ use crate::theme::*;
 /// # Examples
 ///
 /// ```rust
-/// Button::new("Click me")
-///     .variant(ButtonVariant::Primary)
+/// Button::new("my-button", "Click me")
+///     .variant(ButtonVariant::Default)
 ///     .on_click(|_, _, _| println!("Clicked!"))
 /// ```
 pub struct Button {
-    label: String,
+    id: ElementId,
+    label: SharedString,
     variant: ButtonVariant,
     // ... other fields
 }
@@ -228,15 +228,18 @@ pub struct Button {
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum ButtonVariant {
     Default,
-    Primary,
     Secondary,
-    // ...
+    Destructive,
+    Outline,
+    Ghost,
+    Link,
 }
 
 impl Button {
-    /// Creates a new button with the given label
-    pub fn new(label: impl Into<String>) -> Self {
+    /// Creates a new button with the given ID and label
+    pub fn new(id: impl Into<ElementId>, label: impl Into<SharedString>) -> Self {
         Self {
+            id: id.into(),
             label: label.into(),
             variant: ButtonVariant::Default,
         }
@@ -335,15 +338,15 @@ div().bg(rgb(0xffffff))
 ///
 /// Basic usage:
 /// ```rust
-/// Button::new("Click me")
+/// Button::new("btn-click", "Click me")
 ///     .on_click(|_, _, _| println!("Clicked!"))
 /// ```
 ///
 /// With variants and sizes:
 /// ```rust
-/// Button::new("Primary")
-///     .variant(ButtonVariant::Primary)
-///     .size(ButtonSize::Large)
+/// Button::new("btn-primary", "Primary")
+///     .variant(ButtonVariant::Default)
+///     .size(ButtonSize::Lg)
 /// ```
 ///
 /// # Accessibility
@@ -367,7 +370,7 @@ pub struct Button {
 /// # Examples
 ///
 /// ```rust
-/// Button::new("Save").variant(ButtonVariant::Primary)
+/// Button::new("btn-save", "Save").variant(ButtonVariant::Default)
 /// ```
 pub fn variant(mut self, variant: ButtonVariant) -> Self {
     // ...
@@ -403,10 +406,10 @@ mod tests {
 
     #[test]
     fn test_button_variant() {
-        let button = Button::new("Test")
-            .variant(ButtonVariant::Primary);
+        let button = Button::new("btn-test", "Test")
+            .variant(ButtonVariant::Default);
 
-        assert_eq!(button.variant, ButtonVariant::Primary);
+        assert_eq!(button.variant, ButtonVariant::Default);
     }
 }
 ```
@@ -467,7 +470,7 @@ Use clear, descriptive commit messages:
 Add Button component with variants
 
 - Implement builder pattern for configuration
-- Add support for Primary, Secondary, Outline variants
+- Add support for Default, Secondary, Outline, Ghost, Link, Destructive variants
 - Include accessibility features (ARIA, keyboard nav)
 - Add comprehensive examples and tests
 
