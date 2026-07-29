@@ -62,6 +62,19 @@ adabraka-ui = { git = "https://github.com/Augani/adabraka-ui", features = ["edit
 - `qrcode`: enables `QRCodeComponent`
 - `accessibility`: enables GPUI's native AccessKit adapters; enabled by default
 
+### Font Feature Flags
+
+Bundled fonts are gated behind feature flags for binary size control:
+
+- `bundled-fonts` (default) — all 6 font files (~2.1 MB)
+- `bundled-fonts-inter` — Inter Regular + Medium + SemiBold + Bold
+- `bundled-fonts-inter-minimal` — Inter Regular + SemiBold only
+- `bundled-fonts-mono` — JetBrains Mono Regular only
+- `bundled-fonts-mono-full` — JetBrains Mono Regular + Bold
+- Individual: `font-inter-regular`, `font-inter-medium`, `font-inter-semibold`, `font-inter-bold`, `font-mono-regular`, `font-mono-bold`
+
+Downstream crates can disable default fonts and register their own via `cx.text_system().add_fonts(...)`.
+
 ### Accessibility Status
 
 The accessibility feature is enabled by default. The following components currently have integration-tested AccessKit semantics:
