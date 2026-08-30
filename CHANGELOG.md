@@ -7,14 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Re-exported GPUI 0.9's `container_query` element constructor and its `ContainerQuery` element type from `gpui_ext` (and therefore the prelude), so size-aware subtrees can be built without depending on `gpui` directly.
+- Re-exported GPUI 0.9's analytic spring API from `gpui_ext`: `SpringConfig`, `SpringState`, `SpringAnimation`, `SpringPlayback`, `SpringTarget`, `AnimationPhase`, `Interpolate`, and `sampled_easing`. These make the already re-exported `AnimationExt::with_spring` usable and let `sampled_easing` feed `Animation::with_easing`.
+- Re-exported GPUI 0.9's `QuitMode` from `gpui_ext`, which the already re-exported `App::set_quit_mode` and `Application::with_quit_mode` require.
+
 ### Changed
-- Updated the `adabraka-gpui` dependency baseline from v0.8.1 (`63fb8d8`) to the 0.9 development line at `237df3455c9ce10d4fc04b7cac4b9650ca27ad97`, which also moves the layout engine to Taffy 0.13. The crate's own public API is unchanged.
+- Updated the `adabraka-gpui` dependency baseline from v0.8.1 (`63fb8d8`) to the 0.9 development line at `237df3455c9ce10d4fc04b7cac4b9650ca27ad97`, which also moves the layout engine to Taffy 0.13.
 
 ### Migration Notes
 - `Window::blur` and `Window::disable_focus` now take `&mut App` in GPUI 0.9, so blurring also clears pending keystrokes and keybinding-indicator observers. Applications calling these directly must pass the app context, for example `window.blur(cx)`.
 - GPUI 0.9 removed `App::set_keep_alive_without_windows`. Applications that kept themselves alive without windows should use `App::set_quit_mode` or `Application::with_quit_mode` with `QuitMode::Explicit` (previously `true`) or `QuitMode::LastWindowClosed` (previously `false`). On macOS, `QuitMode::Default` now keeps the app alive after the last window closes.
 - `GpuResourceBudget` gained a required `instance_buffer_max_size` field, so struct literals that listed only the atlas and initial instance-buffer sizes no longer compile. Use `GpuResourceBudget::new(atlas, initial)` or add `..GpuResourceBudget::default()`.
 - GPUI 0.9 dropped its pass-through dependency-name Cargo features. This crate already forwards only semantic GPUI features (`accessibility`, `font-kit`, `wayland`, `x11`, `windows-manifest`, `image-format-*`, `image-rayon`), so no feature flags change here.
+- The crate-local `Spring` type in `adabraka_ui::spring` is unchanged and is still what the prelude's `Spring` refers to. GPUI's `SpringConfig` / `SpringAnimation` are a separate analytic API re-exported alongside it; the built-in components continue to animate with the crate's own springs.
+- `Responsive` and the `responsive_*` helpers are unchanged. `container_query` is offered as an additional element-level option and does not replace breakpoint-based responsiveness.
 
 ## [0.8.0] - 2026-07-28
 
