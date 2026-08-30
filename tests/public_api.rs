@@ -157,6 +157,36 @@ fn category_facades_and_direct_aliases_remain_public() {
     let _ = std::any::type_name::<components::badge::Badge>();
 }
 
+#[test]
+fn gpui_09_reexports_remain_public_without_replacing_the_crate_spring() {
+    use adabraka_ui::prelude::{
+        container_query, div, sampled_easing, AnimationPhase, ContainerQuery, Interpolate,
+        ParentElement, QuitMode, Spring, SpringAnimation, SpringConfig, SpringPlayback,
+        SpringState, SpringTarget,
+    };
+
+    fn assert_interpolate<T: Interpolate>() {}
+    fn assert_spring_target<T: SpringTarget>() {}
+
+    assert_interpolate::<gpui::Pixels>();
+    assert_spring_target::<gpui::Pixels>();
+
+    let config = SpringConfig::new(100.0, 20.0, 1.0);
+    let settled = config.step(SpringState::default(), 1.0, 1.0);
+    let animation: SpringAnimation<f32> = SpringAnimation::new(config)
+        .to(1.0)
+        .playback(SpringPlayback::Running);
+    let _ = (settled, animation, sampled_easing(config, 0.001).0);
+    let _ = AnimationPhase(0.5).interpolate(0.0, 1.0);
+    let _ = QuitMode::Explicit;
+
+    let query: ContainerQuery = container_query(|_size, _window, _cx| div().child("sized"));
+    let _ = query;
+
+    // The prelude's `Spring` stays the crate-local one rather than a GPUI type.
+    assert!(std::any::type_name::<Spring>().starts_with("adabraka_ui::"));
+}
+
 #[allow(unused_imports)]
 mod prelude_export_contract {
     use adabraka_ui::prelude::{
