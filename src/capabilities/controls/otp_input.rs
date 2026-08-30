@@ -290,7 +290,7 @@ impl OTPState {
     }
 
     pub fn escape(&mut self, _: &OTPEscape, window: &mut Window, cx: &mut Context<Self>) {
-        window.blur();
+        window.blur(cx);
         cx.emit(OTPInputEvent::Blur);
         cx.notify();
     }
