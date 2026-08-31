@@ -20,7 +20,7 @@ def cargo_contract() -> dict:
         )
     )
     package = next(
-        package for package in metadata["packages"] if package["name"] == "adabraka-ui"
+        package for package in metadata["packages"] if package["name"] == "fc-ui"
     )
     return {
         "features": package["features"],

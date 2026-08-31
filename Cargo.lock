@@ -102,432 +102,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "adabraka-gpui"
-version = "0.9.0"
-source = "git+https://github.com/freefcw/adabraka-gpui?rev=237df3455c9ce10d4fc04b7cac4b9650ca27ad97#237df3455c9ce10d4fc04b7cac4b9650ca27ad97"
-dependencies = [
- "adabraka-gpui-core",
- "adabraka-gpui-platform",
- "log",
-]
-
-[[package]]
-name = "adabraka-gpui-core"
-version = "0.9.0"
-source = "git+https://github.com/freefcw/adabraka-gpui?rev=237df3455c9ce10d4fc04b7cac4b9650ca27ad97#237df3455c9ce10d4fc04b7cac4b9650ca27ad97"
-dependencies = [
- "accesskit",
- "adabraka-gpui-macros",
- "adabraka_collections",
- "adabraka_http_client",
- "adabraka_refineable",
- "adabraka_semantic_version",
- "adabraka_sum_tree",
- "adabraka_util",
- "adabraka_util_macros",
- "anyhow",
- "async-channel 2.5.0",
- "async-task",
- "backtrace",
- "bitflags 2.11.1",
- "core-video",
- "ctor 0.3.6",
- "derive_more",
- "etagere",
- "futures",
- "image",
- "inventory",
- "itertools 0.14.0",
- "libc",
- "log",
- "lyon",
- "num_cpus",
- "parking",
- "parking_lot",
- "postage",
- "profiling",
- "rand 0.9.4",
- "raw-window-handle",
- "regex",
- "resvg",
- "schemars",
- "seahash",
- "serde",
- "serde_json",
- "slotmap",
- "smallvec",
- "smol",
- "smol_str",
- "stacksafe",
- "strum",
- "taffy",
- "thiserror 2.0.18",
- "ttf-parser",
- "usvg",
- "uuid",
- "waker-fn",
- "windows 0.62.2",
- "zed-scap",
-]
-
-[[package]]
-name = "adabraka-gpui-linux"
-version = "0.9.0"
-source = "git+https://github.com/freefcw/adabraka-gpui?rev=237df3455c9ce10d4fc04b7cac4b9650ca27ad97#237df3455c9ce10d4fc04b7cac4b9650ca27ad97"
-dependencies = [
- "accesskit",
- "accesskit_unix",
- "adabraka-gpui-core",
- "adabraka-gpui-wgpu",
- "adabraka_collections",
- "adabraka_http_client",
- "adabraka_util",
- "anyhow",
- "as-raw-xcb-connection",
- "ashpd 0.11.1",
- "async-task",
- "bytemuck",
- "calloop",
- "calloop-wayland-source",
- "cosmic-text",
- "filedescriptor",
- "flume",
- "futures",
- "image",
- "itertools 0.14.0",
- "ksni",
- "libc",
- "log",
- "notify-rust",
- "oo7",
- "open",
- "parking",
- "parking_lot",
- "pathfinder_geometry",
- "profiling",
- "raw-window-handle",
- "smallvec",
- "smol",
- "strum",
- "unicode-bidi",
- "unicode-segmentation",
- "uuid",
- "wayland-backend",
- "wayland-client",
- "wayland-cursor",
- "wayland-protocols",
- "wayland-protocols-plasma",
- "wayland-protocols-wlr",
- "wayland-scanner",
- "x11-clipboard",
- "x11rb",
- "xkbcommon",
- "zed-font-kit",
- "zed-xim",
-]
-
-[[package]]
-name = "adabraka-gpui-macos"
-version = "0.9.0"
-source = "git+https://github.com/freefcw/adabraka-gpui?rev=237df3455c9ce10d4fc04b7cac4b9650ca27ad97#237df3455c9ce10d4fc04b7cac4b9650ca27ad97"
-dependencies = [
- "accesskit",
- "accesskit_macos",
- "adabraka-gpui-core",
- "adabraka_collections",
- "adabraka_media",
- "adabraka_util",
- "anyhow",
- "async-task",
- "bindgen 0.71.1",
- "block",
- "cbindgen",
- "core-foundation 0.10.1",
- "core-foundation-sys",
- "core-graphics 0.24.0",
- "core-text",
- "core-video",
- "ctor 0.3.6",
- "derive_more",
- "dispatch2",
- "etagere",
- "foreign-types",
- "futures",
- "image",
- "itertools 0.14.0",
- "libc",
- "log",
- "metal",
- "objc",
- "objc2 0.6.4",
- "objc2-app-kit 0.3.2",
- "objc2-foundation 0.3.2",
- "parking",
- "parking_lot",
- "pathfinder_geometry",
- "raw-window-handle",
- "smallvec",
- "smol",
- "strum",
- "uuid",
- "zed-font-kit",
-]
-
-[[package]]
-name = "adabraka-gpui-macros"
-version = "0.9.0"
-source = "git+https://github.com/freefcw/adabraka-gpui?rev=237df3455c9ce10d4fc04b7cac4b9650ca27ad97#237df3455c9ce10d4fc04b7cac4b9650ca27ad97"
-dependencies = [
- "heck 0.5.0",
- "proc-macro-crate",
- "proc-macro2",
- "quote",
- "syn",
- "toml_edit 0.25.11+spec-1.1.0",
-]
-
-[[package]]
-name = "adabraka-gpui-platform"
-version = "0.9.0"
-source = "git+https://github.com/freefcw/adabraka-gpui?rev=237df3455c9ce10d4fc04b7cac4b9650ca27ad97#237df3455c9ce10d4fc04b7cac4b9650ca27ad97"
-dependencies = [
- "adabraka-gpui-core",
- "adabraka-gpui-linux",
- "adabraka-gpui-macos",
- "adabraka-gpui-windows",
-]
-
-[[package]]
-name = "adabraka-gpui-wgpu"
-version = "0.9.0"
-source = "git+https://github.com/freefcw/adabraka-gpui?rev=237df3455c9ce10d4fc04b7cac4b9650ca27ad97#237df3455c9ce10d4fc04b7cac4b9650ca27ad97"
-dependencies = [
- "adabraka-gpui-core",
- "adabraka_collections",
- "adabraka_util",
- "anyhow",
- "bytemuck",
- "etagere",
- "image",
- "log",
- "parking_lot",
- "profiling",
- "raw-window-handle",
- "smol",
- "wgpu",
-]
-
-[[package]]
-name = "adabraka-gpui-windows"
-version = "0.9.0"
-source = "git+https://github.com/freefcw/adabraka-gpui?rev=237df3455c9ce10d4fc04b7cac4b9650ca27ad97#237df3455c9ce10d4fc04b7cac4b9650ca27ad97"
-dependencies = [
- "accesskit",
- "accesskit_windows",
- "adabraka-gpui-core",
- "adabraka_collections",
- "adabraka_util",
- "anyhow",
- "async-task",
- "embed-resource",
- "etagere",
- "flume",
- "futures",
- "image",
- "itertools 0.14.0",
- "log",
- "parking",
- "parking_lot",
- "rand 0.9.4",
- "raw-window-handle",
- "smallvec",
- "uuid",
- "windows 0.62.2",
- "windows-core 0.62.2",
- "windows-numerics 0.3.1",
- "windows-registry 0.5.3",
-]
-
-[[package]]
-name = "adabraka-ui"
-version = "0.8.0"
-dependencies = [
- "adabraka-gpui",
- "anyhow",
- "bytes",
- "futures",
- "html5ever",
- "image",
- "markup5ever_rcdom",
- "pulldown-cmark",
- "qrcode",
- "regex",
- "rodio",
- "ropey",
- "serde_json",
- "smallvec",
- "smol",
- "tree-sitter",
- "tree-sitter-bash",
- "tree-sitter-c",
- "tree-sitter-cpp",
- "tree-sitter-css",
- "tree-sitter-go",
- "tree-sitter-html",
- "tree-sitter-java",
- "tree-sitter-javascript",
- "tree-sitter-json",
- "tree-sitter-lua",
- "tree-sitter-md",
- "tree-sitter-ocaml",
- "tree-sitter-php",
- "tree-sitter-python",
- "tree-sitter-ruby",
- "tree-sitter-rust",
- "tree-sitter-scala",
- "tree-sitter-sequel",
- "tree-sitter-toml-ng",
- "tree-sitter-typescript",
- "tree-sitter-yaml",
- "tree-sitter-zig",
- "unicode-segmentation",
- "zed-reqwest",
-]
-
-[[package]]
-name = "adabraka_collections"
-version = "0.5.1"
-source = "git+https://github.com/freefcw/adabraka-gpui?rev=237df3455c9ce10d4fc04b7cac4b9650ca27ad97#237df3455c9ce10d4fc04b7cac4b9650ca27ad97"
-dependencies = [
- "indexmap",
- "rustc-hash 2.1.2",
-]
-
-[[package]]
-name = "adabraka_derive_refineable"
-version = "0.5.1"
-source = "git+https://github.com/freefcw/adabraka-gpui?rev=237df3455c9ce10d4fc04b7cac4b9650ca27ad97#237df3455c9ce10d4fc04b7cac4b9650ca27ad97"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn",
-]
-
-[[package]]
-name = "adabraka_http_client"
-version = "0.5.1"
-source = "git+https://github.com/freefcw/adabraka-gpui?rev=237df3455c9ce10d4fc04b7cac4b9650ca27ad97#237df3455c9ce10d4fc04b7cac4b9650ca27ad97"
-dependencies = [
- "adabraka_util",
- "anyhow",
- "async-compression",
- "async-fs",
- "async-tar",
- "bytes",
- "derive_more",
- "futures",
- "http",
- "http-body",
- "log",
- "parking_lot",
- "serde",
- "serde_json",
- "sha2",
- "tempfile",
- "url",
- "zed-reqwest",
-]
-
-[[package]]
-name = "adabraka_media"
-version = "0.5.1"
-source = "git+https://github.com/freefcw/adabraka-gpui?rev=237df3455c9ce10d4fc04b7cac4b9650ca27ad97#237df3455c9ce10d4fc04b7cac4b9650ca27ad97"
-dependencies = [
- "anyhow",
- "bindgen 0.71.1",
- "core-foundation 0.10.1",
- "core-video",
- "ctor 0.4.3",
- "foreign-types",
- "metal",
- "objc",
-]
-
-[[package]]
-name = "adabraka_refineable"
-version = "0.5.1"
-source = "git+https://github.com/freefcw/adabraka-gpui?rev=237df3455c9ce10d4fc04b7cac4b9650ca27ad97#237df3455c9ce10d4fc04b7cac4b9650ca27ad97"
-dependencies = [
- "adabraka_derive_refineable",
-]
-
-[[package]]
-name = "adabraka_semantic_version"
-version = "0.5.1"
-source = "git+https://github.com/freefcw/adabraka-gpui?rev=237df3455c9ce10d4fc04b7cac4b9650ca27ad97#237df3455c9ce10d4fc04b7cac4b9650ca27ad97"
-dependencies = [
- "anyhow",
- "serde",
-]
-
-[[package]]
-name = "adabraka_sum_tree"
-version = "0.5.1"
-source = "git+https://github.com/freefcw/adabraka-gpui?rev=237df3455c9ce10d4fc04b7cac4b9650ca27ad97#237df3455c9ce10d4fc04b7cac4b9650ca27ad97"
-dependencies = [
- "arrayvec",
- "log",
- "rayon",
-]
-
-[[package]]
-name = "adabraka_util"
-version = "0.6.0"
-source = "git+https://github.com/freefcw/adabraka-gpui?rev=237df3455c9ce10d4fc04b7cac4b9650ca27ad97#237df3455c9ce10d4fc04b7cac4b9650ca27ad97"
-dependencies = [
- "adabraka_collections",
- "adabraka_util_macros",
- "anyhow",
- "async-fs",
- "async_zip",
- "command-fds",
- "dirs",
- "dunce",
- "futures",
- "futures-lite",
- "git2",
- "globset",
- "itertools 0.14.0",
- "libc",
- "log",
- "nix",
- "rand 0.9.4",
- "regex",
- "rust-embed",
- "schemars",
- "serde",
- "serde_json",
- "serde_json_lenient",
- "shlex",
- "smol",
- "take-until",
- "tempfile",
- "tendril 0.4.3",
- "unicase",
- "walkdir",
- "which",
-]
-
-[[package]]
-name = "adabraka_util_macros"
-version = "0.6.0"
-source = "git+https://github.com/freefcw/adabraka-gpui?rev=237df3455c9ce10d4fc04b7cac4b9650ca27ad97#237df3455c9ce10d4fc04b7cac4b9650ca27ad97"
-dependencies = [
- "quote",
- "syn",
-]
-
-[[package]]
 name = "addr2line"
 version = "0.25.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2196,6 +1770,432 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "caf1079563223d5d59d83c85886a56e586cfd5c1a26292e971a0fa266531ac5a"
 
 [[package]]
+name = "fc-gpui"
+version = "0.9.0"
+source = "git+https://github.com/freefcw/fc-gpui?rev=9c1a126f4ffc9fabce8150a61a66a97bdab1b7d8#9c1a126f4ffc9fabce8150a61a66a97bdab1b7d8"
+dependencies = [
+ "fc-gpui-core",
+ "fc-gpui-platform",
+ "log",
+]
+
+[[package]]
+name = "fc-gpui-collections"
+version = "0.5.1"
+source = "git+https://github.com/freefcw/fc-gpui?rev=9c1a126f4ffc9fabce8150a61a66a97bdab1b7d8#9c1a126f4ffc9fabce8150a61a66a97bdab1b7d8"
+dependencies = [
+ "indexmap",
+ "rustc-hash 2.1.2",
+]
+
+[[package]]
+name = "fc-gpui-core"
+version = "0.9.0"
+source = "git+https://github.com/freefcw/fc-gpui?rev=9c1a126f4ffc9fabce8150a61a66a97bdab1b7d8#9c1a126f4ffc9fabce8150a61a66a97bdab1b7d8"
+dependencies = [
+ "accesskit",
+ "anyhow",
+ "async-channel 2.5.0",
+ "async-task",
+ "backtrace",
+ "bitflags 2.11.1",
+ "core-video",
+ "ctor 0.3.6",
+ "derive_more",
+ "etagere",
+ "fc-gpui-collections",
+ "fc-gpui-http-client",
+ "fc-gpui-macros",
+ "fc-gpui-refineable",
+ "fc-gpui-semantic-version",
+ "fc-gpui-sum-tree",
+ "fc-gpui-util",
+ "fc-gpui-util-macros",
+ "futures",
+ "image",
+ "inventory",
+ "itertools 0.14.0",
+ "libc",
+ "log",
+ "lyon",
+ "num_cpus",
+ "parking",
+ "parking_lot",
+ "postage",
+ "profiling",
+ "rand 0.9.4",
+ "raw-window-handle",
+ "regex",
+ "resvg",
+ "schemars",
+ "seahash",
+ "serde",
+ "serde_json",
+ "slotmap",
+ "smallvec",
+ "smol",
+ "smol_str",
+ "stacksafe",
+ "strum",
+ "taffy",
+ "thiserror 2.0.18",
+ "ttf-parser",
+ "usvg",
+ "uuid",
+ "waker-fn",
+ "windows 0.62.2",
+ "zed-scap",
+]
+
+[[package]]
+name = "fc-gpui-derive-refineable"
+version = "0.5.1"
+source = "git+https://github.com/freefcw/fc-gpui?rev=9c1a126f4ffc9fabce8150a61a66a97bdab1b7d8#9c1a126f4ffc9fabce8150a61a66a97bdab1b7d8"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn",
+]
+
+[[package]]
+name = "fc-gpui-http-client"
+version = "0.5.1"
+source = "git+https://github.com/freefcw/fc-gpui?rev=9c1a126f4ffc9fabce8150a61a66a97bdab1b7d8#9c1a126f4ffc9fabce8150a61a66a97bdab1b7d8"
+dependencies = [
+ "anyhow",
+ "async-compression",
+ "async-fs",
+ "async-tar",
+ "bytes",
+ "derive_more",
+ "fc-gpui-util",
+ "futures",
+ "http",
+ "http-body",
+ "log",
+ "parking_lot",
+ "serde",
+ "serde_json",
+ "sha2",
+ "tempfile",
+ "url",
+ "zed-reqwest",
+]
+
+[[package]]
+name = "fc-gpui-linux"
+version = "0.9.0"
+source = "git+https://github.com/freefcw/fc-gpui?rev=9c1a126f4ffc9fabce8150a61a66a97bdab1b7d8#9c1a126f4ffc9fabce8150a61a66a97bdab1b7d8"
+dependencies = [
+ "accesskit",
+ "accesskit_unix",
+ "anyhow",
+ "as-raw-xcb-connection",
+ "ashpd 0.11.1",
+ "async-task",
+ "bytemuck",
+ "calloop",
+ "calloop-wayland-source",
+ "cosmic-text",
+ "fc-gpui-collections",
+ "fc-gpui-core",
+ "fc-gpui-http-client",
+ "fc-gpui-util",
+ "fc-gpui-wgpu",
+ "filedescriptor",
+ "flume",
+ "futures",
+ "image",
+ "itertools 0.14.0",
+ "ksni",
+ "libc",
+ "log",
+ "notify-rust",
+ "oo7",
+ "open",
+ "parking",
+ "parking_lot",
+ "pathfinder_geometry",
+ "profiling",
+ "raw-window-handle",
+ "smallvec",
+ "smol",
+ "strum",
+ "unicode-bidi",
+ "unicode-segmentation",
+ "uuid",
+ "wayland-backend",
+ "wayland-client",
+ "wayland-cursor",
+ "wayland-protocols",
+ "wayland-protocols-plasma",
+ "wayland-protocols-wlr",
+ "wayland-scanner",
+ "x11-clipboard",
+ "x11rb",
+ "xkbcommon",
+ "zed-font-kit",
+ "zed-xim",
+]
+
+[[package]]
+name = "fc-gpui-macos"
+version = "0.9.0"
+source = "git+https://github.com/freefcw/fc-gpui?rev=9c1a126f4ffc9fabce8150a61a66a97bdab1b7d8#9c1a126f4ffc9fabce8150a61a66a97bdab1b7d8"
+dependencies = [
+ "accesskit",
+ "accesskit_macos",
+ "anyhow",
+ "async-task",
+ "bindgen 0.71.1",
+ "block",
+ "cbindgen",
+ "core-foundation 0.10.1",
+ "core-foundation-sys",
+ "core-graphics 0.24.0",
+ "core-text",
+ "core-video",
+ "ctor 0.3.6",
+ "derive_more",
+ "dispatch2",
+ "etagere",
+ "fc-gpui-collections",
+ "fc-gpui-core",
+ "fc-gpui-media",
+ "fc-gpui-util",
+ "foreign-types",
+ "futures",
+ "image",
+ "itertools 0.14.0",
+ "libc",
+ "log",
+ "metal",
+ "objc",
+ "objc2 0.6.4",
+ "objc2-app-kit 0.3.2",
+ "objc2-foundation 0.3.2",
+ "parking",
+ "parking_lot",
+ "pathfinder_geometry",
+ "raw-window-handle",
+ "smallvec",
+ "smol",
+ "strum",
+ "uuid",
+ "zed-font-kit",
+]
+
+[[package]]
+name = "fc-gpui-macros"
+version = "0.9.0"
+source = "git+https://github.com/freefcw/fc-gpui?rev=9c1a126f4ffc9fabce8150a61a66a97bdab1b7d8#9c1a126f4ffc9fabce8150a61a66a97bdab1b7d8"
+dependencies = [
+ "heck 0.5.0",
+ "proc-macro-crate",
+ "proc-macro2",
+ "quote",
+ "syn",
+ "toml_edit 0.25.11+spec-1.1.0",
+]
+
+[[package]]
+name = "fc-gpui-media"
+version = "0.5.1"
+source = "git+https://github.com/freefcw/fc-gpui?rev=9c1a126f4ffc9fabce8150a61a66a97bdab1b7d8#9c1a126f4ffc9fabce8150a61a66a97bdab1b7d8"
+dependencies = [
+ "anyhow",
+ "bindgen 0.71.1",
+ "core-foundation 0.10.1",
+ "core-video",
+ "ctor 0.4.3",
+ "foreign-types",
+ "metal",
+ "objc",
+]
+
+[[package]]
+name = "fc-gpui-platform"
+version = "0.9.0"
+source = "git+https://github.com/freefcw/fc-gpui?rev=9c1a126f4ffc9fabce8150a61a66a97bdab1b7d8#9c1a126f4ffc9fabce8150a61a66a97bdab1b7d8"
+dependencies = [
+ "fc-gpui-core",
+ "fc-gpui-linux",
+ "fc-gpui-macos",
+ "fc-gpui-windows",
+]
+
+[[package]]
+name = "fc-gpui-refineable"
+version = "0.5.1"
+source = "git+https://github.com/freefcw/fc-gpui?rev=9c1a126f4ffc9fabce8150a61a66a97bdab1b7d8#9c1a126f4ffc9fabce8150a61a66a97bdab1b7d8"
+dependencies = [
+ "fc-gpui-derive-refineable",
+]
+
+[[package]]
+name = "fc-gpui-semantic-version"
+version = "0.5.1"
+source = "git+https://github.com/freefcw/fc-gpui?rev=9c1a126f4ffc9fabce8150a61a66a97bdab1b7d8#9c1a126f4ffc9fabce8150a61a66a97bdab1b7d8"
+dependencies = [
+ "anyhow",
+ "serde",
+]
+
+[[package]]
+name = "fc-gpui-sum-tree"
+version = "0.5.1"
+source = "git+https://github.com/freefcw/fc-gpui?rev=9c1a126f4ffc9fabce8150a61a66a97bdab1b7d8#9c1a126f4ffc9fabce8150a61a66a97bdab1b7d8"
+dependencies = [
+ "arrayvec",
+ "log",
+ "rayon",
+]
+
+[[package]]
+name = "fc-gpui-util"
+version = "0.6.0"
+source = "git+https://github.com/freefcw/fc-gpui?rev=9c1a126f4ffc9fabce8150a61a66a97bdab1b7d8#9c1a126f4ffc9fabce8150a61a66a97bdab1b7d8"
+dependencies = [
+ "anyhow",
+ "async-fs",
+ "async_zip",
+ "command-fds",
+ "dirs",
+ "dunce",
+ "fc-gpui-collections",
+ "fc-gpui-util-macros",
+ "futures",
+ "futures-lite",
+ "git2",
+ "globset",
+ "itertools 0.14.0",
+ "libc",
+ "log",
+ "nix",
+ "rand 0.9.4",
+ "regex",
+ "rust-embed",
+ "schemars",
+ "serde",
+ "serde_json",
+ "serde_json_lenient",
+ "shlex",
+ "smol",
+ "take-until",
+ "tempfile",
+ "tendril 0.4.3",
+ "unicase",
+ "walkdir",
+ "which",
+]
+
+[[package]]
+name = "fc-gpui-util-macros"
+version = "0.6.0"
+source = "git+https://github.com/freefcw/fc-gpui?rev=9c1a126f4ffc9fabce8150a61a66a97bdab1b7d8#9c1a126f4ffc9fabce8150a61a66a97bdab1b7d8"
+dependencies = [
+ "quote",
+ "syn",
+]
+
+[[package]]
+name = "fc-gpui-wgpu"
+version = "0.9.0"
+source = "git+https://github.com/freefcw/fc-gpui?rev=9c1a126f4ffc9fabce8150a61a66a97bdab1b7d8#9c1a126f4ffc9fabce8150a61a66a97bdab1b7d8"
+dependencies = [
+ "anyhow",
+ "bytemuck",
+ "etagere",
+ "fc-gpui-collections",
+ "fc-gpui-core",
+ "fc-gpui-util",
+ "image",
+ "log",
+ "parking_lot",
+ "profiling",
+ "raw-window-handle",
+ "smol",
+ "wgpu",
+]
+
+[[package]]
+name = "fc-gpui-windows"
+version = "0.9.0"
+source = "git+https://github.com/freefcw/fc-gpui?rev=9c1a126f4ffc9fabce8150a61a66a97bdab1b7d8#9c1a126f4ffc9fabce8150a61a66a97bdab1b7d8"
+dependencies = [
+ "accesskit",
+ "accesskit_windows",
+ "anyhow",
+ "async-task",
+ "embed-resource",
+ "etagere",
+ "fc-gpui-collections",
+ "fc-gpui-core",
+ "fc-gpui-util",
+ "flume",
+ "futures",
+ "image",
+ "itertools 0.14.0",
+ "log",
+ "parking",
+ "parking_lot",
+ "rand 0.9.4",
+ "raw-window-handle",
+ "smallvec",
+ "uuid",
+ "windows 0.62.2",
+ "windows-core 0.62.2",
+ "windows-numerics 0.3.1",
+ "windows-registry 0.5.3",
+]
+
+[[package]]
+name = "fc-ui"
+version = "0.8.0"
+dependencies = [
+ "anyhow",
+ "bytes",
+ "fc-gpui",
+ "futures",
+ "html5ever",
+ "image",
+ "markup5ever_rcdom",
+ "pulldown-cmark",
+ "qrcode",
+ "regex",
+ "rodio",
+ "ropey",
+ "serde_json",
+ "smallvec",
+ "smol",
+ "tree-sitter",
+ "tree-sitter-bash",
+ "tree-sitter-c",
+ "tree-sitter-cpp",
+ "tree-sitter-css",
+ "tree-sitter-go",
+ "tree-sitter-html",
+ "tree-sitter-java",
+ "tree-sitter-javascript",
+ "tree-sitter-json",
+ "tree-sitter-lua",
+ "tree-sitter-md",
+ "tree-sitter-ocaml",
+ "tree-sitter-php",
+ "tree-sitter-python",
+ "tree-sitter-ruby",
+ "tree-sitter-rust",
+ "tree-sitter-scala",
+ "tree-sitter-sequel",
+ "tree-sitter-toml-ng",
+ "tree-sitter-typescript",
+ "tree-sitter-yaml",
+ "tree-sitter-zig",
+ "unicode-segmentation",
+ "zed-reqwest",
+]
+
+[[package]]
 name = "fdeflate"
 version = "0.3.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3676,8 +3676,9 @@ dependencies = [
 
 [[package]]
 name = "naga"
-version = "29.0.3"
-source = "git+https://github.com/zed-industries/wgpu.git?branch=v29#357a0c56e0070480ad9daea5d2eaa83150b79e88"
+version = "29.0.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b2bf919621e7975acb27d881bae2fb993e0d45c8e0446e85e6272971e00dc8df"
 dependencies = [
  "arrayvec",
  "bit-set",
@@ -7353,8 +7354,9 @@ checksum = "a28ac98ddc8b9274cb41bb4d9d4d5c425b6020c50c46f25559911905610b4a88"
 
 [[package]]
 name = "wgpu"
-version = "29.0.3"
-source = "git+https://github.com/zed-industries/wgpu.git?branch=v29#357a0c56e0070480ad9daea5d2eaa83150b79e88"
+version = "29.0.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "76e8840e1ba2881d4cbb18d2147627a56af426ff064c0401eb0c8410c6325d07"
 dependencies = [
  "arrayvec",
  "bitflags 2.11.1",
@@ -7382,8 +7384,9 @@ dependencies = [
 
 [[package]]
 name = "wgpu-core"
-version = "29.0.3"
-source = "git+https://github.com/zed-industries/wgpu.git?branch=v29#357a0c56e0070480ad9daea5d2eaa83150b79e88"
+version = "29.0.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2f519832254e56965a9940c4af57dcb75f702b6f6fa4a0b172f685395843a4d7"
 dependencies = [
  "arrayvec",
  "bit-set",
@@ -7414,32 +7417,36 @@ dependencies = [
 
 [[package]]
 name = "wgpu-core-deps-apple"
-version = "29.0.3"
-source = "git+https://github.com/zed-industries/wgpu.git?branch=v29#357a0c56e0070480ad9daea5d2eaa83150b79e88"
+version = "29.0.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f5e39e26c4c0e07589e67d18546cf79ff45383659fc72fca4dd293358a0347f3"
 dependencies = [
  "wgpu-hal",
 ]
 
 [[package]]
 name = "wgpu-core-deps-emscripten"
-version = "29.0.3"
-source = "git+https://github.com/zed-industries/wgpu.git?branch=v29#357a0c56e0070480ad9daea5d2eaa83150b79e88"
+version = "29.0.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "01e09be551dc939498bdd5f6b2c66e55ab275dad25825267a08605a80fc9f0af"
 dependencies = [
  "wgpu-hal",
 ]
 
 [[package]]
 name = "wgpu-core-deps-windows-linux-android"
-version = "29.0.3"
-source = "git+https://github.com/zed-industries/wgpu.git?branch=v29#357a0c56e0070480ad9daea5d2eaa83150b79e88"
+version = "29.0.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4e592c1bbef6ad047647ae6e666ebd8cee7a32bb4544d9700ec96cbf73230257"
 dependencies = [
  "wgpu-hal",
 ]
 
 [[package]]
 name = "wgpu-hal"
-version = "29.0.3"
-source = "git+https://github.com/zed-industries/wgpu.git?branch=v29#357a0c56e0070480ad9daea5d2eaa83150b79e88"
+version = "29.0.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "97ace1c17727311c22a46e4e3faf56ea6de81af99dcc839bdfb54857b94d448d"
 dependencies = [
  "android_system_properties",
  "arrayvec",
@@ -7491,8 +7498,9 @@ dependencies = [
 
 [[package]]
 name = "wgpu-naga-bridge"
-version = "29.0.3"
-source = "git+https://github.com/zed-industries/wgpu.git?branch=v29#357a0c56e0070480ad9daea5d2eaa83150b79e88"
+version = "29.0.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "95226013f547544b223281cd16a4fb549aa9dcb562adbda0faae4c73ffbbc161"
 dependencies = [
  "naga",
  "wgpu-types",
@@ -7500,8 +7508,9 @@ dependencies = [
 
 [[package]]
 name = "wgpu-types"
-version = "29.0.3"
-source = "git+https://github.com/zed-industries/wgpu.git?branch=v29#357a0c56e0070480ad9daea5d2eaa83150b79e88"
+version = "29.0.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "84bf84cd9ca8ca45e2b223a3868f1adf9bfc0c66aeac212e76ee7e40fdadf8f5"
 dependencies = [
  "bitflags 2.11.1",
  "bytemuck",

@@ -28,7 +28,7 @@ def cargo_metadata(contract: dict) -> str:
         {
             "packages": [
                 {
-                    "name": "adabraka-ui",
+                    "name": "fc-ui",
                     "features": contract["features"],
                     "targets": [
                         {
