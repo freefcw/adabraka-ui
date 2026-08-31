@@ -14,12 +14,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - Renamed the published package from `adabraka-ui` to `fc-ui`. The crate root stays `adabraka_ui` via an explicit `[lib] name`, so `use adabraka_ui::*;` is unchanged. `repository` and `homepage` now point at `https://github.com/freefcw/fc-ui` (the GitHub repository was renamed from `freefcw/adabraka-ui`, which still redirects) and `documentation` points at `https://docs.rs/fc-ui`. The crates.io package named `adabraka-ui` remains the unrelated upstream Augani 0.3.9 release line.
-- Renamed the GPUI dependency from `adabraka-gpui` to `fc-gpui`, sourced from `https://github.com/freefcw/fc-gpui` at `9c1a126f4ffc9fabce8150a61a66a97bdab1b7d8`. The import name stays `gpui`.
+- Renamed the GPUI dependency from `adabraka-gpui` to `fc-gpui`, now resolved from crates.io as `fc-gpui` 0.9.0 rather than a git revision pin. The import name stays `gpui`.
 - Updated the `adabraka-gpui` dependency baseline from v0.8.1 (`63fb8d8`) to the 0.9 development line at `237df3455c9ce10d4fc04b7cac4b9650ca27ad97`, which also moves the layout engine to Taffy 0.13.
 - Raised `rust-version` from 1.85 to 1.97.1, which is what fc-gpui 0.9 requires. The crate itself still uses edition 2021.
 
 ### Migration Notes
-- Downstream crates should depend on `fc-ui` instead of `adabraka-ui` and on `gpui = { package = "fc-gpui", ... }` instead of `adabraka-gpui`. Rust 1.97.1 or newer is required. No `use` statements change, since both crate roots keep their previous names.
+- Downstream crates should depend on `fc-ui` instead of `adabraka-ui` and on `gpui = { package = "fc-gpui", version = "0.9.0" }` instead of `adabraka-gpui`. The git revision pin is no longer needed, since `fc-gpui` and its workspace crates are published on crates.io. Rust 1.97.1 or newer is required. No `use` statements change, since both crate roots keep their previous names.
 - `Window::blur` and `Window::disable_focus` now take `&mut App` in GPUI 0.9, so blurring also clears pending keystrokes and keybinding-indicator observers. Applications calling these directly must pass the app context, for example `window.blur(cx)`.
 - GPUI 0.9 removed `App::set_keep_alive_without_windows`. Applications that kept themselves alive without windows should use `App::set_quit_mode` or `Application::with_quit_mode` with `QuitMode::Explicit` (previously `true`) or `QuitMode::LastWindowClosed` (previously `false`). On macOS, `QuitMode::Default` now keeps the app alive after the last window closes.
 - `GpuResourceBudget` gained a required `instance_buffer_max_size` field, so struct literals that listed only the atlas and initial instance-buffer sizes no longer compile. Use `GpuResourceBudget::new(atlas, initial)` or add `..GpuResourceBudget::default()`.
