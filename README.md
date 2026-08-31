@@ -5,7 +5,7 @@
 [![Documentation](https://docs.rs/fc-ui/badge.svg)](https://docs.rs/fc-ui)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Rust](https://img.shields.io/badge/rust-1.97.1%2B-orange.svg)](https://www.rust-lang.org/)
-[![GitHub Stars](https://img.shields.io/github/stars/freefcw/adabraka-ui?style=social)](https://github.com/freefcw/adabraka-ui)
+[![GitHub Stars](https://img.shields.io/github/stars/freefcw/fc-ui?style=social)](https://github.com/freefcw/fc-ui)
 
 A comprehensive, professional UI component library for [GPUI](https://github.com/zed-industries/zed), the GPU-accelerated UI framework powering the Zed editor. Inspired by [shadcn/ui](https://ui.shadcn.com/), adabraka-ui provides 85+ polished components for building beautiful desktop applications in Rust.
 
@@ -42,17 +42,17 @@ A powerful task management application used to track the development of this UI 
 
 > **Note:** Requires Rust 1.97.1 or newer on the stable toolchain. Install with: `rustup toolchain install stable`
 
-This crate publishes as `fc-ui`. The GitHub repository is still named
-`freefcw/adabraka-ui`, and the crate root is still `adabraka_ui`, so
-`use adabraka_ui::*;` keeps working. The crates.io package named `adabraka-ui`
-is the unrelated upstream Augani release line (still at 0.3.9) and does not
-track this fork.
+This crate publishes as `fc-ui`. The GitHub repository is now named
+`freefcw/fc-ui` (renamed from `freefcw/adabraka-ui`), and the crate root is
+still `adabraka_ui`, so `use adabraka_ui::*;` keeps working. The crates.io
+package named `adabraka-ui` is the unrelated upstream Augani release line
+(still at 0.3.9) and does not track this fork.
 
 Add fc-ui to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-fc-ui = { git = "https://github.com/freefcw/adabraka-ui" }
+fc-ui = { git = "https://github.com/freefcw/fc-ui" }
 gpui = { package = "fc-gpui", git = "https://github.com/freefcw/fc-gpui" }
 ```
 
@@ -60,7 +60,7 @@ Optional heavier components are feature-gated. Enable them only when needed:
 
 ```toml
 [dependencies]
-fc-ui = { git = "https://github.com/freefcw/adabraka-ui", features = ["editor", "editor-languages", "qrcode"] }
+fc-ui = { git = "https://github.com/freefcw/fc-ui", features = ["editor", "editor-languages", "qrcode"] }
 ```
 
 - `editor`: enables the editor component and pulls in `ropey` plus core `tree-sitter`

@@ -13,7 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Re-exported GPUI 0.9's `QuitMode` from `gpui_ext`, which the already re-exported `App::set_quit_mode` and `Application::with_quit_mode` require.
 
 ### Changed
-- Renamed the published package from `adabraka-ui` to `fc-ui`. The crate root stays `adabraka_ui` via an explicit `[lib] name`, so `use adabraka_ui::*;` is unchanged. `repository` and `homepage` now point at `https://github.com/freefcw/adabraka-ui` (the GitHub repository keeps its old name) and `documentation` points at `https://docs.rs/fc-ui`. The crates.io package named `adabraka-ui` remains the unrelated upstream Augani 0.3.9 release line.
+- Renamed the published package from `adabraka-ui` to `fc-ui`. The crate root stays `adabraka_ui` via an explicit `[lib] name`, so `use adabraka_ui::*;` is unchanged. `repository` and `homepage` now point at `https://github.com/freefcw/fc-ui` (the GitHub repository was renamed from `freefcw/adabraka-ui`, which still redirects) and `documentation` points at `https://docs.rs/fc-ui`. The crates.io package named `adabraka-ui` remains the unrelated upstream Augani 0.3.9 release line.
 - Renamed the GPUI dependency from `adabraka-gpui` to `fc-gpui`, sourced from `https://github.com/freefcw/fc-gpui` at `9c1a126f4ffc9fabce8150a61a66a97bdab1b7d8`. The import name stays `gpui`.
 - Updated the `adabraka-gpui` dependency baseline from v0.8.1 (`63fb8d8`) to the 0.9 development line at `237df3455c9ce10d4fc04b7cac4b9650ca27ad97`, which also moves the layout engine to Taffy 0.13.
 - Raised `rust-version` from 1.85 to 1.97.1, which is what fc-gpui 0.9 requires. The crate itself still uses edition 2021.
