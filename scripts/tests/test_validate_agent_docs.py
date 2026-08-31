@@ -16,7 +16,7 @@ SPEC.loader.exec_module(VALIDATE_AGENT_DOCS)
 
 class ValidateAgentDocsTests(unittest.TestCase):
     def test_reads_rust_version_from_cargo_metadata(self) -> None:
-        metadata = {"packages": [{"name": "adabraka-ui", "rust_version": "1.86"}]}
+        metadata = {"packages": [{"name": "fc-ui", "rust_version": "1.86"}]}
 
         with patch.object(
             VALIDATE_AGENT_DOCS.subprocess,
