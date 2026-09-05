@@ -4,7 +4,7 @@
 [![Downloads](https://img.shields.io/crates/d/fc-ui.svg)](https://crates.io/crates/fc-ui)
 [![Documentation](https://docs.rs/fc-ui/badge.svg)](https://docs.rs/fc-ui)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Rust](https://img.shields.io/badge/rust-1.97.1%2B-orange.svg)](https://www.rust-lang.org/)
+[![Rust](https://img.shields.io/badge/rust-1.90%2B-orange.svg)](https://www.rust-lang.org/)
 [![GitHub Stars](https://img.shields.io/github/stars/freefcw/fc-ui?style=social)](https://github.com/freefcw/fc-ui)
 
 A comprehensive, professional UI component library for [GPUI](https://github.com/zed-industries/zed), the GPU-accelerated UI framework powering the Zed editor. Inspired by [shadcn/ui](https://ui.shadcn.com/), adabraka-ui provides 85+ polished components for building beautiful desktop applications in Rust.
@@ -40,7 +40,7 @@ A powerful task management application used to track the development of this UI 
 
 ## 🚀 Installation
 
-> **Note:** Requires Rust 1.97.1 or newer on the stable toolchain. Install with: `rustup toolchain install stable`
+> **Note:** Requires Rust 1.90 or newer on the stable toolchain. Install with: `rustup toolchain install stable`
 
 This crate publishes as `fc-ui`. The GitHub repository is now named
 `freefcw/fc-ui` (renamed from `freefcw/adabraka-ui`), and the crate root is

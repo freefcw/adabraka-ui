@@ -61,7 +61,7 @@ We love pull requests! Here's how to contribute:
 
 ### Prerequisites
 
-- Rust 1.97.1 or higher
+- Rust 1.90 or higher
 - fc-gpui 0.9 or higher
 - just
 - Git
