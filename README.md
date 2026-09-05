@@ -212,7 +212,7 @@ impl Render for MyApp {
 
 `adabraka_ui::init(cx)` initializes the UI library without changing GPUI's application-wide HTTP client. This is the safe default for applications that already configure networking, proxies, authentication, or certificates.
 
-With the default `http` feature, opt into the built-in client when remote images need it. Its user agent is generated from the crate version, for example `adabraka-ui/0.8.0`:
+With the default `http` feature, opt into the built-in client when remote images need it. Its user agent is generated from the crate version, for example `adabraka-ui/0.8.1`:
 
 ```rust
 adabraka_ui::try_init_with(
