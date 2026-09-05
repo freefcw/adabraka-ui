@@ -11,7 +11,7 @@ documentation = "https://docs.rs/fc-ui"
 readme = "README.md"
 keywords = ["gpui", "ui", "gui", "components", "desktop"]
 categories = ["gui", "rendering"]
-rust-version = "1.97.1"
+rust-version = "1.90"
 exclude = ["assets/icons/**/*", "assets/audio/**/*", "assets/images/**/*"]
 
 # Keep the pre-rename crate root name so `use adabraka_ui::*` keeps working.
