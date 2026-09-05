@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.1] - 2026-09-05
+
 ### Added
 - Re-exported GPUI 0.9's `container_query` element constructor and its `ContainerQuery` element type from `gpui_ext` (and therefore the prelude), so size-aware subtrees can be built without depending on `gpui` directly.
 - Re-exported GPUI 0.9's analytic spring API from `gpui_ext`: `SpringConfig`, `SpringState`, `SpringAnimation`, `SpringPlayback`, `SpringTarget`, `AnimationPhase`, `Interpolate`, and `sampled_easing`. These make the already re-exported `AnimationExt::with_spring` usable and let `sampled_easing` feed `Animation::with_easing`.
@@ -440,7 +442,8 @@ Created comprehensive styled demonstration examples for every component showing 
 - Platform-aware UI elements
 - Responsive layout utilities (VStack, HStack, Grid)
 
-[Unreleased]: https://github.com/Augani/adabraka-ui/compare/v0.8.0...HEAD
+[Unreleased]: https://github.com/freefcw/fc-ui/compare/v0.8.1...HEAD
+[0.8.1]: https://github.com/freefcw/fc-ui/compare/v0.8.0...v0.8.1
 [0.8.0]: https://github.com/Augani/adabraka-ui/compare/v0.7.0...v0.8.0
 [0.7.0]: https://github.com/Augani/adabraka-ui/compare/v0.6.0...v0.7.0
 [0.6.0]: https://github.com/Augani/adabraka-ui/compare/v0.5.0...v0.6.0
